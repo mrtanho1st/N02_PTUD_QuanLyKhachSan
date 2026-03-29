@@ -5,6 +5,7 @@ public class DichVu {
     private String tenDV;
     private double gia;
 
+    // Constructors, getters, and setters
     public DichVu() {
     }
 
