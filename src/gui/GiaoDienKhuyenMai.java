@@ -80,7 +80,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Segoe UI", Font.BOLD, 33));
 
-        JLabel subtitle = new JLabel("Promotion Campaign Management", SwingConstants.CENTER);
+        JLabel subtitle = new JLabel("Khách sạn Imperial Vũng Tàu", SwingConstants.CENTER);
         subtitle.setForeground(new Color(222, 238, 255));
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
