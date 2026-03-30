@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -32,7 +33,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class QLKhachHang extends JFrame {
+public class DatPhong extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,14 +49,14 @@ public class QLKhachHang extends JFrame {
 
     private DefaultTableModel tableModel;
 
-    public QLKhachHang() {
+    public DatPhong() {
         initUI();
     }
 
     private void initUI() {
-        setTitle("Quản lý khách hàng");
+        setTitle("Đặt phòng khách sạn");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1400, 950);
+        setSize(1400, 800);
         setLocationRelativeTo(null);
 
         JPanel root = new JPanel(new BorderLayout(0, 12));
@@ -75,7 +76,7 @@ public class QLKhachHang extends JFrame {
                 BorderFactory.createLineBorder(new Color(12, 47, 88), 1),
                 new EmptyBorder(14, 18, 14, 18)));
 
-        JLabel title = new JLabel("QUẢN LÝ KHÁCH HÀNG", SwingConstants.CENTER);
+        JLabel title = new JLabel("ĐẶT PHÒNG KHÁCH SẠN", SwingConstants.CENTER);
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Segoe UI", Font.BOLD, 33));
 
@@ -103,7 +104,6 @@ public class QLKhachHang extends JFrame {
         body.add(createFilterPanel(), BorderLayout.NORTH);
         body.add(createCenterPanel(), BorderLayout.CENTER);
         body.add(createActionPanel(), BorderLayout.SOUTH);
-
         return body;
     }
 
@@ -115,20 +115,18 @@ public class QLKhachHang extends JFrame {
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         left.setOpaque(false);
 
-        JLabel lbSearch = new JLabel("Tìm kiếm:");
+        JLabel lbSearch = new JLabel("Tìm đơn đặt:");
         lbSearch.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lbSearch.setForeground(TEXT);
 
-        JTextField txtSearch = new JTextField();
+        JTextField txtSearch = createInputField("");
         txtSearch.setPreferredSize(new Dimension(320, 36));
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        txtSearch.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(196, 210, 230), 1),
-                new EmptyBorder(6, 10, 6, 10)));
 
-        JComboBox<String> cbFilter = new JComboBox<String>(new String[] { "Tất cả", "VIP", "Thân thiết", "Mới" });
-        cbFilter.setPreferredSize(new Dimension(150, 36));
-        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        JComboBox<String> cbFilter = new JComboBox<String>(new String[] {
+                "Mã đơn đặt phòng", "Khách hàng", "Số phòng", "Loại phòng", "Tình trạng"
+        });
+        cbFilter.setPreferredSize(new Dimension(170, 36));
+        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         left.add(lbSearch);
         left.add(txtSearch);
@@ -136,7 +134,8 @@ public class QLKhachHang extends JFrame {
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
-        right.add(createPrimaryButton("Lọc dữ liệu", 130, 36));
+        right.add(createPrimaryButton("Lọc", 100, 36));
+        right.add(createGhostButton("Hiển thị tất cả", 140, 36));
 
         filter.add(left, BorderLayout.WEST);
         filter.add(right, BorderLayout.EAST);
@@ -149,7 +148,6 @@ public class QLKhachHang extends JFrame {
 
         center.add(createFormPanel(), BorderLayout.WEST);
         center.add(createTablePanel(), BorderLayout.CENTER);
-
         return center;
     }
 
@@ -157,9 +155,9 @@ public class QLKhachHang extends JFrame {
         JPanel formCard = new RoundedPanel(20, CARD_BG);
         formCard.setLayout(new BorderLayout());
         formCard.setBorder(new EmptyBorder(14, 14, 14, 14));
-        formCard.setPreferredSize(new Dimension(380, 0));
+        formCard.setPreferredSize(new Dimension(500, 0));
 
-        JLabel title = new JLabel("Thông tin khách hàng");
+        JLabel title = new JLabel("Thông tin đơn đặt phòng");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(TEXT);
 
@@ -169,14 +167,46 @@ public class QLKhachHang extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 4, 6, 4);
+        gbc.insets = new Insets(7, 4, 6, 4);
 
-        addFormRow(form, gbc, "Mã KH", new JTextField());
-        addFormRow(form, gbc, "Họ tên", new JTextField());
-        addFormRow(form, gbc, "Số điện thoại", new JTextField());
-        addFormRow(form, gbc, "Email", new JTextField());
-        addFormRow(form, gbc, "CCCD", new JTextField());
-        addFormRow(form, gbc, "Phân loại", new JComboBox<String>(new String[] { "Mới", "Thân thiết", "VIP" }));
+        addFormRow(form, gbc, "Mã đơn đặt phòng", createInputField(""));
+        addFormRow(form, gbc, "Mã khách hàng", createInputField(""));
+        addFormRow(form, gbc, "Họ tên khách", createInputField(""));
+        addFormRow(form, gbc, "Số điện thoại", createInputField(""));
+        addFormRow(form, gbc, "Ngày nhận phòng", createInputField("dd/MM/yyyy"));
+        addFormRow(form, gbc, "Ngày trả phòng", createInputField("dd/MM/yyyy"));
+        addFormRow(form, gbc, "Loại phòng", new JComboBox<String>(new String[] {
+                "Standard", "Superior", "Deluxe", "Suite"
+        }));
+        addFormRow(form, gbc, "Số phòng", createRoomSelectionInput());
+        addFormRow(form, gbc, "Số lượng khách", createInputField("1"));
+        addFormRow(form, gbc, "Ca nhận phòng", new JComboBox<String>(new String[] {
+                "Sáng", "Chiều", "Tối"
+        }));
+        addFormRow(form, gbc, "Trạng thái", new JComboBox<String>(new String[] {
+                "Đã xác nhận", "Chờ xác nhận", "Đã hủy"
+        }));
+
+        JLabel lbNote = new JLabel("Ghi chú");
+        lbNote.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lbNote.setForeground(TEXT);
+        lbNote.setPreferredSize(new Dimension(130, 36));
+
+        JTextArea txtNote = new JTextArea(3, 20);
+        txtNote.setLineWrap(true);
+        txtNote.setWrapStyleWord(true);
+        txtNote.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtNote.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                new EmptyBorder(6, 10, 6, 10)));
+
+        JScrollPane noteScroll = new JScrollPane(txtNote);
+        noteScroll.setPreferredSize(new Dimension(300, 85));
+
+        gbc.gridx = 0;
+        form.add(lbNote, gbc);
+        gbc.gridx = 1;
+        form.add(noteScroll, gbc);
 
         formCard.add(title, BorderLayout.NORTH);
         formCard.add(form, BorderLayout.CENTER);
@@ -188,12 +218,14 @@ public class QLKhachHang extends JFrame {
         tableCard.setLayout(new BorderLayout(0, 10));
         tableCard.setBorder(new EmptyBorder(14, 14, 14, 14));
 
-        JLabel title = new JLabel("Danh sách khách hàng");
+        JLabel title = new JLabel("Danh sách đơn đặt phòng");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(TEXT);
 
-        tableModel = new DefaultTableModel(
-                new Object[] { "Mã KH", "Họ tên", "SĐT", "Email", "CCCD", "Phân loại", "Điểm" }, 0) {
+        tableModel = new DefaultTableModel(new Object[] {
+                "Mã đơn", "Khách hàng", "SĐT", "Nhận phòng", "Trả phòng", "Loại phòng", "Số phòng", "Số khách",
+                "Trạng thái"
+        }, 0) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -212,13 +244,26 @@ public class QLKhachHang extends JFrame {
         table.setShowVerticalLines(false);
         table.setSelectionBackground(new Color(210, 229, 255));
         table.setSelectionForeground(TEXT);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+        table.getColumnModel().getColumn(0).setPreferredWidth(90);
+        table.getColumnModel().getColumn(1).setPreferredWidth(150);
+        table.getColumnModel().getColumn(2).setPreferredWidth(110);
+        table.getColumnModel().getColumn(3).setPreferredWidth(110);
+        table.getColumnModel().getColumn(4).setPreferredWidth(110);
+        table.getColumnModel().getColumn(5).setPreferredWidth(110);
+        table.getColumnModel().getColumn(6).setPreferredWidth(90);
+        table.getColumnModel().getColumn(7).setPreferredWidth(80);
+        table.getColumnModel().getColumn(8).setPreferredWidth(120);
 
         DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
         centerAlign.setHorizontalAlignment(SwingConstants.CENTER);
         table.getColumnModel().getColumn(0).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(2).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(5).setCellRenderer(centerAlign);
+        table.getColumnModel().getColumn(3).setCellRenderer(centerAlign);
+        table.getColumnModel().getColumn(4).setCellRenderer(centerAlign);
         table.getColumnModel().getColumn(6).setCellRenderer(centerAlign);
+        table.getColumnModel().getColumn(7).setCellRenderer(centerAlign);
+        table.getColumnModel().getColumn(8).setCellRenderer(centerAlign);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
@@ -237,9 +282,9 @@ public class QLKhachHang extends JFrame {
         actions.setBorder(new EmptyBorder(4, 10, 4, 10));
 
         actions.add(createGhostButton("Làm mới", 120, 38));
-        actions.add(createPrimaryButton("Thêm", 110, 38));
+        actions.add(createPrimaryButton("Đặt phòng", 120, 38));
         actions.add(createPrimaryButton("Cập nhật", 120, 38));
-        actions.add(createDangerButton("Xóa", 110, 38));
+        actions.add(createDangerButton("Hủy đặt", 120, 38));
 
         return actions;
     }
@@ -248,20 +293,23 @@ public class QLKhachHang extends JFrame {
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Segoe UI", Font.BOLD, 15));
         label.setForeground(TEXT);
-        label.setPreferredSize(new Dimension(110, 36));
+        label.setPreferredSize(new Dimension(130, 36));
 
         if (input instanceof JTextField) {
             JTextField textField = (JTextField) input;
-            textField.setPreferredSize(new Dimension(220, 36));
+            textField.setPreferredSize(new Dimension(300, 36));
             textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             textField.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
                     new EmptyBorder(6, 10, 6, 10)));
+            textField.setEditable(true);
+            textField.setEnabled(true);
+            textField.setFocusable(true);
         }
 
         if (input instanceof JComboBox) {
             JComboBox<?> combo = (JComboBox<?>) input;
-            combo.setPreferredSize(new Dimension(220, 36));
+            combo.setPreferredSize(new Dimension(300, 36));
             combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         }
 
@@ -270,6 +318,33 @@ public class QLKhachHang extends JFrame {
         gbc.gridx = 1;
         container.add(input, gbc);
         gbc.gridy++;
+    }
+
+    private JTextField createInputField(String initialText) {
+        JTextField textField = new JTextField(initialText);
+        textField.setEditable(true);
+        textField.setEnabled(true);
+        textField.setFocusable(true);
+        return textField;
+    }
+
+    private JPanel createRoomSelectionInput() {
+        JPanel roomInput = new JPanel(new BorderLayout(8, 0));
+        roomInput.setOpaque(false);
+        roomInput.setPreferredSize(new Dimension(300, 36));
+
+        JTextField txtSoPhong = createInputField("");
+        txtSoPhong.setPreferredSize(new Dimension(190, 36));
+        txtSoPhong.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtSoPhong.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                new EmptyBorder(6, 10, 6, 10)));
+
+        JButton btnChonPhong = createPrimaryButton("Chọn phòng", 102, 36);
+
+        roomInput.add(txtSoPhong, BorderLayout.CENTER);
+        roomInput.add(btnChonPhong, BorderLayout.EAST);
+        return roomInput;
     }
 
     private JButton createPrimaryButton(String text, int width, int height) {
@@ -309,16 +384,14 @@ public class QLKhachHang extends JFrame {
     }
 
     private void seedData() {
-        tableModel.addRow(new Object[] { "KH001", "Nguyễn Văn An", "0901234567", "an.nguyen@gmail.com", "079204001111",
-                "VIP", 2450 });
-        tableModel.addRow(new Object[] { "KH002", "Trần Thị Bình", "0912345678", "binh.tran@gmail.com", "079204002222",
-                "Thân thiết", 1280 });
-        tableModel.addRow(new Object[] { "KH003", "Lê Hoàng Long", "0933456789", "long.le@gmail.com", "079204003333",
-                "Mới", 120 });
-        tableModel.addRow(new Object[] { "KH004", "Phạm Minh Khoa", "0945566778", "khoa.pham@gmail.com", "079204004444",
-                "Thân thiết", 860 });
-        tableModel.addRow(
-                new Object[] { "KH005", "Đỗ Gia Hân", "0967788990", "han.do@gmail.com", "079204005555", "VIP", 3010 });
+        tableModel.addRow(new Object[] { "DDP001", "Nguyễn Văn An", "0901234567", "30/03/2026", "01/04/2026", "Deluxe",
+                "306", 2, "Đã xác nhận" });
+        tableModel.addRow(new Object[] { "DDP002", "Trần Thị Bình", "0912345678", "31/03/2026", "02/04/2026", "Standard",
+                "208", 1, "Chờ xác nhận" });
+        tableModel.addRow(new Object[] { "DDP003", "Lê Hoàng Long", "0933456789", "29/03/2026", "30/03/2026", "Suite",
+                "501", 3, "Đã xác nhận" });
+        tableModel.addRow(new Object[] { "DDP004", "Phạm Minh Khoa", "0945566778", "28/03/2026", "29/03/2026",
+                "Superior", "402", 2, "Đã hủy" });
     }
 
     private static class GradientPanel extends JPanel {
@@ -368,5 +441,18 @@ public class QLKhachHang extends JFrame {
         }
     }
 
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            applySystemLookAndFeel();
+            new DatPhong().setVisible(true);
+        });
+    }
 
+    private static void applySystemLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            // Keep default look and feel.
+        }
+    }
 }
