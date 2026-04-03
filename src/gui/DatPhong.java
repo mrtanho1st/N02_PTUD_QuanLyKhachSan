@@ -23,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -146,8 +147,19 @@ public class DatPhong extends JFrame {
         JPanel center = new JPanel(new BorderLayout(12, 0));
         center.setOpaque(false);
 
-        center.add(createFormPanel(), BorderLayout.WEST);
-        center.add(createTablePanel(), BorderLayout.CENTER);
+//        center.add(createFormPanel(), BorderLayout.WEST);
+//        center.add(createTablePanel(), BorderLayout.CENTER);
+        
+        JPanel formPanel = createFormPanel();
+        JPanel tablePanel = createTablePanel();
+
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, formPanel, tablePanel);
+        splitPane.setDividerLocation(480);
+        splitPane.setResizeWeight(0.35);
+        splitPane.setBorder(null);
+        splitPane.setOpaque(false);
+
+        center.add(splitPane, BorderLayout.CENTER);
         return center;
     }
 
@@ -155,7 +167,7 @@ public class DatPhong extends JFrame {
         JPanel formCard = new RoundedPanel(20, CARD_BG);
         formCard.setLayout(new BorderLayout());
         formCard.setBorder(new EmptyBorder(14, 14, 14, 14));
-        formCard.setPreferredSize(new Dimension(500, 0));
+        formCard.setPreferredSize(new Dimension(420, 0));
 
         JLabel title = new JLabel("Thông tin đơn đặt phòng");
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
@@ -163,27 +175,28 @@ public class DatPhong extends JFrame {
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(7, 4, 6, 4);
 
-        addFormRow(form, gbc, "Mã đơn đặt phòng", createInputField(""));
+        addFormRow(form, gbc, "Mã đơn", createInputField(""));
         addFormRow(form, gbc, "Mã khách hàng", createInputField(""));
         addFormRow(form, gbc, "Họ tên khách", createInputField(""));
         addFormRow(form, gbc, "Số điện thoại", createInputField(""));
         addFormRow(form, gbc, "Ngày nhận phòng", createInputField("dd/MM/yyyy"));
         addFormRow(form, gbc, "Ngày trả phòng", createInputField("dd/MM/yyyy"));
-        addFormRow(form, gbc, "Loại phòng", new JComboBox<String>(new String[] {
+        addFormRow(form, gbc, "Loại phòng", new JComboBox<>(new String[] {
                 "Standard", "Superior", "Deluxe", "Suite"
         }));
         addFormRow(form, gbc, "Số phòng", createRoomSelectionInput());
         addFormRow(form, gbc, "Số lượng khách", createInputField("1"));
-        addFormRow(form, gbc, "Ca nhận phòng", new JComboBox<String>(new String[] {
+        addFormRow(form, gbc, "Ca nhận phòng", new JComboBox<>(new String[] {
                 "Sáng", "Chiều", "Tối"
         }));
-        addFormRow(form, gbc, "Trạng thái", new JComboBox<String>(new String[] {
+        addFormRow(form, gbc, "Trạng thái", new JComboBox<>(new String[] {
                 "Đã xác nhận", "Chờ xác nhận", "Đã hủy"
         }));
 
@@ -207,9 +220,17 @@ public class DatPhong extends JFrame {
         form.add(lbNote, gbc);
         gbc.gridx = 1;
         form.add(noteScroll, gbc);
+        gbc.gridy++;
+
+        JScrollPane formScroll = new JScrollPane(form);
+        formScroll.setBorder(null);
+        formScroll.getViewport().setBackground(CARD_BG);
+        formScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         formCard.add(title, BorderLayout.NORTH);
-        formCard.add(form, BorderLayout.CENTER);
+        formCard.add(formScroll, BorderLayout.CENTER);
+
         return formCard;
     }
 
