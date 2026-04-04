@@ -27,7 +27,7 @@ cp .env.example .env
 copy .env.example .env
 ```
 
-Sau đó chỉnh giá trị trong `.env` theo máy của bạn:
+Sau đó chỉnh giá trị trong `.env` theo máy của bản thân:
 - `DB_HOST` (mặc định: `127.0.0.1`)
 - `DB_PORT` (mặc định: `1433`)
 - `DB_NAME` (mặc định: `HotelManagement`)
