@@ -13,6 +13,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -21,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -33,21 +37,33 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import dao.DichVuDAO;
+
 public class QLDichVu extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color APP_BG = new Color(238, 243, 250);
+    private static final Color APP_BG = new Color(242, 242, 247);
     private static final Color CARD_BG = new Color(255, 255, 255);
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_PRIMARY_BG = new Color(220, 235, 255);
-    private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
-    private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
+    private static final Color PRIMARY = new Color(0, 122, 255);
+    private static final Color PRIMARY_DARK = new Color(10, 132, 255);
+    private static final Color TEXT = new Color(28, 28, 30);
+    private static final Color BUTTON_TEXT = new Color(28, 28, 30);
+    private static final Color BUTTON_PRIMARY_BG = new Color(0, 122, 255);
+    private static final Color BUTTON_GHOST_BG = new Color(242, 242, 247);
+    private static final Color BUTTON_DANGER_BG = new Color(255, 59, 48);
 
     private DefaultTableModel tableModel;
+    private JTable table;
+    private final DichVuDAO dichVuDAO = new DichVuDAO();
+    private JTextField txtMaDV;
+    private JTextField txtTenDV;
+    private JTextField txtDonGia;
+    private JComboBox<String> cbNhomDV;
+    private JComboBox<String> cbDonViTinh;
+    private JComboBox<String> cbTrangThai;
+    private JTextField txtSearchFilter;
+    private JComboBox<String> cbFilterType;
 
     public QLDichVu() {
         initUI();
@@ -55,7 +71,7 @@ public class QLDichVu extends JFrame {
 
     private void initUI() {
         setTitle("Quản lý dịch vụ khách sạn");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1320, 780);
         setLocationRelativeTo(null);
 
@@ -73,15 +89,15 @@ public class QLDichVu extends JFrame {
         JPanel header = new GradientPanel(PRIMARY_DARK, PRIMARY);
         header.setLayout(new BorderLayout());
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(12, 47, 88), 1),
+                BorderFactory.createLineBorder(new Color(209, 209, 214), 1),
                 new EmptyBorder(14, 18, 14, 18)));
 
         JLabel title = new JLabel("QUẢN LÝ DỊCH VỤ", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
+        title.setForeground(new Color(255, 255, 255));
         title.setFont(new Font("Segoe UI", Font.BOLD, 33));
 
         JLabel subtitle = new JLabel("Khách sạn Imperial Vũng Tàu", SwingConstants.CENTER);
-        subtitle.setForeground(new Color(222, 238, 255));
+        subtitle.setForeground(new Color(232, 242, 255));
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
         JPanel textWrap = new JPanel();
@@ -93,8 +109,24 @@ public class QLDichVu extends JFrame {
         textWrap.add(Box.createVerticalStrut(4));
         textWrap.add(subtitle);
 
+        JButton btnTrangChu = createGhostButton("Trang chủ", 120, 36);
+        btnTrangChu.addActionListener(e -> goToHome());
+
         header.add(textWrap, BorderLayout.CENTER);
+        header.add(btnTrangChu, BorderLayout.EAST);
         return header;
+    }
+
+    private void goToHome() {
+        GiaoDienChinh home = new GiaoDienChinh();
+        int currentState = getExtendedState();
+        if ((currentState & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+            home.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        } else {
+            home.setBounds(getBounds());
+        }
+        home.setVisible(true);
+        dispose();
     }
 
     private JPanel createBody() {
@@ -119,22 +151,35 @@ public class QLDichVu extends JFrame {
         lbSearch.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lbSearch.setForeground(TEXT);
 
-        JTextField txtSearch = createInputField("");
-        txtSearch.setPreferredSize(new Dimension(320, 36));
+        txtSearchFilter = createInputField("");
+        txtSearchFilter.setPreferredSize(new Dimension(320, 36));
 
-        JComboBox<String> cbFilter = new JComboBox<String>(
+        cbFilterType = new JComboBox<String>(
                 new String[] { "Mã dịch vụ", "Tên dịch vụ", "Nhóm dịch vụ", "Trạng thái" });
-        cbFilter.setPreferredSize(new Dimension(180, 36));
-        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cbFilterType.setPreferredSize(new Dimension(180, 36));
+        cbFilterType.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         left.add(lbSearch);
-        left.add(txtSearch);
-        left.add(cbFilter);
+        left.add(txtSearchFilter);
+        left.add(cbFilterType);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
-        right.add(createPrimaryButton("Lọc", 100, 36));
-        right.add(createGhostButton("Hiển thị tất cả", 140, 36));
+        JButton btnLoc = createPrimaryButton("Lọc", 100, 36);
+        JButton btnShowAll = createGhostButton("Hiển thị tất cả", 140, 36);
+        btnLoc.addActionListener(e -> applyFilter());
+        btnShowAll.addActionListener(e -> {
+            txtSearchFilter.setText("");
+            cbFilterType.setSelectedIndex(0);
+            seedData();
+        });
+        FormInputSupport.configureSearchField(txtSearchFilter, this::applyFilter, () -> {
+            txtSearchFilter.setText("");
+            cbFilterType.setSelectedIndex(0);
+            seedData();
+        });
+        right.add(btnLoc);
+        right.add(btnShowAll);
 
         filter.add(left, BorderLayout.WEST);
         filter.add(right, BorderLayout.EAST);
@@ -168,15 +213,19 @@ public class QLDichVu extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(8, 4, 6, 4);
 
-        addFormRow(form, gbc, "Mã dịch vụ", createInputField(""));
-        addFormRow(form, gbc, "Tên dịch vụ", createInputField(""));
-        addFormRow(form, gbc, "Nhóm dịch vụ", new JComboBox<String>(
-                new String[] { "Ẩm thực", "Giặt ủi", "Đưa đón", "Giải trí", "Khác" }));
-        addFormRow(form, gbc, "Đơn vị tính", new JComboBox<String>(
-                new String[] { "Lần", "Suất", "Giờ", "Chai", "Phần" }));
-        addFormRow(form, gbc, "Đơn giá", createInputField("0"));
-        addFormRow(form, gbc, "Trạng thái", new JComboBox<String>(
-                new String[] { "Đang áp dụng", "Tạm ngưng" }));
+        txtMaDV = createInputField("");
+        txtTenDV = createInputField("");
+        cbNhomDV = new JComboBox<String>(new String[] { "Ẩm thực", "Giặt ủi", "Đưa đón", "Giải trí", "Khác" });
+        cbDonViTinh = new JComboBox<String>(new String[] { "Lần", "Suất", "Giờ", "Chai", "Phần" });
+        txtDonGia = createInputField("0");
+        cbTrangThai = new JComboBox<String>(new String[] { "Đang áp dụng", "Tạm ngưng" });
+
+        addFormRow(form, gbc, "Mã dịch vụ", txtMaDV);
+        addFormRow(form, gbc, "Tên dịch vụ", txtTenDV);
+        addFormRow(form, gbc, "Nhóm dịch vụ", cbNhomDV);
+        addFormRow(form, gbc, "Đơn vị tính", cbDonViTinh);
+        addFormRow(form, gbc, "Đơn giá", txtDonGia);
+        addFormRow(form, gbc, "Trạng thái", cbTrangThai);
 
         JLabel lbNote = new JLabel("Mô tả");
         lbNote.setFont(new Font("Segoe UI", Font.BOLD, 15));
@@ -188,7 +237,7 @@ public class QLDichVu extends JFrame {
         txtMoTa.setWrapStyleWord(true);
         txtMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtMoTa.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                BorderFactory.createLineBorder(new Color(229, 229, 234), 1),
                 new EmptyBorder(6, 10, 6, 10)));
 
         JScrollPane moTaScroll = new JScrollPane(txtMoTa);
@@ -224,16 +273,23 @@ public class QLDichVu extends JFrame {
             }
         };
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setRowHeight(34);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.setBackground(new Color(255, 255, 255));
+        table.setForeground(TEXT);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(231, 240, 252));
+        table.getTableHeader().setBackground(new Color(245, 245, 247));
         table.getTableHeader().setForeground(TEXT);
-        table.setGridColor(new Color(229, 236, 247));
+        table.setGridColor(new Color(229, 229, 234));
         table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(210, 229, 255));
+        table.setSelectionBackground(new Color(230, 244, 255));
         table.setSelectionForeground(TEXT);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                fillFormFromSelectedRow();
+            }
+        });
 
         DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
         centerAlign.setHorizontalAlignment(SwingConstants.CENTER);
@@ -244,8 +300,8 @@ public class QLDichVu extends JFrame {
         table.getColumnModel().getColumn(5).setCellRenderer(centerAlign);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(229, 229, 234), 1));
+        scrollPane.getViewport().setBackground(new Color(255, 255, 255));
 
         tableCard.add(title, BorderLayout.NORTH);
         tableCard.add(scrollPane, BorderLayout.CENTER);
@@ -259,10 +315,20 @@ public class QLDichVu extends JFrame {
         actions.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         actions.setBorder(new EmptyBorder(4, 10, 4, 10));
 
-        actions.add(createGhostButton("Làm mới", 120, 38));
-        actions.add(createPrimaryButton("Thêm", 110, 38));
-        actions.add(createPrimaryButton("Cập nhật", 120, 38));
-        actions.add(createDangerButton("Xóa", 110, 38));
+        JButton btnLamMoi = createGhostButton("Làm mới", 120, 38);
+        JButton btnThem = createPrimaryButton("Thêm", 110, 38);
+        JButton btnCapNhat = createPrimaryButton("Cập nhật", 120, 38);
+        JButton btnXoa = createDangerButton("Xóa", 110, 38);
+
+        btnLamMoi.addActionListener(e -> clearForm());
+        btnThem.addActionListener(e -> addDichVu());
+        btnCapNhat.addActionListener(e -> updateDichVu());
+        btnXoa.addActionListener(e -> deleteDichVu());
+
+        actions.add(btnLamMoi);
+        actions.add(btnThem);
+        actions.add(btnCapNhat);
+        actions.add(btnXoa);
 
         return actions;
     }
@@ -278,7 +344,7 @@ public class QLDichVu extends JFrame {
             textField.setPreferredSize(new Dimension(260, 36));
             textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                    BorderFactory.createLineBorder(new Color(229, 229, 234), 1),
                     new EmptyBorder(6, 10, 6, 10)));
             textField.setEditable(true);
             textField.setEnabled(true);
@@ -303,6 +369,7 @@ public class QLDichVu extends JFrame {
         textField.setEditable(true);
         textField.setEnabled(true);
         textField.setFocusable(true);
+        FormInputSupport.configureEditor(textField, true);
         return textField;
     }
 
@@ -310,11 +377,12 @@ public class QLDichVu extends JFrame {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
+        button.setForeground(new Color(255, 255, 255));
         button.setBackground(BUTTON_PRIMARY_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(209, 209, 214), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
@@ -326,7 +394,8 @@ public class QLDichVu extends JFrame {
         button.setBackground(BUTTON_GHOST_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(209, 209, 214), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
@@ -334,20 +403,162 @@ public class QLDichVu extends JFrame {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
+        button.setForeground(new Color(255, 255, 255));
         button.setBackground(BUTTON_DANGER_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(235, 184, 184), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(255, 179, 171), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
     private void seedData() {
+        try {
+            List<Object[]> rows = dichVuDAO.findAllRows();
+            loadRows(rows);
+        } catch (SQLException e) {
+            loadFallbackData();
+            System.err.println("Khong the tai du lieu DichVu tu SQL Server: " + e.getMessage());
+        }
+    }
+
+    private void loadFallbackData() {
+        tableModel.setRowCount(0);
         tableModel.addRow(new Object[] { "DV001", "Bữa sáng buffet", "Ẩm thực", "Suất", "180,000", "Đang áp dụng" });
         tableModel.addRow(new Object[] { "DV002", "Giặt ủi nhanh", "Giặt ủi", "Lần", "85,000", "Đang áp dụng" });
         tableModel.addRow(new Object[] { "DV003", "Đưa đón sân bay", "Đưa đón", "Lần", "350,000", "Đang áp dụng" });
         tableModel.addRow(new Object[] { "DV004", "Karaoke phòng VIP", "Giải trí", "Giờ", "250,000", "Tạm ngưng" });
         tableModel.addRow(new Object[] { "DV005", "Minibar", "Ẩm thực", "Phần", "120,000", "Đang áp dụng" });
+    }
+
+    private void loadRows(List<Object[]> rows) {
+        tableModel.setRowCount(0);
+        for (Object[] row : rows) {
+            tableModel.addRow(row);
+        }
+    }
+
+    private void applyFilter() {
+        String keyword = txtSearchFilter.getText().trim();
+        String filterBy = String.valueOf(cbFilterType.getSelectedItem());
+        try {
+            List<Object[]> rows = dichVuDAO.search(keyword, filterBy);
+            loadRows(rows);
+            table.clearSelection();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Lọc dữ liệu thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void fillFormFromSelectedRow() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            return;
+        }
+        txtMaDV.setText(String.valueOf(tableModel.getValueAt(row, 0)));
+        txtTenDV.setText(String.valueOf(tableModel.getValueAt(row, 1)));
+        cbNhomDV.setSelectedItem(String.valueOf(tableModel.getValueAt(row, 2)));
+        cbDonViTinh.setSelectedItem(String.valueOf(tableModel.getValueAt(row, 3)));
+        txtDonGia.setText(String.valueOf(tableModel.getValueAt(row, 4)).replace(",", ""));
+        cbTrangThai.setSelectedItem(String.valueOf(tableModel.getValueAt(row, 5)));
+    }
+
+    private void clearForm() {
+        txtMaDV.setText("");
+        txtTenDV.setText("");
+        txtDonGia.setText("0");
+        cbNhomDV.setSelectedIndex(0);
+        cbDonViTinh.setSelectedIndex(0);
+        cbTrangThai.setSelectedIndex(0);
+        table.clearSelection();
+    }
+
+    private void addDichVu() {
+        String maDV = txtMaDV.getText().trim();
+        String tenDV = txtTenDV.getText().trim();
+        String nhomDV = String.valueOf(cbNhomDV.getSelectedItem());
+        String donViTinh = String.valueOf(cbDonViTinh.getSelectedItem());
+        String trangThai = String.valueOf(cbTrangThai.getSelectedItem());
+
+        if (maDV.isEmpty() || tenDV.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập Mã dịch vụ và Tên dịch vụ.");
+            return;
+        }
+
+        try {
+            BigDecimal donGia = parseMoney(txtDonGia.getText().trim());
+            boolean inserted = dichVuDAO.insert(maDV, tenDV, nhomDV, donViTinh, donGia, trangThai);
+            if (inserted) {
+                seedData();
+                clearForm();
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Thêm dịch vụ thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void updateDichVu() {
+        String maDV = txtMaDV.getText().trim();
+        if (maDV.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn dịch vụ cần cập nhật.");
+            return;
+        }
+
+        String tenDV = txtTenDV.getText().trim();
+        String nhomDV = String.valueOf(cbNhomDV.getSelectedItem());
+        String donViTinh = String.valueOf(cbDonViTinh.getSelectedItem());
+        String trangThai = String.valueOf(cbTrangThai.getSelectedItem());
+
+        try {
+            BigDecimal donGia = parseMoney(txtDonGia.getText().trim());
+            boolean updated = dichVuDAO.update(maDV, tenDV, nhomDV, donViTinh, donGia, trangThai);
+            if (updated) {
+                seedData();
+                clearForm();
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Cập nhật dịch vụ thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void deleteDichVu() {
+        String maDV = txtMaDV.getText().trim();
+        if (maDV.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn dịch vụ cần xóa.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Xóa dịch vụ " + maDV + "?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            boolean deleted = dichVuDAO.deleteById(maDV);
+            if (deleted) {
+                seedData();
+                clearForm();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Xóa dịch vụ thất bại: " + ex.getMessage());
+        }
+    }
+
+    private BigDecimal parseMoney(String rawValue) {
+        String normalized = rawValue.replace(",", "").trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập đơn giá.");
+        }
+        try {
+            return new BigDecimal(normalized);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Đơn giá không hợp lệ.");
+        }
     }
 
     private static class GradientPanel extends JPanel {
@@ -390,7 +601,7 @@ public class QLDichVu extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(color);
             g2d.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-            g2d.setColor(new Color(214, 226, 243));
+            g2d.setColor(new Color(229, 229, 234));
             g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
             g2d.dispose();
             super.paintComponent(g);

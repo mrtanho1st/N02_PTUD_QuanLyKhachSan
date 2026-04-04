@@ -13,6 +13,17 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -32,23 +43,30 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import connection.ConnectDB;
+
 public class QLPhong extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color APP_BG = new Color(238, 243, 250);
-    private static final Color CARD_BG = new Color(255, 255, 255);
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_PRIMARY_BG = new Color(220, 235, 255);
-    private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
-    private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
+    private static final Color APP_BG = new Color(20, 22, 26);
+    private static final Color CARD_BG = new Color(28, 31, 36);
+    private static final Color PRIMARY = new Color(201, 168, 106);
+    private static final Color PRIMARY_DARK = new Color(94, 74, 43);
+    private static final Color TEXT = new Color(231, 224, 206);
+    private static final Color BUTTON_TEXT = new Color(231, 224, 206);
+    private static final Color BUTTON_PRIMARY_BG = new Color(110, 89, 56);
+    private static final Color BUTTON_GHOST_BG = new Color(52, 56, 64);
+    private static final Color BUTTON_DANGER_BG = new Color(110, 64, 64);
 
     private DefaultTableModel tableModel;
+    private final DecimalFormat moneyFormat;
 
     public QLPhong() {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator(',');
+        symbols.setDecimalSeparator('.');
+        moneyFormat = new DecimalFormat("#,##0", symbols);
         initUI();
     }
 
@@ -72,7 +90,7 @@ public class QLPhong extends JFrame {
         JPanel header = new GradientPanel(PRIMARY_DARK, PRIMARY);
         header.setLayout(new BorderLayout());
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(12, 47, 88), 1),
+                BorderFactory.createLineBorder(new Color(138, 112, 70), 1),
                 new EmptyBorder(14, 18, 14, 18)));
 
         JLabel title = new JLabel("QUẢN LÝ PHÒNG", SwingConstants.CENTER);
@@ -80,7 +98,7 @@ public class QLPhong extends JFrame {
         title.setFont(new Font("Segoe UI", Font.BOLD, 33));
 
         JLabel subtitle = new JLabel("Khách sạn Imperial Vũng Tàu", SwingConstants.CENTER);
-        subtitle.setForeground(new Color(222, 238, 255));
+        subtitle.setForeground(new Color(223, 206, 170));
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
         JPanel textWrap = new JPanel();
@@ -206,11 +224,11 @@ public class QLPhong extends JFrame {
         table.setRowHeight(34);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(231, 240, 252));
+        table.getTableHeader().setBackground(new Color(50, 45, 38));
         table.getTableHeader().setForeground(TEXT);
-        table.setGridColor(new Color(229, 236, 247));
+        table.setGridColor(new Color(72, 66, 54));
         table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(210, 229, 255));
+        table.setSelectionBackground(new Color(109, 88, 52));
         table.setSelectionForeground(TEXT);
 
         DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
@@ -223,8 +241,8 @@ public class QLPhong extends JFrame {
         table.getColumnModel().getColumn(5).setCellRenderer(centerAlign);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(86, 78, 62), 1));
+        scrollPane.getViewport().setBackground(new Color(28, 31, 36));
 
         tableCard.add(title, BorderLayout.NORTH);
         tableCard.add(scrollPane, BorderLayout.CENTER);
@@ -257,7 +275,7 @@ public class QLPhong extends JFrame {
             textField.setPreferredSize(new Dimension(260, 36));
             textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                    BorderFactory.createLineBorder(new Color(86, 78, 62), 1),
                     new EmptyBorder(6, 10, 6, 10)));
             textField.setEditable(true);
             textField.setEnabled(true);
@@ -282,7 +300,28 @@ public class QLPhong extends JFrame {
         textField.setEditable(true);
         textField.setEnabled(true);
         textField.setFocusable(true);
+        configureSafeTextInput(textField);
         return textField;
+    }
+
+    private void configureSafeTextInput(JTextField textField) {
+        textField.setDragEnabled(false);
+        textField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                JTextField field = (JTextField) e.getComponent();
+                int caretPosition = field.getCaretPosition();
+                field.select(caretPosition, caretPosition);
+            }
+        });
+        textField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isMiddleMouseButton(e)) {
+                    e.consume();
+                }
+            }
+        });
     }
 
     private JButton createPrimaryButton(String text, int width, int height) {
@@ -293,7 +332,7 @@ public class QLPhong extends JFrame {
         button.setBackground(BUTTON_PRIMARY_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(138, 112, 70), 1));
         return button;
     }
 
@@ -305,7 +344,7 @@ public class QLPhong extends JFrame {
         button.setBackground(BUTTON_GHOST_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(138, 112, 70), 1));
         return button;
     }
 
@@ -317,16 +356,31 @@ public class QLPhong extends JFrame {
         button.setBackground(BUTTON_DANGER_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(235, 184, 184), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(150, 90, 90), 1));
         return button;
     }
 
     private void seedData() {
-        tableModel.addRow(new Object[] { "P001", "101", 2, "850,000", "Standard", "Trống" });
-        tableModel.addRow(new Object[] { "P002", "205", 3, "1,250,000", "Superior", "Đang sử dụng" });
-        tableModel.addRow(new Object[] { "P003", "306", 4, "1,800,000", "Deluxe", "Đang dọn" });
-        tableModel.addRow(new Object[] { "P004", "501", 4, "2,600,000", "Suite", "Trống" });
-        tableModel.addRow(new Object[] { "P005", "402", 2, "1,100,000", "Superior", "Bảo trì" });
+        String sql = "SELECT MaPhong, SoPhong, SoNguoiToiDa, GiaPhong, LoaiPhong, TrangThai FROM dbo.Phong ORDER BY MaPhong";
+        try {
+            Connection connection = ConnectDB.getInstance().getConnection();
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                    ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    BigDecimal giaPhong = resultSet.getBigDecimal("GiaPhong");
+                    tableModel.addRow(new Object[] {
+                            resultSet.getString("MaPhong"),
+                            resultSet.getString("SoPhong"),
+                            resultSet.getInt("SoNguoiToiDa"),
+                            moneyFormat.format(giaPhong),
+                            resultSet.getString("LoaiPhong"),
+                            resultSet.getString("TrangThai")
+                    });
+                }
+            }
+        } catch (SQLException ignored) {
+            // Keep table empty if DB is unavailable.
+        }
     }
 
     private static class GradientPanel extends JPanel {
@@ -369,7 +423,7 @@ public class QLPhong extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(color);
             g2d.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-            g2d.setColor(new Color(214, 226, 243));
+            g2d.setColor(new Color(86, 78, 62));
             g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
             g2d.dispose();
             super.paintComponent(g);

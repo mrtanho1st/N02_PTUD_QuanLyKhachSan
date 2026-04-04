@@ -13,6 +13,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.sql.SQLException;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -21,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -32,21 +35,33 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import dao.KhachHangDAO;
+
 public class QLKhachHang extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color APP_BG = new Color(238, 243, 250);
+    private static final Color APP_BG = new Color(242, 242, 247);
     private static final Color CARD_BG = new Color(255, 255, 255);
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_PRIMARY_BG = new Color(220, 235, 255);
-    private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
-    private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
+    private static final Color PRIMARY = new Color(0, 122, 255);
+    private static final Color PRIMARY_DARK = new Color(10, 132, 255);
+    private static final Color TEXT = new Color(28, 28, 30);
+    private static final Color BUTTON_TEXT = new Color(28, 28, 30);
+    private static final Color BUTTON_PRIMARY_BG = new Color(0, 122, 255);
+    private static final Color BUTTON_GHOST_BG = new Color(242, 242, 247);
+    private static final Color BUTTON_DANGER_BG = new Color(255, 59, 48);
 
     private DefaultTableModel tableModel;
+    private JTable table;
+    private final KhachHangDAO khachHangDAO = new KhachHangDAO();
+    private JTextField txtMaKH;
+    private JTextField txtHoTen;
+    private JTextField txtSoDienThoai;
+    private JTextField txtEmail;
+    private JTextField txtCCCD;
+    private JComboBox<String> cbPhanLoai;
+    private JTextField txtSearchFilter;
+    private JComboBox<String> cbFilterPhanLoai;
 
     public QLKhachHang() {
         initUI();
@@ -54,7 +69,7 @@ public class QLKhachHang extends JFrame {
 
     private void initUI() {
         setTitle("Quản lý khách hàng");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1400, 950);
         setLocationRelativeTo(null);
 
@@ -72,15 +87,15 @@ public class QLKhachHang extends JFrame {
         JPanel header = new GradientPanel(PRIMARY_DARK, PRIMARY);
         header.setLayout(new BorderLayout());
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(12, 47, 88), 1),
+                BorderFactory.createLineBorder(new Color(209, 209, 214), 1),
                 new EmptyBorder(14, 18, 14, 18)));
 
         JLabel title = new JLabel("QUẢN LÝ KHÁCH HÀNG", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
+        title.setForeground(new Color(255, 255, 255));
         title.setFont(new Font("Segoe UI", Font.BOLD, 33));
 
         JLabel subtitle = new JLabel("Khách sạn Imperial Vũng Tàu", SwingConstants.CENTER);
-        subtitle.setForeground(new Color(222, 238, 255));
+        subtitle.setForeground(new Color(232, 242, 255));
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
         JPanel textWrap = new JPanel();
@@ -92,8 +107,24 @@ public class QLKhachHang extends JFrame {
         textWrap.add(Box.createVerticalStrut(4));
         textWrap.add(subtitle);
 
+        JButton btnTrangChu = createGhostButton("Trang chủ", 120, 36);
+        btnTrangChu.addActionListener(e -> goToHome());
+
         header.add(textWrap, BorderLayout.CENTER);
+        header.add(btnTrangChu, BorderLayout.EAST);
         return header;
+    }
+
+    private void goToHome() {
+        GiaoDienChinh home = new GiaoDienChinh();
+        int currentState = getExtendedState();
+        if ((currentState & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+            home.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        } else {
+            home.setBounds(getBounds());
+        }
+        home.setVisible(true);
+        dispose();
     }
 
     private JPanel createBody() {
@@ -119,24 +150,31 @@ public class QLKhachHang extends JFrame {
         lbSearch.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lbSearch.setForeground(TEXT);
 
-        JTextField txtSearch = new JTextField();
-        txtSearch.setPreferredSize(new Dimension(320, 36));
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        txtSearch.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(196, 210, 230), 1),
+        txtSearchFilter = new JTextField();
+        txtSearchFilter.setPreferredSize(new Dimension(320, 36));
+        txtSearchFilter.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        txtSearchFilter.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(92, 84, 68), 1),
                 new EmptyBorder(6, 10, 6, 10)));
+        FormInputSupport.configureSearchField(txtSearchFilter, this::applyFilter, () -> {
+            txtSearchFilter.setText("");
+            cbFilterPhanLoai.setSelectedIndex(0);
+            seedData();
+        });
 
-        JComboBox<String> cbFilter = new JComboBox<String>(new String[] { "Tất cả", "VIP", "Thân thiết", "Mới" });
-        cbFilter.setPreferredSize(new Dimension(150, 36));
-        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        cbFilterPhanLoai = new JComboBox<String>(new String[] { "Tất cả", "VIP", "Thân thiết", "Mới" });
+        cbFilterPhanLoai.setPreferredSize(new Dimension(150, 36));
+        cbFilterPhanLoai.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
         left.add(lbSearch);
-        left.add(txtSearch);
-        left.add(cbFilter);
+        left.add(txtSearchFilter);
+        left.add(cbFilterPhanLoai);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
-        right.add(createPrimaryButton("Lọc dữ liệu", 130, 36));
+        JButton btnLoc = createPrimaryButton("Lọc dữ liệu", 130, 36);
+        btnLoc.addActionListener(e -> applyFilter());
+        right.add(btnLoc);
 
         filter.add(left, BorderLayout.WEST);
         filter.add(right, BorderLayout.EAST);
@@ -171,12 +209,19 @@ public class QLKhachHang extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(8, 4, 6, 4);
 
-        addFormRow(form, gbc, "Mã KH", new JTextField());
-        addFormRow(form, gbc, "Họ tên", new JTextField());
-        addFormRow(form, gbc, "Số điện thoại", new JTextField());
-        addFormRow(form, gbc, "Email", new JTextField());
-        addFormRow(form, gbc, "CCCD", new JTextField());
-        addFormRow(form, gbc, "Phân loại", new JComboBox<String>(new String[] { "Mới", "Thân thiết", "VIP" }));
+        txtMaKH = new JTextField();
+        txtHoTen = new JTextField();
+        txtSoDienThoai = new JTextField();
+        txtEmail = new JTextField();
+        txtCCCD = new JTextField();
+        cbPhanLoai = new JComboBox<String>(new String[] { "Mới", "Thân thiết", "VIP" });
+
+        addFormRow(form, gbc, "Mã KH", txtMaKH);
+        addFormRow(form, gbc, "Họ tên", txtHoTen);
+        addFormRow(form, gbc, "Số điện thoại", txtSoDienThoai);
+        addFormRow(form, gbc, "Email", txtEmail);
+        addFormRow(form, gbc, "CCCD", txtCCCD);
+        addFormRow(form, gbc, "Phân loại", cbPhanLoai);
 
         formCard.add(title, BorderLayout.NORTH);
         formCard.add(form, BorderLayout.CENTER);
@@ -202,16 +247,23 @@ public class QLKhachHang extends JFrame {
             }
         };
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setRowHeight(34);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.setBackground(new Color(255, 255, 255));
+        table.setForeground(TEXT);
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(231, 240, 252));
+        table.getTableHeader().setBackground(new Color(245, 245, 247));
         table.getTableHeader().setForeground(TEXT);
-        table.setGridColor(new Color(229, 236, 247));
+        table.setGridColor(new Color(229, 229, 234));
         table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(210, 229, 255));
+        table.setSelectionBackground(new Color(230, 244, 255));
         table.setSelectionForeground(TEXT);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                fillFormFromSelectedRow();
+            }
+        });
 
         DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
         centerAlign.setHorizontalAlignment(SwingConstants.CENTER);
@@ -221,8 +273,8 @@ public class QLKhachHang extends JFrame {
         table.getColumnModel().getColumn(6).setCellRenderer(centerAlign);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(229, 229, 234), 1));
+        scrollPane.getViewport().setBackground(new Color(255, 255, 255));
 
         tableCard.add(title, BorderLayout.NORTH);
         tableCard.add(scrollPane, BorderLayout.CENTER);
@@ -236,10 +288,20 @@ public class QLKhachHang extends JFrame {
         actions.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         actions.setBorder(new EmptyBorder(4, 10, 4, 10));
 
-        actions.add(createGhostButton("Làm mới", 120, 38));
-        actions.add(createPrimaryButton("Thêm", 110, 38));
-        actions.add(createPrimaryButton("Cập nhật", 120, 38));
-        actions.add(createDangerButton("Xóa", 110, 38));
+        JButton btnLamMoi = createGhostButton("Làm mới", 120, 38);
+        JButton btnThem = createPrimaryButton("Thêm", 110, 38);
+        JButton btnCapNhat = createPrimaryButton("Cập nhật", 120, 38);
+        JButton btnXoa = createDangerButton("Xóa", 110, 38);
+
+        btnLamMoi.addActionListener(e -> clearForm());
+        btnThem.addActionListener(e -> addKhachHang());
+        btnCapNhat.addActionListener(e -> updateKhachHang());
+        btnXoa.addActionListener(e -> deleteKhachHang());
+
+        actions.add(btnLamMoi);
+        actions.add(btnThem);
+        actions.add(btnCapNhat);
+        actions.add(btnXoa);
 
         return actions;
     }
@@ -255,8 +317,9 @@ public class QLKhachHang extends JFrame {
             textField.setPreferredSize(new Dimension(220, 36));
             textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                    BorderFactory.createLineBorder(new Color(229, 229, 234), 1),
                     new EmptyBorder(6, 10, 6, 10)));
+            FormInputSupport.configureEditor(textField, true);
         }
 
         if (input instanceof JComboBox) {
@@ -276,11 +339,12 @@ public class QLKhachHang extends JFrame {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
+        button.setForeground(new Color(255, 255, 255));
         button.setBackground(BUTTON_PRIMARY_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(209, 209, 214), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
@@ -292,7 +356,8 @@ public class QLKhachHang extends JFrame {
         button.setBackground(BUTTON_GHOST_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(209, 209, 214), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
@@ -300,15 +365,27 @@ public class QLKhachHang extends JFrame {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
+        button.setForeground(new Color(255, 255, 255));
         button.setBackground(BUTTON_DANGER_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(235, 184, 184), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(255, 179, 171), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
     private void seedData() {
+        try {
+            List<Object[]> rows = khachHangDAO.findAllRows();
+            loadRows(rows);
+        } catch (SQLException e) {
+            loadFallbackData();
+            System.err.println("Khong the tai du lieu KhachHang tu SQL Server: " + e.getMessage());
+        }
+    }
+
+    private void loadFallbackData() {
+        tableModel.setRowCount(0);
         tableModel.addRow(new Object[] { "KH001", "Nguyễn Văn An", "0901234567", "an.nguyen@gmail.com", "079204001111",
                 "VIP", 2450 });
         tableModel.addRow(new Object[] { "KH002", "Trần Thị Bình", "0912345678", "binh.tran@gmail.com", "079204002222",
@@ -319,6 +396,120 @@ public class QLKhachHang extends JFrame {
                 "Thân thiết", 860 });
         tableModel.addRow(
                 new Object[] { "KH005", "Đỗ Gia Hân", "0967788990", "han.do@gmail.com", "079204005555", "VIP", 3010 });
+    }
+
+    private void loadRows(List<Object[]> rows) {
+        tableModel.setRowCount(0);
+        for (Object[] row : rows) {
+            tableModel.addRow(row);
+        }
+    }
+
+    private void applyFilter() {
+        String keyword = txtSearchFilter.getText().trim();
+        String phanLoai = String.valueOf(cbFilterPhanLoai.getSelectedItem());
+        try {
+            List<Object[]> rows = khachHangDAO.search(keyword, phanLoai);
+            loadRows(rows);
+            table.clearSelection();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Lọc dữ liệu thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void fillFormFromSelectedRow() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            return;
+        }
+        txtMaKH.setText(String.valueOf(tableModel.getValueAt(row, 0)));
+        txtHoTen.setText(String.valueOf(tableModel.getValueAt(row, 1)));
+        txtSoDienThoai.setText(String.valueOf(tableModel.getValueAt(row, 2)));
+        txtEmail.setText(String.valueOf(tableModel.getValueAt(row, 3)));
+        txtCCCD.setText(String.valueOf(tableModel.getValueAt(row, 4)));
+        cbPhanLoai.setSelectedItem(String.valueOf(tableModel.getValueAt(row, 5)));
+    }
+
+    private void clearForm() {
+        txtMaKH.setText("");
+        txtHoTen.setText("");
+        txtSoDienThoai.setText("");
+        txtEmail.setText("");
+        txtCCCD.setText("");
+        cbPhanLoai.setSelectedIndex(0);
+        table.clearSelection();
+    }
+
+    private void addKhachHang() {
+        String maKH = txtMaKH.getText().trim();
+        String hoTen = txtHoTen.getText().trim();
+        String soDienThoai = txtSoDienThoai.getText().trim();
+        String email = txtEmail.getText().trim();
+        String cccd = txtCCCD.getText().trim();
+        String phanLoai = String.valueOf(cbPhanLoai.getSelectedItem());
+
+        if (maKH.isEmpty() || hoTen.isEmpty() || soDienThoai.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập Mã KH, Họ tên và Số điện thoại.");
+            return;
+        }
+
+        try {
+            boolean inserted = khachHangDAO.insert(maKH, hoTen, soDienThoai, email, cccd, phanLoai, 0);
+            if (inserted) {
+                seedData();
+                clearForm();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Thêm khách hàng thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void updateKhachHang() {
+        String maKH = txtMaKH.getText().trim();
+        if (maKH.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng cần cập nhật.");
+            return;
+        }
+
+        String hoTen = txtHoTen.getText().trim();
+        String soDienThoai = txtSoDienThoai.getText().trim();
+        String email = txtEmail.getText().trim();
+        String cccd = txtCCCD.getText().trim();
+        String phanLoai = String.valueOf(cbPhanLoai.getSelectedItem());
+
+        try {
+            boolean updated = khachHangDAO.update(maKH, hoTen, soDienThoai, email, cccd, phanLoai, 0);
+            if (updated) {
+                seedData();
+                clearForm();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Cập nhật khách hàng thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void deleteKhachHang() {
+        String maKH = txtMaKH.getText().trim();
+        if (maKH.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng cần xóa.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Xóa khách hàng " + maKH + "?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            boolean deleted = khachHangDAO.deleteById(maKH);
+            if (deleted) {
+                seedData();
+                clearForm();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Xóa khách hàng thất bại: " + ex.getMessage());
+        }
     }
 
     private static class GradientPanel extends JPanel {
@@ -361,7 +552,7 @@ public class QLKhachHang extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(color);
             g2d.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-            g2d.setColor(new Color(214, 226, 243));
+            g2d.setColor(new Color(229, 229, 234));
             g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
             g2d.dispose();
             super.paintComponent(g);

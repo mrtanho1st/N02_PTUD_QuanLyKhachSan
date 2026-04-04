@@ -13,6 +13,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.math.BigDecimal;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -21,6 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -32,21 +38,38 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
+
+import dao.HoaDonDAO;
+
 public class QLHoaDon extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color APP_BG = new Color(238, 243, 250);
-    private static final Color CARD_BG = new Color(255, 255, 255);
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_PRIMARY_BG = new Color(220, 235, 255);
-    private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
-    private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
+    private static final Color APP_BG = new Color(20, 22, 26);
+    private static final Color CARD_BG = new Color(28, 31, 36);
+    private static final Color PRIMARY = new Color(201, 168, 106);
+    private static final Color PRIMARY_DARK = new Color(94, 74, 43);
+    private static final Color TEXT = new Color(231, 224, 206);
+    private static final Color BUTTON_TEXT = new Color(231, 224, 206);
+    private static final Color BUTTON_PRIMARY_BG = new Color(110, 89, 56);
+    private static final Color BUTTON_GHOST_BG = new Color(52, 56, 64);
+    private static final Color BUTTON_DANGER_BG = new Color(110, 64, 64);
 
     private DefaultTableModel tableModel;
+    private JTable table;
+    private final HoaDonDAO hoaDonDAO = new HoaDonDAO();
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private JTextField txtMaHoaDon;
+    private JTextField txtKhachHang;
+    private JTextField txtNhanVien;
+    private JTextField txtMaDon;
+    private JTextField txtMaThue;
+    private DatePicker dpNgayLap;
+    private JTextField txtTongTien;
+    private JTextField txtSearchFilter;
+    private JComboBox<String> cbFilterType;
 
     public QLHoaDon() {
         initUI();
@@ -72,7 +95,7 @@ public class QLHoaDon extends JFrame {
         JPanel header = new GradientPanel(PRIMARY_DARK, PRIMARY);
         header.setLayout(new BorderLayout());
         header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(12, 47, 88), 1),
+                BorderFactory.createLineBorder(new Color(138, 112, 70), 1),
                 new EmptyBorder(14, 18, 14, 18)));
 
         JLabel title = new JLabel("QUẢN LÝ HÓA ĐƠN", SwingConstants.CENTER);
@@ -80,7 +103,7 @@ public class QLHoaDon extends JFrame {
         title.setFont(new Font("Segoe UI", Font.BOLD, 33));
 
         JLabel subtitle = new JLabel("Khách sạn Imperial Vũng Tàu", SwingConstants.CENTER);
-        subtitle.setForeground(new Color(222, 238, 255));
+        subtitle.setForeground(new Color(223, 206, 170));
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 
         JPanel textWrap = new JPanel();
@@ -118,22 +141,35 @@ public class QLHoaDon extends JFrame {
         lbSearch.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lbSearch.setForeground(TEXT);
 
-        JTextField txtSearch = createInputField("");
-        txtSearch.setPreferredSize(new Dimension(320, 36));
+        txtSearchFilter = createInputField("");
+        txtSearchFilter.setPreferredSize(new Dimension(320, 36));
 
-        JComboBox<String> cbFilter = new JComboBox<String>(
+        cbFilterType = new JComboBox<String>(
                 new String[] { "Mã hóa đơn", "Khách hàng", "Nhân viên", "Mã thuế", "Ngày lập" });
-        cbFilter.setPreferredSize(new Dimension(170, 36));
-        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cbFilterType.setPreferredSize(new Dimension(170, 36));
+        cbFilterType.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         left.add(lbSearch);
-        left.add(txtSearch);
-        left.add(cbFilter);
+        left.add(txtSearchFilter);
+        left.add(cbFilterType);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
-        right.add(createPrimaryButton("Lọc", 100, 36));
-        right.add(createGhostButton("Hiển thị tất cả", 140, 36));
+        JButton btnLoc = createPrimaryButton("Lọc", 100, 36);
+        JButton btnShowAll = createGhostButton("Hiển thị tất cả", 140, 36);
+        btnLoc.addActionListener(e -> applyFilter());
+        btnShowAll.addActionListener(e -> {
+            txtSearchFilter.setText("");
+            cbFilterType.setSelectedIndex(0);
+            seedData();
+        });
+        FormInputSupport.configureSearchField(txtSearchFilter, this::applyFilter, () -> {
+            txtSearchFilter.setText("");
+            cbFilterType.setSelectedIndex(0);
+            seedData();
+        });
+        right.add(btnLoc);
+        right.add(btnShowAll);
 
         filter.add(left, BorderLayout.WEST);
         filter.add(right, BorderLayout.EAST);
@@ -167,12 +203,25 @@ public class QLHoaDon extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(8, 4, 6, 4);
 
-        addFormRow(form, gbc, "Mã hóa đơn", createInputField(""));
-        addFormRow(form, gbc, "Khách hàng", createInputField(""));
-        addFormRow(form, gbc, "Nhân viên", createInputField(""));
-        addFormRow(form, gbc, "Mã thuế", createInputField(""));
-        addFormRow(form, gbc, "Ngày lập", createInputField("dd/MM/yyyy"));
-        addFormRow(form, gbc, "Tổng tiền", createInputField("0"));
+        txtMaHoaDon = createInputField("");
+        txtKhachHang = createInputField("");
+        txtNhanVien = createInputField("");
+        txtMaDon = createInputField("");
+        txtMaThue = createInputField("");
+        DatePickerSettings datePickerSettings = new DatePickerSettings();
+        datePickerSettings.setFormatForDatesCommonEra("dd/MM/yyyy");
+        dpNgayLap = new DatePicker(datePickerSettings);
+        dpNgayLap.setDate(LocalDate.now());
+        dpNgayLap.setPreferredSize(new Dimension(260, 36));
+        txtTongTien = createInputField("0");
+
+        addFormRow(form, gbc, "Mã hóa đơn", txtMaHoaDon);
+        addFormRow(form, gbc, "Khách hàng", txtKhachHang);
+        addFormRow(form, gbc, "Nhân viên", txtNhanVien);
+        addFormRow(form, gbc, "Mã đơn", txtMaDon);
+        addFormRow(form, gbc, "Mã thuế", txtMaThue);
+        addFormRow(form, gbc, "Ngày lập", dpNgayLap);
+        addFormRow(form, gbc, "Tổng tiền", txtTongTien);
 
         formCard.add(title, BorderLayout.NORTH);
         formCard.add(form, BorderLayout.CENTER);
@@ -199,16 +248,21 @@ public class QLHoaDon extends JFrame {
             }
         };
 
-        JTable table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setRowHeight(34);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(231, 240, 252));
+        table.getTableHeader().setBackground(new Color(50, 45, 38));
         table.getTableHeader().setForeground(TEXT);
-        table.setGridColor(new Color(229, 236, 247));
+        table.setGridColor(new Color(72, 66, 54));
         table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(210, 229, 255));
+        table.setSelectionBackground(new Color(109, 88, 52));
         table.setSelectionForeground(TEXT);
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                fillFormFromSelectedRow();
+            }
+        });
 
         DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
         centerAlign.setHorizontalAlignment(SwingConstants.CENTER);
@@ -219,8 +273,8 @@ public class QLHoaDon extends JFrame {
         table.getColumnModel().getColumn(6).setCellRenderer(centerAlign);
 
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(86, 78, 62), 1));
+        scrollPane.getViewport().setBackground(new Color(28, 31, 36));
 
         tableCard.add(title, BorderLayout.NORTH);
         tableCard.add(scrollPane, BorderLayout.CENTER);
@@ -234,10 +288,20 @@ public class QLHoaDon extends JFrame {
         actions.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         actions.setBorder(new EmptyBorder(4, 10, 4, 10));
 
-        actions.add(createGhostButton("Làm mới", 120, 38));
-        actions.add(createPrimaryButton("Xem chi tiết", 130, 38));
-        actions.add(createPrimaryButton("Thống kê", 120, 38));
-        actions.add(createPrimaryButton("Xuất hóa đơn", 130, 38));
+        JButton btnLamMoi = createGhostButton("Làm mới", 120, 38);
+        JButton btnThem = createPrimaryButton("Thêm", 110, 38);
+        JButton btnCapNhat = createPrimaryButton("Cập nhật", 120, 38);
+        JButton btnXoa = createDangerButton("Xóa", 110, 38);
+
+        btnLamMoi.addActionListener(e -> clearForm());
+        btnThem.addActionListener(e -> addHoaDon());
+        btnCapNhat.addActionListener(e -> updateHoaDon());
+        btnXoa.addActionListener(e -> deleteHoaDon());
+
+        actions.add(btnLamMoi);
+        actions.add(btnThem);
+        actions.add(btnCapNhat);
+        actions.add(btnXoa);
 
         return actions;
     }
@@ -253,7 +317,7 @@ public class QLHoaDon extends JFrame {
             textField.setPreferredSize(new Dimension(260, 36));
             textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
             textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
+                    BorderFactory.createLineBorder(new Color(86, 78, 62), 1),
                     new EmptyBorder(6, 10, 6, 10)));
             textField.setEditable(true);
             textField.setEnabled(true);
@@ -278,6 +342,7 @@ public class QLHoaDon extends JFrame {
         textField.setEditable(true);
         textField.setEnabled(true);
         textField.setFocusable(true);
+        FormInputSupport.configureEditor(textField, true);
         return textField;
     }
 
@@ -289,7 +354,8 @@ public class QLHoaDon extends JFrame {
         button.setBackground(BUTTON_PRIMARY_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(138, 112, 70), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
@@ -301,7 +367,8 @@ public class QLHoaDon extends JFrame {
         button.setBackground(BUTTON_GHOST_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(138, 112, 70), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
@@ -313,11 +380,23 @@ public class QLHoaDon extends JFrame {
         button.setBackground(BUTTON_DANGER_BG);
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(235, 184, 184), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(150, 90, 90), 1));
+        FormInputSupport.configureActionButton(button);
         return button;
     }
 
     private void seedData() {
+        try {
+            List<Object[]> rows = hoaDonDAO.findAllRows();
+            loadRows(rows);
+        } catch (SQLException e) {
+            loadFallbackData();
+            System.err.println("Khong the tai du lieu HoaDon tu SQL Server: " + e.getMessage());
+        }
+    }
+
+    private void loadFallbackData() {
+        tableModel.setRowCount(0);
         tableModel.addRow(
                 new Object[] { "HD001", "Nguyễn Văn An", "Trần Thu Hà", "DP001", "0312548899", "31/03/2026",
                         "3,250,000" });
@@ -330,6 +409,146 @@ public class QLHoaDon extends JFrame {
         tableModel.addRow(
                 new Object[] { "HD004", "Trần Thị Bình", "Trần Thu Hà", "DP004", "0312551122", "30/03/2026",
                         "2,780,000" });
+    }
+
+    private void loadRows(List<Object[]> rows) {
+        tableModel.setRowCount(0);
+        for (Object[] row : rows) {
+            tableModel.addRow(row);
+        }
+    }
+
+    private void applyFilter() {
+        String keyword = txtSearchFilter.getText().trim();
+        String filterBy = String.valueOf(cbFilterType.getSelectedItem());
+        try {
+            List<Object[]> rows = hoaDonDAO.search(keyword, filterBy);
+            loadRows(rows);
+            table.clearSelection();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Lọc dữ liệu thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void fillFormFromSelectedRow() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            return;
+        }
+        txtMaHoaDon.setText(String.valueOf(tableModel.getValueAt(row, 0)));
+        txtKhachHang.setText(String.valueOf(tableModel.getValueAt(row, 1)));
+        txtNhanVien.setText(String.valueOf(tableModel.getValueAt(row, 2)));
+        txtMaDon.setText(String.valueOf(tableModel.getValueAt(row, 3)));
+        txtMaThue.setText(String.valueOf(tableModel.getValueAt(row, 4)));
+        LocalDate ngayLap = LocalDate.parse(String.valueOf(tableModel.getValueAt(row, 5)), dateFormatter);
+        dpNgayLap.setDate(ngayLap);
+        txtTongTien.setText(String.valueOf(tableModel.getValueAt(row, 6)).replace(",", ""));
+    }
+
+    private void clearForm() {
+        txtMaHoaDon.setText("");
+        txtKhachHang.setText("");
+        txtNhanVien.setText("");
+        txtMaDon.setText("");
+        txtMaThue.setText("");
+        dpNgayLap.setDate(LocalDate.now());
+        txtTongTien.setText("0");
+        table.clearSelection();
+    }
+
+    private void addHoaDon() {
+        try {
+            String maHoaDon = txtMaHoaDon.getText().trim();
+            String khachHang = txtKhachHang.getText().trim();
+            String nhanVien = txtNhanVien.getText().trim();
+            String maDon = txtMaDon.getText().trim();
+            String maThue = txtMaThue.getText().trim();
+            LocalDate ngayLap = readNgayLap();
+            BigDecimal tongTien = parseMoney(txtTongTien.getText().trim());
+
+            if (maHoaDon.isEmpty() || khachHang.isEmpty() || nhanVien.isEmpty() || maDon.isEmpty() || maThue.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin hóa đơn.");
+                return;
+            }
+
+            boolean inserted = hoaDonDAO.insert(maHoaDon, khachHang, nhanVien, maDon, maThue, ngayLap, tongTien);
+            if (inserted) {
+                seedData();
+                clearForm();
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Thêm hóa đơn thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void updateHoaDon() {
+        String maHoaDon = txtMaHoaDon.getText().trim();
+        if (maHoaDon.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn hóa đơn cần cập nhật.");
+            return;
+        }
+        try {
+            String khachHang = txtKhachHang.getText().trim();
+            String nhanVien = txtNhanVien.getText().trim();
+            String maDon = txtMaDon.getText().trim();
+            String maThue = txtMaThue.getText().trim();
+            LocalDate ngayLap = readNgayLap();
+            BigDecimal tongTien = parseMoney(txtTongTien.getText().trim());
+
+            boolean updated = hoaDonDAO.update(maHoaDon, khachHang, nhanVien, maDon, maThue, ngayLap, tongTien);
+            if (updated) {
+                seedData();
+                clearForm();
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Cập nhật hóa đơn thất bại: " + ex.getMessage());
+        }
+    }
+
+    private void deleteHoaDon() {
+        String maHoaDon = txtMaHoaDon.getText().trim();
+        if (maHoaDon.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn hóa đơn cần xóa.");
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this, "Xóa hóa đơn " + maHoaDon + "?", "Xác nhận",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            boolean deleted = hoaDonDAO.deleteById(maHoaDon);
+            if (deleted) {
+                seedData();
+                clearForm();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Xóa hóa đơn thất bại: " + ex.getMessage());
+        }
+    }
+
+    private LocalDate readNgayLap() {
+        LocalDate value = dpNgayLap.getDate();
+        if (value == null) {
+            throw new IllegalArgumentException("Vui lòng chọn ngày lập.");
+        }
+        return value;
+    }
+
+    private BigDecimal parseMoney(String rawValue) {
+        String normalized = rawValue.replace(",", "").trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập tổng tiền.");
+        }
+        try {
+            return new BigDecimal(normalized);
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Tổng tiền không hợp lệ.");
+        }
     }
 
     private static class GradientPanel extends JPanel {
@@ -372,7 +591,7 @@ public class QLHoaDon extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(color);
             g2d.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-            g2d.setColor(new Color(214, 226, 243));
+            g2d.setColor(new Color(86, 78, 62));
             g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
             g2d.dispose();
             super.paintComponent(g);

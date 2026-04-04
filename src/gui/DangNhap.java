@@ -14,6 +14,10 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -35,10 +39,10 @@ public class DangNhap extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
+    private static final Color PRIMARY = new Color(201, 168, 106);
+    private static final Color PRIMARY_DARK = new Color(94, 74, 43);
+    private static final Color TEXT = new Color(231, 224, 206);
+    private static final Color BUTTON_TEXT = new Color(231, 224, 206);
 
     private JPasswordField txtMatKhau;
     private char defaultEchoChar;
@@ -66,9 +70,9 @@ public class DangNhap extends JFrame {
     private JPanel createLoginCard() {
         JPanel card = new JPanel(new BorderLayout());
         card.setPreferredSize(new Dimension(520, 500));
-        card.setBackground(Color.WHITE);
+        card.setBackground(new Color(28, 31, 36));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(180, 200, 228), 1),
+                BorderFactory.createLineBorder(new Color(92, 84, 68), 1),
                 new EmptyBorder(24, 28, 24, 28)));
 
         card.add(createCardHeader(), BorderLayout.NORTH);
@@ -85,7 +89,7 @@ public class DangNhap extends JFrame {
 
         JLabel icon = new JLabel("HOTEL", SwingConstants.CENTER);
         icon.setOpaque(true);
-        icon.setBackground(new Color(222, 235, 252));
+        icon.setBackground(new Color(242, 234, 210));
         icon.setForeground(TEXT);
         icon.setFont(new Font("Segoe UI", Font.BOLD, 18));
         icon.setBorder(new EmptyBorder(8, 20, 8, 20));
@@ -98,7 +102,7 @@ public class DangNhap extends JFrame {
 
         JLabel subTitle = new JLabel("Hệ thống quản lý khách sạn", SwingConstants.CENTER);
         subTitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        subTitle.setForeground(new Color(84, 100, 124));
+        subTitle.setForeground(new Color(171, 157, 129));
         subTitle.setAlignmentX(CENTER_ALIGNMENT);
 
         header.add(icon);
@@ -168,7 +172,7 @@ public class DangNhap extends JFrame {
         footer.setOpaque(false);
 
         JLabel help = new JLabel("Quên mật khẩu? Liên hệ quản trị viên");
-        help.setForeground(new Color(79, 99, 130));
+        help.setForeground(new Color(187, 170, 135));
         help.setFont(new Font("Segoe UI", Font.ITALIC, 13));
         footer.add(help);
 
@@ -192,9 +196,30 @@ public class DangNhap extends JFrame {
         input.setPreferredSize(new Dimension(0, 40));
         input.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         input.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(185, 204, 230), 1),
+                BorderFactory.createLineBorder(new Color(92, 84, 68), 1),
                 new EmptyBorder(8, 12, 8, 12)));
         input.setForeground(TEXT);
+        configureSafeTextInput(input);
+    }
+
+    private void configureSafeTextInput(JTextField textField) {
+        textField.setDragEnabled(false);
+        textField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                JTextField field = (JTextField) e.getComponent();
+                int caretPosition = field.getCaretPosition();
+                field.select(caretPosition, caretPosition);
+            }
+        });
+        textField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isMiddleMouseButton(e)) {
+                    e.consume();
+                }
+            }
+        });
     }
 
     private JButton createPrimaryButton(String text, int width, int height) {
@@ -202,10 +227,10 @@ public class DangNhap extends JFrame {
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 15));
         button.setForeground(BUTTON_TEXT);
-        button.setBackground(new Color(220, 235, 255));
+        button.setBackground(new Color(110, 89, 56));
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(185, 204, 230), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(92, 84, 68), 1));
         return button;
     }
 
@@ -214,10 +239,10 @@ public class DangNhap extends JFrame {
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 15));
         button.setForeground(BUTTON_TEXT);
-        button.setBackground(new Color(239, 245, 255));
+        button.setBackground(new Color(52, 56, 64));
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(185, 204, 230), 1));
+        button.setBorder(BorderFactory.createLineBorder(new Color(92, 84, 68), 1));
         return button;
     }
 
@@ -247,7 +272,7 @@ public class DangNhap extends JFrame {
 
             if (image != null) {
                 g2d.drawImage(image, 0, 0, getWidth(), getHeight(), this);
-                g2d.setColor(new Color(10, 28, 52, 95));
+                g2d.setColor(new Color(8, 10, 13, 120));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             } else {
                 g2d.setPaint(new GradientPaint(0, 0, start, getWidth(), getHeight(), end));
