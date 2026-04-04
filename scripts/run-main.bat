@@ -11,10 +11,21 @@ if "%DB_USER%"=="" set DB_USER=sa
 if "%DB_PASSWORD%"=="" set DB_PASSWORD=Quan@0511
 if "%DB_ENCRYPT%"=="" set DB_ENCRYPT=true
 if "%DB_TRUST_SERVER_CERT%"=="" set DB_TRUST_SERVER_CERT=true
+if "%APPLY_SCHEMA_ON_START%"=="" set APPLY_SCHEMA_ON_START=0
 
-sqlcmd -S %DB_HOST%,%DB_PORT% -U %DB_USER% -P %DB_PASSWORD% -C -i db\schema.sql
+where sqlcmd >nul 2>&1
 if errorlevel 1 (
-  echo [WARN] Could not apply db\schema.sql. Continue running app...
+  echo [INFO] sqlcmd not found. Skip schema apply and run app with existing local DB.
+) else (
+  if "%APPLY_SCHEMA_ON_START%"=="1" (
+    sqlcmd -S %DB_HOST%,%DB_PORT% -U %DB_USER% -P %DB_PASSWORD% -C -i db\schema.sql
+    if errorlevel 1 (
+      echo [WARN] Could not apply db\schema.sql. Continue running app...
+    )
+  ) else (
+    echo [INFO] APPLY_SCHEMA_ON_START=0, skip schema apply.
+    echo [INFO] Set APPLY_SCHEMA_ON_START=1 if you want to apply db\schema.sql manually on startup.
+  )
 )
 
 if not exist bin mkdir bin
