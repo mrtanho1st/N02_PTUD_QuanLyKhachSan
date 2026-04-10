@@ -10,7 +10,6 @@ public class Main {
             new GiaoDienChinh().setVisible(true);
         });
     }
-
     private static void applySystemLookAndFeel() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
