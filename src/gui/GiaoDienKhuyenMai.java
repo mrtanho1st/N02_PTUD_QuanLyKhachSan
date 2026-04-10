@@ -28,12 +28,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import java.awt.Component;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class GiaoDienKhuyenMai extends JFrame {
+public class GiaoDienKhuyenMai {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,57 +48,17 @@ public class GiaoDienKhuyenMai extends JFrame {
     private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
     private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
 
-    private DefaultTableModel tableModel;
-
-    public GiaoDienKhuyenMai() {
-        initUI();
-    }
-
-    private void initUI() {
-        setTitle("Quản lý khuyến mãi");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1360, 790);
-        setLocationRelativeTo(null);
-
+    public static JPanel createPanel() {
         JPanel root = new JPanel(new BorderLayout(0, 12));
         root.setBackground(APP_BG);
         root.setBorder(new EmptyBorder(12, 14, 12, 14));
 
-        root.add(createHeader(), BorderLayout.NORTH);
         root.add(createBody(), BorderLayout.CENTER);
 
-        setContentPane(root);
+        return root;
     }
 
-    private JPanel createHeader() {
-        JPanel header = new GradientPanel(PRIMARY_DARK, PRIMARY);
-        header.setLayout(new BorderLayout());
-        header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(12, 47, 88), 1),
-                new EmptyBorder(14, 18, 14, 18)));
-
-        JLabel title = new JLabel("QUẢN LÝ KHUYẾN MÃI", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 33));
-
-        JLabel subtitle = new JLabel("Khách sạn Imperial Vũng Tàu", SwingConstants.CENTER);
-        subtitle.setForeground(new Color(222, 238, 255));
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-
-        JPanel textWrap = new JPanel();
-        textWrap.setOpaque(false);
-        textWrap.setLayout(new BoxLayout(textWrap, BoxLayout.Y_AXIS));
-        title.setAlignmentX(CENTER_ALIGNMENT);
-        subtitle.setAlignmentX(CENTER_ALIGNMENT);
-        textWrap.add(title);
-        textWrap.add(Box.createVerticalStrut(4));
-        textWrap.add(subtitle);
-
-        header.add(textWrap, BorderLayout.CENTER);
-        return header;
-    }
-
-    private JPanel createBody() {
+    private static JPanel createBody() {
         JPanel body = new JPanel(new BorderLayout(0, 12));
         body.setOpaque(false);
 
@@ -107,7 +68,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return body;
     }
 
-    private JPanel createFilterPanel() {
+    private static JPanel createFilterPanel() {
         JPanel filter = new RoundedPanel(20, CARD_BG);
         filter.setLayout(new BorderLayout(12, 0));
         filter.setBorder(new EmptyBorder(12, 14, 12, 14));
@@ -142,7 +103,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return filter;
     }
 
-    private JPanel createCenterPanel() {
+    private static JPanel createCenterPanel() {
         JPanel center = new JPanel(new BorderLayout(12, 0));
         center.setOpaque(false);
 
@@ -151,7 +112,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return center;
     }
 
-    private JPanel createFormPanel() {
+    private static JPanel createFormPanel() {
         JPanel formCard = new RoundedPanel(20, CARD_BG);
         formCard.setLayout(new BorderLayout());
         formCard.setBorder(new EmptyBorder(14, 14, 14, 14));
@@ -202,12 +163,18 @@ public class GiaoDienKhuyenMai extends JFrame {
         gbc.gridx = 1;
         form.add(moTaScroll, gbc);
 
+        JScrollPane formScroll = new JScrollPane(form);
+        formScroll.setBorder(null);
+        formScroll.getViewport().setBackground(CARD_BG);
+        formScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
         formCard.add(title, BorderLayout.NORTH);
-        formCard.add(form, BorderLayout.CENTER);
+        formCard.add(formScroll, BorderLayout.CENTER);
         return formCard;
     }
 
-    private JPanel createTablePanel() {
+    private static JPanel createTablePanel() {
         JPanel tableCard = new RoundedPanel(20, CARD_BG);
         tableCard.setLayout(new BorderLayout(0, 10));
         tableCard.setBorder(new EmptyBorder(14, 14, 14, 14));
@@ -216,7 +183,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         title.setFont(new Font("Segoe UI", Font.BOLD, 22));
         title.setForeground(TEXT);
 
-        tableModel = new DefaultTableModel(
+        DefaultTableModel tableModel = new DefaultTableModel(
                 new Object[] { "Mã KM", "Tên chương trình", "Loại", "Giá trị", "Bắt đầu", "Kết thúc", "Trạng thái" },
                 0) {
             private static final long serialVersionUID = 1L;
@@ -254,11 +221,11 @@ public class GiaoDienKhuyenMai extends JFrame {
         tableCard.add(title, BorderLayout.NORTH);
         tableCard.add(scrollPane, BorderLayout.CENTER);
 
-        seedData();
+        seedData(tableModel);
         return tableCard;
     }
 
-    private JPanel createActionPanel() {
+    private static JPanel createActionPanel() {
         JPanel actions = new RoundedPanel(20, CARD_BG);
         actions.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         actions.setBorder(new EmptyBorder(4, 10, 4, 10));
@@ -271,7 +238,8 @@ public class GiaoDienKhuyenMai extends JFrame {
         return actions;
     }
 
-    private void addFormRow(JPanel container, GridBagConstraints gbc, String labelText, java.awt.Component input) {
+    private static void addFormRow(JPanel container, GridBagConstraints gbc, String labelText,
+            java.awt.Component input) {
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Segoe UI", Font.BOLD, 15));
         label.setForeground(TEXT);
@@ -302,7 +270,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         gbc.gridy++;
     }
 
-    private JTextField createInputField(String initialText) {
+    private static JTextField createInputField(String initialText) {
         JTextField textField = new JTextField(initialText);
         textField.setEditable(true);
         textField.setEnabled(true);
@@ -310,7 +278,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return textField;
     }
 
-    private JButton createPrimaryButton(String text, int width, int height) {
+    private static JButton createPrimaryButton(String text, int width, int height) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -322,7 +290,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return button;
     }
 
-    private JButton createGhostButton(String text, int width, int height) {
+    private static JButton createGhostButton(String text, int width, int height) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -334,7 +302,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return button;
     }
 
-    private JButton createDangerButton(String text, int width, int height) {
+    private static JButton createDangerButton(String text, int width, int height) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -346,7 +314,7 @@ public class GiaoDienKhuyenMai extends JFrame {
         return button;
     }
 
-    private void seedData() {
+    private static void seedData(DefaultTableModel tableModel) {
         tableModel.addRow(new Object[] { "KM001", "Giảm giá cuối tuần", "Giảm theo %", "10%", "01/04/2026",
                 "30/04/2026", "Sắp diễn ra" });
         tableModel.addRow(new Object[] { "KM002", "Combo Spa + Buffet", "Combo", "350,000", "25/03/2026", "20/04/2026",
@@ -401,21 +369,6 @@ public class GiaoDienKhuyenMai extends JFrame {
             g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
             g2d.dispose();
             super.paintComponent(g);
-        }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            applySystemLookAndFeel();
-            new GiaoDienKhuyenMai().setVisible(true);
-        });
-    }
-
-    private static void applySystemLookAndFeel() {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            // Keep default look and feel.
         }
     }
 }

@@ -29,13 +29,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
-
-
 import java.awt.CardLayout;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GiaoDienChinh extends JFrame {
 
@@ -48,6 +48,7 @@ public class GiaoDienChinh extends JFrame {
     private final List<JButton> navButtons = new ArrayList<JButton>();
     private JPanel contentPanel;
     private CardLayout cardLayout;
+    private Map<String, JPanel> loadedPanels = new HashMap<>();
 
     public GiaoDienChinh() {
         initUI();
@@ -112,7 +113,7 @@ public class GiaoDienChinh extends JFrame {
         }));
 
         nav.add(createNavButton("Danh mục", new String[] {
-        		"Phòng", "Nhân viên", "Khách hàng"
+                "Phòng", "Nhân viên", "Khách hàng"
         }));
 
         nav.add(createNavButton("Xử lí", new String[] {
@@ -122,13 +123,14 @@ public class GiaoDienChinh extends JFrame {
         nav.add(createNavButton("Tìm kiếm", new String[] {
                 "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
         }));
-        
+
         nav.add(createNavButton("Cập nhật", new String[] {
-                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
+                "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
         }));
 
         nav.add(createNavButton("Thống kê", new String[] {
-                "Doanh thu theo thời gian", "Doanh thu theo phòng", "Doanh thu theo khách hàng", "Phòng đặt nhiều nhất", "Khách hàng điểm cao nhất"
+                "Doanh thu theo thời gian", "Doanh thu theo phòng", "Doanh thu theo khách hàng", "Phòng đặt nhiều nhất",
+                "Khách hàng điểm cao nhất"
         }));
 
         nav.add(createNavButton("Báo biểu", new String[] {
@@ -136,7 +138,6 @@ public class GiaoDienChinh extends JFrame {
                 "DS Dịch vụ", "DS Đơn đặt phòng", "DS Hóa đơn"
         }));
 
-        
         if (!navButtons.isEmpty()) {
             setActiveNavButton(navButtons.get(0));
         }
@@ -182,53 +183,19 @@ public class GiaoDienChinh extends JFrame {
     }
 
     private JPanel createContentPanel() {
-        JPanel content = new BackgroundImagePanel("icon/bg.png");
-        content.setLayout(new GridBagLayout());
-        content.setBorder(BorderFactory.createLineBorder(new Color(12, 47, 88), 1));
+        cardLayout = new CardLayout();
+        contentPanel = new JPanel(cardLayout);
+        contentPanel.setBackground(APP_BG);
+        contentPanel.setBorder(BorderFactory.createLineBorder(new Color(12, 47, 88), 1));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        // Panel mặc định hiển thị ảnh nền khi chưa chọn chức năng.
+        JPanel defaultPanel = new BackgroundImagePanel("icon/bg.png");
+        defaultPanel.setBackground(APP_BG);
 
-        if (!((BackgroundImagePanel) content).hasImage()) {
-            JLabel lblBackground = new JLabel("Không tìm thấy ảnh: icon/bg.png");
-            lblBackground.setFont(new Font("Segoe UI", Font.ITALIC, 24));
-            content.add(lblBackground, gbc);
-        }
+        contentPanel.add(defaultPanel, "DEFAULT");
+        cardLayout.show(contentPanel, "DEFAULT");
 
-        return content;
-    }
-
-    private static class BackgroundImagePanel extends JPanel {
-
-        private static final long serialVersionUID = 1L;
-        private final Image image;
-
-        BackgroundImagePanel(String imagePath) {
-            ImageIcon imageIcon = new ImageIcon(imagePath);
-            if (imageIcon.getIconWidth() > 0 && imageIcon.getIconHeight() > 0) {
-                image = imageIcon.getImage();
-            } else {
-                image = null;
-                setBackground(new Color(220, 220, 220));
-            }
-        }
-
-        boolean hasImage() {
-            return image != null;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (image != null) {
-                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setColor(new Color(9, 24, 45, 90));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-                g2d.dispose();
-            }
-        }
+        return contentPanel;
     }
 
     private JButton createNavButton(String text) {
@@ -246,6 +213,7 @@ public class GiaoDienChinh extends JFrame {
         navButtons.add(button);
         return button;
     }
+
     private JButton createNavButton(String text, String[] subMenus) {
         JButton button = new JButton(text);
         button.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -277,39 +245,69 @@ public class GiaoDienChinh extends JFrame {
         navButtons.add(button);
         return button;
     }
+
     private void openExistingPage(String mainMenu, String subMenu) {
-        JFrame frame = null;
+        String panelKey = mainMenu + "/" + subMenu;
+
+        // Nếu panel đã tồn tại, chỉ cần hiển thị nó
+        if (loadedPanels.containsKey(panelKey)) {
+            cardLayout.show(contentPanel, panelKey);
+            return;
+        }
+
+        JPanel panel = null;
 
         if (mainMenu.equals("Danh mục")) {
-            if (subMenu.equals("Phòng")) frame = new QLPhong();
-            else if (subMenu.equals("Hóa đơn")) frame = new QLHoaDon();
-            else if (subMenu.equals("Nhân viên")) frame = new QLNhanVien();
-            else if (subMenu.equals("Khách hàng")) frame = new QLKhachHang();
-        } 
-        else if (mainMenu.equals("Xử lí")) {
-            if (subMenu.equals("Đặt phòng")) frame = new DatPhong();
-            else if (subMenu.equals("Check-in/Check-out")) frame = new NhanTraPhong();
-        } 
-        else if (mainMenu.equals("Tìm kiếm")) {
-            if (subMenu.equals("Hóa đơn")) frame = new QLHoaDon();
-            else if (subMenu.equals("Khách hàng")) frame = new QLKhachHang();
-            else if (subMenu.equals("Phòng")) frame = new QLPhong();
-            else if (subMenu.equals("Nhân viên")) frame = new QLNhanVien();
-            else if (subMenu.equals("Khuyến mãi")) frame = new GiaoDienKhuyenMai();
-            else if (subMenu.equals("Dịch vụ")) frame = new QLDichVu();
-        } 
-        
+            if (subMenu.equals("Phòng"))
+                panel = QLPhong.createPanel();
+            else if (subMenu.equals("Hóa đơn"))
+                panel = QLHoaDon.createPanel();
+            else if (subMenu.equals("Nhân viên"))
+                panel = QLNhanVien.createPanel();
+            else if (subMenu.equals("Khách hàng"))
+                panel = QLKhachHang.createPanel();
+        } else if (mainMenu.equals("Xử lí")) {
+            if (subMenu.equals("Đặt phòng"))
+                panel = DatPhong.createPanel();
+            else if (subMenu.equals("Check-in/Check-out"))
+                panel = NhanTraPhong.createPanel();
+            else if (subMenu.equals("Hóa đơn"))
+                panel = QLHoaDon.createPanel();
+        } else if (mainMenu.equals("Tìm kiếm")) {
+            if (subMenu.equals("Hóa đơn"))
+                panel = QLHoaDon.createPanel();
+            else if (subMenu.equals("Khách hàng"))
+                panel = QLKhachHang.createPanel();
+            else if (subMenu.equals("Phòng"))
+                panel = QLPhong.createPanel();
+            else if (subMenu.equals("Nhân viên"))
+                panel = QLNhanVien.createPanel();
+            else if (subMenu.equals("Khuyến mãi"))
+                panel = GiaoDienKhuyenMai.createPanel();
+            else if (subMenu.equals("Dịch vụ"))
+                panel = QLDichVu.createPanel();
+        } else if (mainMenu.equals("Cập nhật")) {
+            if (subMenu.equals("Khách hàng"))
+                panel = QLKhachHang.createPanel();
+            else if (subMenu.equals("Phòng"))
+                panel = QLPhong.createPanel();
+            else if (subMenu.equals("Nhân viên"))
+                panel = QLNhanVien.createPanel();
+            else if (subMenu.equals("Khuyến mãi"))
+                panel = GiaoDienKhuyenMai.createPanel();
+            else if (subMenu.equals("Dịch vụ"))
+                panel = QLDichVu.createPanel();
+        }
 
-        if (frame != null) {
-            openFrame(frame);
+        if (panel != null) {
+            contentPanel.add(panel, panelKey);
+            loadedPanels.put(panelKey, panel);
+            cardLayout.show(contentPanel, panelKey);
         } else {
             JOptionPane.showMessageDialog(this, "Chức năng này chưa có class giao diện.");
         }
     }
 
-    private void openFrame(JFrame frame) {
-        frame.setVisible(true);
-    }
     private void setActiveNavButton(JButton activeButton) {
         for (JButton button : navButtons) {
             boolean active = button == activeButton;
@@ -334,7 +332,7 @@ public class GiaoDienChinh extends JFrame {
     private JButton createDangerButton(String text, int width, int height) {
         JButton button = createLeftButton(text, width, height);
         button.setBackground(new Color(252, 230, 230));
-        
+
         return button;
     }
 
@@ -358,6 +356,25 @@ public class GiaoDienChinh extends JFrame {
             g2d.setPaint(paint);
             g2d.fillRect(0, 0, getWidth(), getHeight());
             g2d.dispose();
+        }
+    }
+
+    private static class BackgroundImagePanel extends JPanel {
+
+        private static final long serialVersionUID = 1L;
+        private final Image image;
+
+        BackgroundImagePanel(String imagePath) {
+            this.image = new ImageIcon(imagePath).getImage();
+            setOpaque(true);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (image != null && image.getWidth(this) > 0) {
+                g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
+            }
         }
     }
 
