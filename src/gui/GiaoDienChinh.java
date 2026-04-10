@@ -125,7 +125,7 @@ public class GiaoDienChinh extends JFrame {
         }));
 
         nav.add(createNavButton("Cập nhật", new String[] {
-                "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
+                "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Tài khoản"
         }));
 
         nav.add(createNavButton("Thống kê", new String[] {
@@ -176,7 +176,12 @@ public class GiaoDienChinh extends JFrame {
         JPanel bottom = new JPanel();
         bottom.setOpaque(false);
         bottom.setBorder(new EmptyBorder(0, 0, 4, 0));
-        bottom.add(createDangerButton("Đăng xuất", 186, 42));
+        JButton btnDangXuat = createDangerButton("Đăng xuất", 186, 42);
+        btnDangXuat.addActionListener(e -> {
+            dispose();
+            new DangNhap().setVisible(true);
+        });
+        bottom.add(btnDangXuat);
         left.add(bottom, BorderLayout.SOUTH);
 
         return left;
@@ -300,6 +305,8 @@ public class GiaoDienChinh extends JFrame {
                 panel = GiaoDienKhuyenMai.createPanel();
             else if (subMenu.equals("Dịch vụ"))
                 panel = QLDichVu.createPanel();
+            else if (subMenu.equals("Tài khoản"))
+                panel = QLTaiKhoan.createPanel();
         }
 
         if (panel != null) {
