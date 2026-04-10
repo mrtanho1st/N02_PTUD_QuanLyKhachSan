@@ -29,6 +29,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+
+
+import java.awt.CardLayout;
+
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+
 public class GiaoDienChinh extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -38,6 +46,8 @@ public class GiaoDienChinh extends JFrame {
     private static final Color BUTTON_TEXT = new Color(34, 58, 94);
 
     private final List<JButton> navButtons = new ArrayList<JButton>();
+    private JPanel contentPanel;
+    private CardLayout cardLayout;
 
     public GiaoDienChinh() {
         initUI();
@@ -97,13 +107,36 @@ public class GiaoDienChinh extends JFrame {
                 BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(210, 220, 235)),
                 new EmptyBorder(4, 10, 4, 10)));
 
-        nav.add(createNavButton("Tìm kiếm"));
-        nav.add(createNavButton("Đặt phòng"));
-        nav.add(createNavButton("Quản lí"));
-        nav.add(createNavButton("Thống kê"));
-        nav.add(createNavButton("Khuyến mãi"));
-        nav.add(createNavButton("Dịch vụ"));
+        nav.add(createNavButton("Hệ thống", new String[] {
+                "Phân quyền", "Tạo tài khoản"
+        }));
 
+        nav.add(createNavButton("Danh mục", new String[] {
+        		"Phòng", "Nhân viên", "Khách hàng"
+        }));
+
+        nav.add(createNavButton("Xử lí", new String[] {
+                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Phân công", "Thanh toán"
+        }));
+
+        nav.add(createNavButton("Tìm kiếm", new String[] {
+                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
+        }));
+        
+        nav.add(createNavButton("Cập nhật", new String[] {
+                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
+        }));
+
+        nav.add(createNavButton("Thống kê", new String[] {
+                "Doanh thu theo thời gian", "Doanh thu theo phòng", "Doanh thu theo khách hàng", "Phòng đặt nhiều nhất", "Khách hàng điểm cao nhất"
+        }));
+
+        nav.add(createNavButton("Báo biểu", new String[] {
+                "DS Khách hàng", "DS Nhân viên", "DS Phòng", "DS Khuyến mãi",
+                "DS Dịch vụ", "DS Đơn đặt phòng", "DS Hóa đơn"
+        }));
+
+        
         if (!navButtons.isEmpty()) {
             setActiveNavButton(navButtons.get(0));
         }
@@ -213,7 +246,70 @@ public class GiaoDienChinh extends JFrame {
         navButtons.add(button);
         return button;
     }
+    private JButton createNavButton(String text, String[] subMenus) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        button.setForeground(BUTTON_TEXT);
+        button.setBackground(new Color(233, 239, 248));
+        button.setOpaque(true);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 14));
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+        JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+
+        for (String sub : subMenus) {
+            JMenuItem item = new JMenuItem(sub);
+            item.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            item.addActionListener(e -> {
+                setActiveNavButton(button);
+                openExistingPage(text, sub);
+            });
+            popupMenu.add(item);
+        }
+
+        button.addActionListener(e -> {
+            setActiveNavButton(button);
+            popupMenu.show(button, 0, button.getHeight());
+        });
+
+        navButtons.add(button);
+        return button;
+    }
+    private void openExistingPage(String mainMenu, String subMenu) {
+        JFrame frame = null;
+
+        if (mainMenu.equals("Danh mục")) {
+            if (subMenu.equals("Phòng")) frame = new QLPhong();
+            else if (subMenu.equals("Hóa đơn")) frame = new QLHoaDon();
+            else if (subMenu.equals("Nhân viên")) frame = new QLNhanVien();
+            else if (subMenu.equals("Khách hàng")) frame = new QLKhachHang();
+        } 
+        else if (mainMenu.equals("Xử lí")) {
+            if (subMenu.equals("Đặt phòng")) frame = new DatPhong();
+            else if (subMenu.equals("Check-in/Check-out")) frame = new NhanTraPhong();
+        } 
+        else if (mainMenu.equals("Tìm kiếm")) {
+            if (subMenu.equals("Hóa đơn")) frame = new QLHoaDon();
+            else if (subMenu.equals("Khách hàng")) frame = new QLKhachHang();
+            else if (subMenu.equals("Phòng")) frame = new QLPhong();
+            else if (subMenu.equals("Nhân viên")) frame = new QLNhanVien();
+            else if (subMenu.equals("Khuyến mãi")) frame = new GiaoDienKhuyenMai();
+            else if (subMenu.equals("Dịch vụ")) frame = new QLDichVu();
+        } 
+        
+
+        if (frame != null) {
+            openFrame(frame);
+        } else {
+            JOptionPane.showMessageDialog(this, "Chức năng này chưa có class giao diện.");
+        }
+    }
+
+    private void openFrame(JFrame frame) {
+        frame.setVisible(true);
+    }
     private void setActiveNavButton(JButton activeButton) {
         for (JButton button : navButtons) {
             boolean active = button == activeButton;
@@ -238,6 +334,7 @@ public class GiaoDienChinh extends JFrame {
     private JButton createDangerButton(String text, int width, int height) {
         JButton button = createLeftButton(text, width, height);
         button.setBackground(new Color(252, 230, 230));
+        
         return button;
     }
 
@@ -267,7 +364,7 @@ public class GiaoDienChinh extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             applySystemLookAndFeel();
-            new QLKhachHang().setVisible(true);
+            new GiaoDienChinh().setVisible(true);
         });
     }
 
