@@ -256,8 +256,11 @@ public class GiaoDienChinh extends JFrame {
         }
 
         JPanel panel = null;
+        if (mainMenu.equals("Hệ thống")) {
+            if (subMenu.equals("Phân quyền") || subMenu.equals("Tạo tài khoản"))
+                panel = QLTaiKhoan.createPanel();
 
-        if (mainMenu.equals("Danh mục")) {
+        } else if (mainMenu.equals("Danh mục")) {
             if (subMenu.equals("Phòng"))
                 panel = QLPhong.createPanel();
             else if (subMenu.equals("Hóa đơn"))
