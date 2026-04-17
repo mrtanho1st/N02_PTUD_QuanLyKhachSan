@@ -7,9 +7,10 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             applySystemLookAndFeel();
-            new GiaoDienChinh().setVisible(true);
+            new DangNhap().setVisible(true);
         });
     }
+
     private static void applySystemLookAndFeel() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

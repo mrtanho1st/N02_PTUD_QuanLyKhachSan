@@ -30,6 +30,9 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import dao.DangNhap_Dao;
+import entity.TaiKhoan;
+import javax.swing.JOptionPane;
 
 public class DangNhap extends JFrame {
 
@@ -40,6 +43,7 @@ public class DangNhap extends JFrame {
     private static final Color TEXT = new Color(33, 48, 73);
     private static final Color BUTTON_TEXT = new Color(33, 48, 73);
 
+    private JTextField txtTenDangNhap;
     private JPasswordField txtMatKhau;
     private char defaultEchoChar;
 
@@ -122,7 +126,7 @@ public class DangNhap extends JFrame {
         gbc.weightx = 1.0;
         gbc.insets = new Insets(8, 0, 8, 0);
 
-        JTextField txtTenDangNhap = new JTextField();
+        txtTenDangNhap = new JTextField();
         styleInput(txtTenDangNhap);
 
         txtMatKhau = new JPasswordField();
@@ -156,8 +160,14 @@ public class DangNhap extends JFrame {
 
         JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
         buttonRow.setOpaque(false);
-        buttonRow.add(createPrimaryButton("Đăng nhập", 160, 42));
-        buttonRow.add(createSecondaryButton("Thoát", 140, 42));
+
+        JButton btnDangNhap = createPrimaryButton("Đăng nhập", 160, 42);
+        JButton btnThoat = createSecondaryButton("Thoát", 140, 42);
+
+        onClickActetion(btnDangNhap, btnThoat);
+
+        buttonRow.add(btnDangNhap);
+        buttonRow.add(btnThoat);
 
         form.add(buttonRow, gbc);
         return form;
@@ -255,6 +265,53 @@ public class DangNhap extends JFrame {
             }
             g2d.dispose();
         }
+    }
+
+    /**
+     * Xử lý logic đăng nhập
+     */
+    private void xuLyDangNhap() {
+        // Lấy dữ liệu từ form
+        String tenDangNhap = txtTenDangNhap.getText().trim();
+        String matKhau = new String(txtMatKhau.getPassword());
+
+        // Kiểm tra xem các trường có trống không
+        if (tenDangNhap.isEmpty() || matKhau.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng nhập tên đăng nhập và mật khẩu!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Tạo đối tượng DAO và gọi phương thức đăng nhập
+        DangNhap_Dao dao = new DangNhap_Dao();
+        TaiKhoan taiKhoan = dao.dangNhap(tenDangNhap, matKhau);
+
+        if (taiKhoan != null) {
+            // Đăng nhập thành công, chuyển đến giao diện chính
+            JOptionPane.showMessageDialog(this,
+                    "Đăng nhập thành công!",
+                    "Thành công",
+                    JOptionPane.INFORMATION_MESSAGE);
+            new GiaoDienChinh().setVisible(true);
+            this.dispose(); // Đóng cửa sổ đăng nhập
+        } else {
+            // Hiển thị thông báo lỗi
+            JOptionPane.showMessageDialog(this,
+                    "Tên đăng nhập hoặc mật khẩu không chính xác!",
+                    "Lỗi đăng nhập",
+                    JOptionPane.ERROR_MESSAGE);
+            txtMatKhau.setText(""); // Xóa mật khẩu
+        }
+    }
+
+    private void onClickActetion(JButton btnDangNhap, JButton btnThoat) {
+        // Event listener cho nút đăng nhập
+        btnDangNhap.addActionListener(e -> xuLyDangNhap());
+
+        // Event listener cho nút thoát
+        btnThoat.addActionListener(e -> System.exit(0));
     }
 
     public static void main(String[] args) {

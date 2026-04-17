@@ -229,9 +229,9 @@ INSERT INTO NhanVien(maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoL
 GO
 
 INSERT INTO TaiKhoan(tenDangNhap, matKhau, vaiTro, maNV) VALUES
-('nv01', '123456', N'LeTan',  'NV01'),
-('nv02', '123456', N'LeTan',  'NV02'),
-('nv03', '123456', N'BaoVe',  'NV03'),
+('DoThanhTuong', '123456', N'LeTan',  'NV01'),
+('LeMinhTan', '123456', N'LeTan',  'NV02'),
+('NguyenThiThanhThu', '123456', N'BaoVe',  'NV03'),
 ('nv04', '123456', N'KeToan', 'NV04'),
 ('nv05', '123456', N'QuanLy', 'NV05');
 GO
