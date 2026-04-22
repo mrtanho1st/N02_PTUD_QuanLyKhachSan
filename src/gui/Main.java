@@ -1,21 +1,18 @@
 package gui;
 
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+
+import controller.DangNhapController;
 
 public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            applySystemLookAndFeel();
-            new DangNhap().setVisible(true);
-        });
-    }
+            DangNhap.applySystemLookAndFeel();
 
-    private static void applySystemLookAndFeel() {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            // Keep default look and feel.
-        }
+            DangNhap view = new DangNhap();
+            new DangNhapController(view);
+
+            view.setVisible(true);
+        });
     }
 }

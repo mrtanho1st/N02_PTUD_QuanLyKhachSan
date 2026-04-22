@@ -1,70 +1,78 @@
 package entity;
 
 public class DonDatPhong {
-    private String maDDP;
-    private String maKH;
-    private String maNV;
-    private String ngayDat;
-    private String ngayNhanPhong;
-    private String ngayTraPhong;
+    private String maPhong;
+    private String loaiPhong;
+    private String trangThaiPhong;
 
-    public DonDatPhong() {
+    private String maDDP;
+    private String tinhTrangDat;
+    private String maKH;
+    private String tenKH;
+    private String ngayNhan;
+    private String ngayTra;
+    private Double tienCoc;
+
+    public DonDatPhong(String maPhong, String loaiPhong, String trangThaiPhong,
+                        String maDDP, String tinhTrangDat, String maKH,
+                        String tenKH, String ngayNhan, String ngayTra, Double tienCoc) {
+        this.maPhong = maPhong;
+        this.loaiPhong = loaiPhong;
+        this.trangThaiPhong = trangThaiPhong;
+        this.maDDP = maDDP;
+        this.tinhTrangDat = tinhTrangDat;
+        this.maKH = maKH;
+        this.tenKH = tenKH;
+        this.ngayNhan = ngayNhan;
+        this.ngayTra = ngayTra;
+        this.tienCoc = tienCoc;
     }
 
-    public DonDatPhong(String maDDP, String maKH, String maNV, String ngayDat, String ngayNhanPhong, String ngayTraPhong) {
-        this.maDDP = maDDP;
-        this.maKH = maKH;
-        this.maNV = maNV;
-        this.ngayDat = ngayDat;
-        this.ngayNhanPhong = ngayNhanPhong;
-        this.ngayTraPhong = ngayTraPhong;
+    public String getMaPhong() {
+        return maPhong;
+    }
+
+    public String getLoaiPhong() {
+        return loaiPhong;
+    }
+
+    public String getTrangThaiPhong() {
+        return trangThaiPhong;
     }
 
     public String getMaDDP() {
         return maDDP;
     }
 
-    public void setMaDDP(String maDDP) {
-        this.maDDP = maDDP;
+    public String getTinhTrangDat() {
+        return tinhTrangDat;
     }
 
     public String getMaKH() {
         return maKH;
     }
 
-    public void setMaKH(String maKH) {
-        this.maKH = maKH;
+    public String getTenKH() {
+        return tenKH;
     }
 
-    public String getMaNV() {
-        return maNV;
+    public String getNgayNhan() {
+        return ngayNhan;
     }
 
-    public void setMaNV(String maNV) {
-        this.maNV = maNV;
+    public String getNgayTra() {
+        return ngayTra;
     }
 
-    public String getNgayDat() {
-        return ngayDat;
+    public Double getTienCoc() {
+        return tienCoc;
     }
 
-    public void setNgayDat(String ngayDat) {
-        this.ngayDat = ngayDat;
+    public boolean isPhongTrong() {
+        return "Trống".equalsIgnoreCase(trangThaiPhong);
     }
 
-    public String getNgayNhanPhong() {
-        return ngayNhanPhong;
-    }
-
-    public void setNgayNhanPhong(String ngayNhanPhong) {
-        this.ngayNhanPhong = ngayNhanPhong;
-    }
-
-    public String getNgayTraPhong() {
-        return ngayTraPhong;
-    }
-
-    public void setNgayTraPhong(String ngayTraPhong) {
-        this.ngayTraPhong = ngayTraPhong;
+    public boolean isDaDat() {
+        return !isPhongTrong();
     }
 }

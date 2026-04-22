@@ -1,18 +1,29 @@
 package entity;
 
 public class TaiKhoan {
-    private String tenDangNhap;
-    private String matKhau;
+	private String tenDangNhap;
+	private String matKhau;
+	private String vaiTro;
+	private String maNV;
 
     public TaiKhoan() {
     }
 
-    public TaiKhoan(String tenDangNhap, String matKhau) {
-        this.tenDangNhap = tenDangNhap;
-        this.matKhau = matKhau;
-    }
+    
+    
 
-    public String getTenDangNhap() {
+    public TaiKhoan(String tenDangNhap, String matKhau, String vaiTro, String maNV) {
+		super();
+		this.tenDangNhap = tenDangNhap;
+		this.matKhau = matKhau;
+		this.vaiTro = vaiTro;
+		this.maNV = maNV;
+	}
+
+
+
+
+	public String getTenDangNhap() {
         return tenDangNhap;
     }
 
@@ -27,4 +38,34 @@ public class TaiKhoan {
     public void setMatKhau(String matKhau) {
         this.matKhau = matKhau;
     }
+
+
+
+
+	public String getVaiTro() {
+		return vaiTro;
+	}
+
+
+
+
+	public void setVaiTro(String vaiTro) {
+		this.vaiTro = vaiTro;
+	}
+
+
+
+
+	public String getMaNV() {
+		return maNV;
+	}
+
+
+
+
+	public void setMaNV(String maNV) {
+		this.maNV = maNV;
+	}
+    
+    
 }

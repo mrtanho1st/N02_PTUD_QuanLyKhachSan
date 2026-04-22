@@ -2,177 +2,178 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class QLNhanVien {
+import controller.QLNhanVienController;
+
+public class QLNhanVien extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color APP_BG = new Color(238, 243, 250);
-    private static final Color CARD_BG = new Color(255, 255, 255);
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_PRIMARY_BG = new Color(220, 235, 255);
-    private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
-    private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
+    private static final Color APP_BG = new Color(237, 242, 247);
+    private static final Color PANEL_BG = new Color(248, 250, 253);
+    private static final Color CARD_BORDER = new Color(210, 220, 235);
+    private static final Color TEXT_DARK = new Color(24, 39, 75);
+    private static final Color BUTTON_BG = new Color(233, 239, 248);
+    private static final Color BUTTON_DANGER = new Color(252, 230, 230);
 
-    public static JPanel createPanel() {
-        JPanel root = new JPanel(new BorderLayout(0, 12));
-        root.setBackground(APP_BG);
-        root.setBorder(new EmptyBorder(12, 14, 12, 14));
+    private JTextField txtTimMaNV;
+    private JTextField txtTimHoTen;
+    private JComboBox<String> cboLocTrangThai;
 
-        root.add(createBody(), BorderLayout.CENTER);
+    private JTable tblNhanVien;
+    private DefaultTableModel tableModel;
 
-        return root;
+    private JTextField txtMaNV;
+    private JTextField txtHoTen;
+    private JTextField txtNgaySinh;
+    private JTextField txtSDT;
+    private JTextField txtEmail;
+    private JComboBox<String> cboGioiTinh;
+    private JTextField txtNgayBatDauVaoLam;
+    private JComboBox<String> cboTrangThaiLamViec;
+    private JTextField txtDiaChi;
+    private JComboBox<String> cboCaLamViec;
+    private JComboBox<String> cboViTriCongViec;
+
+    private JButton btnTim;
+    private JButton btnLamMoiTim;
+    private JButton btnThem;
+    private JButton btnCapNhat;
+    private JButton btnXoa;
+    private JButton btnLamMoiForm;
+
+    public QLNhanVien() {
+        initUI();
     }
 
-    private static JPanel createBody() {
-        JPanel body = new JPanel(new BorderLayout(0, 12));
-        body.setOpaque(false);
+    private void initUI() {
+        setLayout(new BorderLayout(0, 16));
+        setBackground(APP_BG);
+        setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        body.add(createFilterPanel(), BorderLayout.NORTH);
-        body.add(createCenterPanel(), BorderLayout.CENTER);
-        body.add(createActionPanel(), BorderLayout.SOUTH);
-
-        return body;
+        add(createFilterPanel(), BorderLayout.NORTH);
+        add(createBodyPanel(), BorderLayout.CENTER);
     }
 
-    private static JPanel createFilterPanel() {
-        JPanel filter = new RoundedPanel(20, CARD_BG);
-        filter.setLayout(new BorderLayout(12, 0));
-        filter.setBorder(new EmptyBorder(12, 14, 12, 14));
+    private JPanel createFilterPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(16, 18, 16, 18)));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        left.setOpaque(false);
-
-        JLabel lbSearch = new JLabel("Tìm kiếm:");
-        lbSearch.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lbSearch.setForeground(TEXT);
-
-        JTextField txtSearch = new JTextField();
-        txtSearch.setPreferredSize(new Dimension(320, 36));
-        txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        txtSearch.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(196, 210, 230), 1),
-                new EmptyBorder(6, 10, 6, 10)));
-
-        JComboBox<String> cbFilter = new JComboBox<String>(
-                new String[] { "Mã NV", "Họ tên", "SĐT", "Vai trò", "Trạng thái" });
-        cbFilter.setPreferredSize(new Dimension(170, 36));
-        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-
-        left.add(lbSearch);
-        left.add(txtSearch);
-        left.add(cbFilter);
-
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        right.setOpaque(false);
-        right.add(createPrimaryButton("Lọc dữ liệu", 130, 36));
-
-        filter.add(left, BorderLayout.WEST);
-        filter.add(right, BorderLayout.EAST);
-        return filter;
-    }
-
-    private static JPanel createCenterPanel() {
-        JPanel center = new JPanel(new BorderLayout(12, 0));
-        center.setOpaque(false);
-
-        center.add(createFormPanel(), BorderLayout.WEST);
-        center.add(createTablePanel(), BorderLayout.CENTER);
-
-        return center;
-    }
-
-    private static JPanel createFormPanel() {
-        JPanel formCard = new RoundedPanel(20, CARD_BG);
-        formCard.setLayout(new BorderLayout());
-        formCard.setBorder(new EmptyBorder(14, 14, 14, 14));
-        formCard.setPreferredSize(new Dimension(470, 0));
-
-        JLabel title = new JLabel("Thông tin nhân viên");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(TEXT);
-
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel lblMaNV = createLabel("Mã NV:");
+        JLabel lblHoTen = createLabel("Họ tên:");
+        JLabel lblTrangThai = createLabel("Trạng thái:");
+
+        txtTimMaNV = new JTextField();
+        txtTimHoTen = new JTextField();
+        cboLocTrangThai = new JComboBox<>(new String[] {
+                "Tất cả", "Đang làm", "Nghỉ việc", "Tạm nghỉ"
+        });
+
+        styleTextField(txtTimMaNV);
+        styleTextField(txtTimHoTen);
+        styleComboBox(cboLocTrangThai);
+
+        btnTim = createButton("Tìm kiếm");
+        btnLamMoiTim = createButton("Làm mới");
+
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 4, 6, 4);
+        gbc.weightx = 0;
+        panel.add(lblMaNV, gbc);
 
-        JTextField txtMaNhanVien = createInputField("");
-        addFormRow(form, gbc, "Mã nhân viên", txtMaNhanVien);
-        addFormRow(form, gbc, "Họ tên", createInputField(""));
-        addFormRow(form, gbc, "Ngày sinh", createInputField("dd/MM/yyyy"));
-        addFormRow(form, gbc, "Số điện thoại", createInputField(""));
-        addFormRow(form, gbc, "Email", createInputField(""));
-        addFormRow(form, gbc, "Giới tính", new JComboBox<String>(new String[] { "Nam", "Nữ", "Khác" }));
-        addFormRow(form, gbc, "Địa chỉ", createInputField(""));
-        addFormRow(form, gbc, "Vai trò", new JComboBox<String>(
-                new String[] { "Nhân viên lễ tân", "Nhân viên quản lý" }));
-        addFormRow(form, gbc, "Ca làm việc", new JComboBox<String>(
-                new String[] { "Ca sáng", "Ca chiều", "Ca tối", "Ca xoay" }));
-        addFormRow(form, gbc, "Ngày bắt đầu", createInputField("dd/MM/yyyy"));
-        addFormRow(form, gbc, "Trạng thái", new JComboBox<String>(
-                new String[] { "Đang làm việc", "Nghỉ" }));
+        gbc.gridx = 1;
+        gbc.weightx = 0.8;
+        panel.add(txtTimMaNV, gbc);
 
-        JScrollPane formScroll = new JScrollPane(form);
-        formScroll.setBorder(null);
-        formScroll.getViewport().setBackground(CARD_BG);
-        formScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        panel.add(lblHoTen, gbc);
 
-        formCard.add(title, BorderLayout.NORTH);
-        formCard.add(formScroll, BorderLayout.CENTER);
-        return formCard;
+        gbc.gridx = 3;
+        gbc.weightx = 1.0;
+        panel.add(txtTimHoTen, gbc);
+
+        gbc.gridx = 4;
+        gbc.weightx = 0;
+        panel.add(lblTrangThai, gbc);
+
+        gbc.gridx = 5;
+        gbc.weightx = 0.8;
+        panel.add(cboLocTrangThai, gbc);
+
+        gbc.gridx = 6;
+        gbc.weightx = 0;
+        panel.add(btnTim, gbc);
+
+        gbc.gridx = 7;
+        panel.add(btnLamMoiTim, gbc);
+
+        return panel;
     }
 
-    private static JPanel createTablePanel() {
-        JPanel tableCard = new RoundedPanel(20, CARD_BG);
-        tableCard.setLayout(new BorderLayout(0, 10));
-        tableCard.setBorder(new EmptyBorder(14, 14, 14, 14));
+    private JPanel createBodyPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
 
-        JLabel title = new JLabel("Danh sách nhân viên");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(TEXT);
+        JSplitPane splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                createTablePanel(),
+                createDetailPanel());
+        splitPane.setDividerLocation(760);
+        splitPane.setBorder(null);
+        splitPane.setOpaque(false);
 
-        DefaultTableModel tableModel = new DefaultTableModel(
-                new Object[] { "Mã NV", "Họ tên", "Ngày sinh", "SĐT", "Email", "Giới tính", "Địa chỉ", "Vai trò",
-                        "Ca làm việc", "Ngày bắt đầu", "Trạng thái" },
-                0) {
+        panel.add(splitPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createTablePanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(16, 16, 16, 16)));
+
+        JLabel lblTitle = new JLabel("Danh sách nhân viên");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(TEXT_DARK);
+
+        panel.add(lblTitle, BorderLayout.NORTH);
+
+        String[] columns = {
+                "Mã NV", "Họ tên", "Ngày sinh", "SĐT", "Email", "Giới tính",
+                "Ngày bắt đầu", "Trạng thái", "Địa chỉ", "Ca làm", "Vị trí"
+        };
+
+        Object[][] data = {};
+
+        tableModel = new DefaultTableModel(data, columns) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -181,201 +182,265 @@ public class QLNhanVien {
             }
         };
 
-        JTable table = new JTable(tableModel);
-        table.setRowHeight(34);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(231, 240, 252));
-        table.getTableHeader().setForeground(TEXT);
-        table.setGridColor(new Color(229, 236, 247));
-        table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(210, 229, 255));
-        table.setSelectionForeground(TEXT);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblNhanVien = new JTable(tableModel);
+        tblNhanVien.setRowHeight(28);
+        tblNhanVien.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tblNhanVien.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tblNhanVien.getTableHeader().setBackground(new Color(233, 239, 248));
+        tblNhanVien.getTableHeader().setForeground(TEXT_DARK);
+        tblNhanVien.setGridColor(CARD_BORDER);
+        tblNhanVien.setSelectionBackground(new Color(221, 232, 248));
+        tblNhanVien.setSelectionForeground(TEXT_DARK);
 
-        table.getColumnModel().getColumn(0).setPreferredWidth(90);
-        table.getColumnModel().getColumn(1).setPreferredWidth(150);
-        table.getColumnModel().getColumn(2).setPreferredWidth(100);
-        table.getColumnModel().getColumn(3).setPreferredWidth(110);
-        table.getColumnModel().getColumn(4).setPreferredWidth(180);
-        table.getColumnModel().getColumn(5).setPreferredWidth(90);
-        table.getColumnModel().getColumn(6).setPreferredWidth(170);
-        table.getColumnModel().getColumn(7).setPreferredWidth(150);
-        table.getColumnModel().getColumn(8).setPreferredWidth(120);
-        table.getColumnModel().getColumn(9).setPreferredWidth(110);
-        table.getColumnModel().getColumn(10).setPreferredWidth(120);
+        JScrollPane scrollPane = new JScrollPane(tblNhanVien);
+        scrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
 
-        DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
-        centerAlign.setHorizontalAlignment(SwingConstants.CENTER);
-        table.getColumnModel().getColumn(0).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(2).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(3).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(5).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(8).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(9).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(10).setCellRenderer(centerAlign);
-
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
-        scrollPane.getViewport().setBackground(Color.WHITE);
-
-        tableCard.add(title, BorderLayout.NORTH);
-        tableCard.add(scrollPane, BorderLayout.CENTER);
-
-        seedData(tableModel);
-        return tableCard;
+        panel.add(scrollPane, BorderLayout.CENTER);
+        return panel;
     }
 
-    private static JPanel createActionPanel() {
-        JPanel actions = new RoundedPanel(20, CARD_BG);
-        actions.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        actions.setBorder(new EmptyBorder(4, 10, 4, 10));
+    private JPanel createDetailPanel() {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 12));
+        wrapper.setBackground(APP_BG);
+        wrapper.setBorder(new EmptyBorder(0, 16, 0, 0));
 
-        actions.add(createGhostButton("Làm mới", 120, 38));
-        actions.add(createPrimaryButton("Thêm", 110, 38));
-        actions.add(createPrimaryButton("Cập nhật", 120, 38));
-        actions.add(createDangerButton("Xóa", 110, 38));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(PANEL_BG);
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(16, 16, 16, 16)));
 
-        return actions;
-    }
+        JLabel lblTitle = new JLabel("Thông tin nhân viên");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(TEXT_DARK);
 
-    private static void addFormRow(JPanel container, GridBagConstraints gbc, String labelText,
-            java.awt.Component input) {
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        label.setForeground(TEXT);
-        label.setPreferredSize(new Dimension(130, 36));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-        if (input instanceof JTextField) {
-            JTextField textField = (JTextField) input;
-            textField.setPreferredSize(new Dimension(280, 36));
-            textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
-                    new EmptyBorder(6, 10, 6, 10)));
-            textField.setEditable(true);
-            textField.setEnabled(true);
-            textField.setFocusable(true);
-            textField.setForeground(TEXT);
-            textField.setBackground(Color.WHITE);
-        }
+        txtMaNV = new JTextField();
+        txtHoTen = new JTextField();
+        txtNgaySinh = new JTextField();
+        txtSDT = new JTextField();
+        txtEmail = new JTextField();
+        cboGioiTinh = new JComboBox<>(new String[] { "Nam", "Nữ" });
+        txtNgayBatDauVaoLam = new JTextField();
+        cboTrangThaiLamViec = new JComboBox<>(new String[] { "Đang làm", "Nghỉ việc", "Tạm nghỉ" });
+        txtDiaChi = new JTextField();
+        cboCaLamViec = new JComboBox<>(new String[] { "Ca sáng", "Ca chiều", "Ca tối" });
+        cboViTriCongViec = new JComboBox<>(new String[] { "Lễ tân", "Bảo vệ", "Kế toán", "Quản lý" });
 
-        if (input instanceof JComboBox) {
-            JComboBox<?> combo = (JComboBox<?>) input;
-            combo.setPreferredSize(new Dimension(280, 36));
-            combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            combo.setEnabled(true);
-            combo.setFocusable(true);
-        }
+        styleTextField(txtMaNV);
+        styleTextField(txtHoTen);
+        styleTextField(txtNgaySinh);
+        styleTextField(txtSDT);
+        styleTextField(txtEmail);
+        styleComboBox(cboGioiTinh);
+        styleTextField(txtNgayBatDauVaoLam);
+        styleComboBox(cboTrangThaiLamViec);
+        styleTextField(txtDiaChi);
+        styleComboBox(cboCaLamViec);
+        styleComboBox(cboViTriCongViec);
 
         gbc.gridx = 0;
-        container.add(label, gbc);
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        formPanel.add(lblTitle, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+
+        addFormRow(formPanel, gbc, "Mã NV", txtMaNV);
+        addFormRow(formPanel, gbc, "Họ tên", txtHoTen);
+        addFormRow(formPanel, gbc, "Ngày sinh", txtNgaySinh);
+        addFormRow(formPanel, gbc, "SĐT", txtSDT);
+        addFormRow(formPanel, gbc, "Email", txtEmail);
+        addFormRow(formPanel, gbc, "Giới tính", cboGioiTinh);
+        addFormRow(formPanel, gbc, "Ngày bắt đầu", txtNgayBatDauVaoLam);
+        addFormRow(formPanel, gbc, "Trạng thái", cboTrangThaiLamViec);
+        addFormRow(formPanel, gbc, "Địa chỉ", txtDiaChi);
+        addFormRow(formPanel, gbc, "Ca làm", cboCaLamViec);
+        addFormRow(formPanel, gbc, "Vị trí", cboViTriCongViec);
+
+        JScrollPane formScrollPane = new JScrollPane(formPanel);
+        formScrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
+        formScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        formScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        wrapper.add(formScrollPane, BorderLayout.CENTER);
+        wrapper.add(createActionPanel(), BorderLayout.SOUTH);
+
+        return wrapper;
+    }
+
+    private JPanel createActionPanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 2, 16, 16));
+        panel.setBackground(APP_BG);
+        panel.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+        btnThem = createButton("Thêm");
+        btnCapNhat = createButton("Cập nhật");
+        btnXoa = createDangerButton("Xóa");
+        btnLamMoiForm = createButton("Làm mới");
+
+        Dimension btnSize = new Dimension(160, 48);
+        btnThem.setPreferredSize(btnSize);
+        btnCapNhat.setPreferredSize(btnSize);
+        btnXoa.setPreferredSize(btnSize);
+        btnLamMoiForm.setPreferredSize(btnSize);
+
+        panel.add(btnThem);
+        panel.add(btnCapNhat);
+        panel.add(btnXoa);
+        panel.add(btnLamMoiForm);
+
+        return panel;
+    }
+
+    private void addFormRow(JPanel panel, GridBagConstraints gbc, String label, java.awt.Component component) {
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        panel.add(createLabel(label), gbc);
+
         gbc.gridx = 1;
-        container.add(input, gbc);
+        gbc.weightx = 1.0;
+        panel.add(component, gbc);
+
         gbc.gridy++;
     }
 
-    private static JTextField createInputField(String initialText) {
-        JTextField textField = new JTextField(initialText);
-        textField.setEditable(true);
-        textField.setEnabled(true);
-        textField.setFocusable(true);
-        return textField;
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        label.setForeground(TEXT_DARK);
+        label.setPreferredSize(new Dimension(130, 38));
+        return label;
     }
 
-    private static JButton createPrimaryButton(String text, int width, int height) {
+    private void styleTextField(JTextField textField) {
+        textField.setPreferredSize(new Dimension(220, 38));
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(6, 10, 6, 10)));
+    }
+
+    private void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setPreferredSize(new Dimension(220, 38));
+        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        comboBox.setBackground(Color.WHITE);
+    }
+
+    private JButton createButton(String text) {
         JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(width, height));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
-        button.setBackground(BUTTON_PRIMARY_BG);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        button.setForeground(TEXT_DARK);
+        button.setBackground(BUTTON_BG);
         button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
+        button.setPreferredSize(new Dimension(160, 48));
         return button;
     }
 
-    private static JButton createGhostButton(String text, int width, int height) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(width, height));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
-        button.setBackground(BUTTON_GHOST_BG);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+    private JButton createDangerButton(String text) {
+        JButton button = createButton(text);
+        button.setBackground(BUTTON_DANGER);
         return button;
     }
 
-    private static JButton createDangerButton(String text, int width, int height) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(width, height));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
-        button.setBackground(BUTTON_DANGER_BG);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(235, 184, 184), 1));
-        return button;
+    public JTextField getTxtTimMaNV() {
+        return txtTimMaNV;
     }
 
-    private static void seedData(DefaultTableModel tableModel) {
-        tableModel.addRow(
-                new Object[] { "NV001", "Nguyễn Minh Quân", "12/03/1998", "0901234001", "quan.nv@gmail.com", "Nam",
-                        "Quận 1, TP.HCM", "Nhân viên lễ tân", "Ca sáng", "01/06/2022", "Đang làm việc" });
-        tableModel.addRow(new Object[] { "NV002", "Trần Thu Hà", "21/09/1996", "0901234002", "ha.tran@gmail.com", "Nữ",
-                "Quận 7, TP.HCM", "Nhân viên quản lý", "Ca chiều", "15/11/2021", "Đang làm việc" });
-        tableModel.addRow(new Object[] { "NV003", "Lê Đức Huy", "05/01/2000", "0901234003", "huy.le@gmail.com", "Nam",
-                "TP. Thủ Đức", "Nhân viên lễ tân", "Ca tối", "10/02/2024", "Nghỉ" });
-        tableModel
-                .addRow(new Object[] { "NV004", "Phạm Ngọc Anh", "19/07/1997", "0901234004", "anh.pham@gmail.com", "Nữ",
-                        "Bình Thạnh, TP.HCM", "Nhân viên lễ tân", "Ca xoay", "08/08/2023", "Đang làm việc" });
+    public JTextField getTxtTimHoTen() {
+        return txtTimHoTen;
     }
 
-    private static class GradientPanel extends JPanel {
-
-        private static final long serialVersionUID = 1L;
-        private final Color start;
-        private final Color end;
-
-        GradientPanel(Color start, Color end) {
-            this.start = start;
-            this.end = end;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2d.setPaint(new GradientPaint(0, 0, start, getWidth(), getHeight(), end));
-            g2d.fillRect(0, 0, getWidth(), getHeight());
-            g2d.dispose();
-        }
+    public JComboBox<String> getCboLocTrangThai() {
+        return cboLocTrangThai;
     }
 
-    private static class RoundedPanel extends JPanel {
+    public JTable getTblNhanVien() {
+        return tblNhanVien;
+    }
 
-        private static final long serialVersionUID = 1L;
-        private final int radius;
-        private final Color color;
+    public DefaultTableModel getTableModel() {
+        return tableModel;
+    }
 
-        RoundedPanel(int radius, Color color) {
-            this.radius = radius;
-            this.color = color;
-            setOpaque(false);
-        }
+    public JTextField getTxtMaNV() {
+        return txtMaNV;
+    }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setColor(color);
-            g2d.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-            g2d.setColor(new Color(214, 226, 243));
-            g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
-            g2d.dispose();
-            super.paintComponent(g);
-        }
+    public JTextField getTxtHoTen() {
+        return txtHoTen;
+    }
+
+    public JTextField getTxtNgaySinh() {
+        return txtNgaySinh;
+    }
+
+    public JTextField getTxtSDT() {
+        return txtSDT;
+    }
+
+    public JTextField getTxtEmail() {
+        return txtEmail;
+    }
+
+    public JComboBox<String> getCboGioiTinh() {
+        return cboGioiTinh;
+    }
+
+    public JTextField getTxtNgayBatDauVaoLam() {
+        return txtNgayBatDauVaoLam;
+    }
+
+    public JComboBox<String> getCboTrangThaiLamViec() {
+        return cboTrangThaiLamViec;
+    }
+
+    public JTextField getTxtDiaChi() {
+        return txtDiaChi;
+    }
+
+    public JComboBox<String> getCboCaLamViec() {
+        return cboCaLamViec;
+    }
+
+    public JComboBox<String> getCboViTriCongViec() {
+        return cboViTriCongViec;
+    }
+
+    public JButton getBtnTim() {
+        return btnTim;
+    }
+
+    public JButton getBtnLamMoiTim() {
+        return btnLamMoiTim;
+    }
+
+    public JButton getBtnThem() {
+        return btnThem;
+    }
+
+    public JButton getBtnCapNhat() {
+        return btnCapNhat;
+    }
+
+    public JButton getBtnXoa() {
+        return btnXoa;
+    }
+
+   
+    public JButton getBtnLamMoiForm() {
+        return btnLamMoiForm;
+    }
+
+    public static JPanel createPanel() {
+        QLNhanVien panel = new QLNhanVien();
+        new QLNhanVienController(panel);
+        return panel;
     }
 }

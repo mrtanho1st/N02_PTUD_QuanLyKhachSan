@@ -8,49 +8,30 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DangNhap_Dao {
-    public TaiKhoan dangNhap(String tenDangNhap, String matKhau) {
-        TaiKhoan taiKhoan = null;
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
+	public TaiKhoan dangNhap(String tenDangNhap, String matKhau) {
+	    String sql = "SELECT tenDangNhap, matKhau, vaiTro, maNV FROM TaiKhoan WHERE tenDangNhap = ? AND matKhau = ?";
 
-        try {
-            // Lấy kết nối từ ConnectDB
-            con = ConnectDB.getConnection();
+	    try (
+	        Connection con = ConnectDB.getConnection();
+	        PreparedStatement ps = con.prepareStatement(sql)
+	    ) {
+	        ps.setString(1, tenDangNhap);
+	        ps.setString(2, matKhau);
 
-            // Truy vấn SQL để kiểm tra tài khoản
-            String sql = "SELECT tenDangNhap, matKhau FROM TaiKhoan WHERE tenDangNhap = ? AND matKhau = ?";
-            pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, tenDangNhap);
-            pstmt.setString(2, matKhau);
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                TaiKhoan tk = new TaiKhoan();
+	                tk.setTenDangNhap(rs.getString("tenDangNhap"));
+	                tk.setMatKhau(rs.getString("matKhau"));
+	                tk.setVaiTro(rs.getString("vaiTro"));
+	                tk.setMaNV(rs.getString("maNV"));
+	                return tk;
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 
-            // Thực hiện truy vấn
-            rs = pstmt.executeQuery();
-
-            // Nếu tìm thấy tài khoản
-            if (rs.next()) {
-                taiKhoan = new TaiKhoan();
-                taiKhoan.setTenDangNhap(rs.getString("tenDangNhap"));
-                taiKhoan.setMatKhau(rs.getString("matKhau"));
-                System.out.println("Đăng nhập thành công!");
-            } else {
-                System.out.println("Tên đăng nhập hoặc mật khẩu không chính xác!");
-            }
-        } catch (SQLException e) {
-            System.err.println("Lỗi khi truy vấn cơ sở dữ liệu: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            // Đóng các tài nguyên
-            try {
-                if (rs != null)
-                    rs.close();
-                if (pstmt != null)
-                    pstmt.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return taiKhoan;
-    }
+	    return null;
+	}
 }

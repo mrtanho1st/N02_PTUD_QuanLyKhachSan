@@ -2,49 +2,78 @@ package entity;
 
 public class Phong {
     private String maPhong;
-    private String tenPhong;
-    private LoaiPhong loaiPhong;
+    private String loaiPhong;
+    private int soNguoiToiDa;
     private double giaPhong;
+    private String trangThai;
+    
+    
+	public Phong(String maPhong) {
+		super();
+		this.maPhong = maPhong;
+	}
 
-    public Phong() {
-    }
 
-    public Phong(String maPhong, String tenPhong, LoaiPhong loaiPhong, double giaPhong) {
-        this.maPhong = maPhong;
-        this.tenPhong = tenPhong;
-        this.loaiPhong = loaiPhong;
-        this.giaPhong = giaPhong;
-    }
+	public Phong(String maPhong, String loaiPhong, int soNguoiToiDa, double giaPhong, String trangThai) {
+		super();
+		this.maPhong = maPhong;
+		this.loaiPhong = loaiPhong;
+		this.soNguoiToiDa = soNguoiToiDa;
+		this.giaPhong = giaPhong;
+		this.trangThai = trangThai;
+	}
 
-    public String getMaPhong() {
-        return maPhong;
-    }
 
-    public void setMaPhong(String maPhong) {
-        this.maPhong = maPhong;
-    }
+	public String getMaPhong() {
+		return maPhong;
+	}
 
-    public String getTenPhong() {
-        return tenPhong;
-    }
 
-    public void setTenPhong(String tenPhong) {
-        this.tenPhong = tenPhong;
-    }
+	public void setMaPhong(String maPhong) {
+		this.maPhong = maPhong;
+	}
 
-    public LoaiPhong getLoaiPhong() {
-        return loaiPhong;
-    }
 
-    public void setLoaiPhong(LoaiPhong loaiPhong) {
-        this.loaiPhong = loaiPhong;
-    }
+	public String getLoaiPhong() {
+		return loaiPhong;
+	}
 
-    public double getGiaPhong() {
-        return giaPhong;
-    }
 
-    public void setGiaPhong(double giaPhong) {
-        this.giaPhong = giaPhong;
-    }
+	public void setLoaiPhong(String loaiPhong) {
+		this.loaiPhong = loaiPhong;
+	}
+
+
+	public int getSoNguoiToiDa() {
+		return soNguoiToiDa;
+	}
+
+
+	public void setSoNguoiToiDa(int soNguoiToiDa) {
+		this.soNguoiToiDa = soNguoiToiDa;
+	}
+
+
+	public double getGiaPhong() {
+		return giaPhong;
+	}
+
+
+	public void setGiaPhong(double giaPhong) {
+		this.giaPhong = giaPhong;
+	}
+
+
+	public String getTrangThai() {
+		return trangThai;
+	}
+
+
+	public void setTrangThai(String trangThai) {
+		this.trangThai = trangThai;
+	}
+	
+	
+    
+    
 }

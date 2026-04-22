@@ -27,14 +27,14 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import dao.DangNhap_Dao;
-import entity.TaiKhoan;
 import javax.swing.JOptionPane;
 
+import entity.NhanVien;
+
 public class DangNhap extends JFrame {
+	private static NhanVien nhanVienDangNhap;
 
     private static final long serialVersionUID = 1L;
 
@@ -46,6 +46,11 @@ public class DangNhap extends JFrame {
     private JTextField txtTenDangNhap;
     private JPasswordField txtMatKhau;
     private char defaultEchoChar;
+
+    private JButton btnDangNhap;
+    private JButton btnThoat;
+    private JCheckBox chkHienMatKhau;
+    private JCheckBox chkGhiNho;
 
     public DangNhap() {
         initUI();
@@ -141,17 +146,15 @@ public class DangNhap extends JFrame {
         JPanel optionRow = new JPanel(new BorderLayout());
         optionRow.setOpaque(false);
 
-        JCheckBox chkGhiNho = new JCheckBox("Ghi nhớ đăng nhập");
+        chkGhiNho = new JCheckBox("Ghi nhớ đăng nhập");
         chkGhiNho.setOpaque(false);
         chkGhiNho.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         chkGhiNho.setForeground(TEXT);
 
-        JCheckBox chkHienMatKhau = new JCheckBox("Hiện mật khẩu");
+        chkHienMatKhau = new JCheckBox("Hiện mật khẩu");
         chkHienMatKhau.setOpaque(false);
         chkHienMatKhau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         chkHienMatKhau.setForeground(TEXT);
-        chkHienMatKhau.addActionListener(
-                e -> txtMatKhau.setEchoChar(chkHienMatKhau.isSelected() ? (char) 0 : defaultEchoChar));
 
         optionRow.add(chkGhiNho, BorderLayout.WEST);
         optionRow.add(chkHienMatKhau, BorderLayout.EAST);
@@ -161,10 +164,8 @@ public class DangNhap extends JFrame {
         JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 0));
         buttonRow.setOpaque(false);
 
-        JButton btnDangNhap = createPrimaryButton("Đăng nhập", 160, 42);
-        JButton btnThoat = createSecondaryButton("Thoát", 140, 42);
-
-        onClickActetion(btnDangNhap, btnThoat);
+        btnDangNhap = createPrimaryButton("Đăng nhập", 160, 42);
+        btnThoat = createSecondaryButton("Thoát", 140, 42);
 
         buttonRow.add(btnDangNhap);
         buttonRow.add(btnThoat);
@@ -232,7 +233,6 @@ public class DangNhap extends JFrame {
     }
 
     private static class BackgroundImagePanel extends JPanel {
-
         private static final long serialVersionUID = 1L;
         private final Image image;
         private final Color start;
@@ -267,61 +267,58 @@ public class DangNhap extends JFrame {
         }
     }
 
-    /**
-     * Xử lý logic đăng nhập
-     */
-    private void xuLyDangNhap() {
-        // Lấy dữ liệu từ form
-        String tenDangNhap = txtTenDangNhap.getText().trim();
-        String matKhau = new String(txtMatKhau.getPassword());
-
-        // Kiểm tra xem các trường có trống không
-        if (tenDangNhap.isEmpty() || matKhau.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Vui lòng nhập tên đăng nhập và mật khẩu!",
-                    "Thông báo",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Tạo đối tượng DAO và gọi phương thức đăng nhập
-        DangNhap_Dao dao = new DangNhap_Dao();
-        TaiKhoan taiKhoan = dao.dangNhap(tenDangNhap, matKhau);
-
-        if (taiKhoan != null) {
-            // Đăng nhập thành công, chuyển đến giao diện chính
-            JOptionPane.showMessageDialog(this,
-                    "Đăng nhập thành công!",
-                    "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
-            new GiaoDienChinh().setVisible(true);
-            this.dispose(); // Đóng cửa sổ đăng nhập
-        } else {
-            // Hiển thị thông báo lỗi
-            JOptionPane.showMessageDialog(this,
-                    "Tên đăng nhập hoặc mật khẩu không chính xác!",
-                    "Lỗi đăng nhập",
-                    JOptionPane.ERROR_MESSAGE);
-            txtMatKhau.setText(""); // Xóa mật khẩu
-        }
+    public String getTenDangNhap() {
+        return txtTenDangNhap.getText().trim();
     }
 
-    private void onClickActetion(JButton btnDangNhap, JButton btnThoat) {
-        // Event listener cho nút đăng nhập
-        btnDangNhap.addActionListener(e -> xuLyDangNhap());
-
-        // Event listener cho nút thoát
-        btnThoat.addActionListener(e -> System.exit(0));
+    public String getMatKhau() {
+        return new String(txtMatKhau.getPassword());
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            applySystemLookAndFeel();
-            new DangNhap().setVisible(true);
-        });
+    public void clearMatKhau() {
+        txtMatKhau.setText("");
     }
 
-    private static void applySystemLookAndFeel() {
+    public void focusTenDangNhap() {
+        txtTenDangNhap.requestFocus();
+    }
+
+    public void focusMatKhau() {
+        txtMatKhau.requestFocus();
+    }
+
+    public void toggleHienMatKhau() {
+        txtMatKhau.setEchoChar(chkHienMatKhau.isSelected() ? (char) 0 : defaultEchoChar);
+    }
+
+    public void showMessage(String message, String title, int messageType) {
+        JOptionPane.showMessageDialog(this, message, title, messageType);
+    }
+
+    public JButton getBtnDangNhap() {
+        return btnDangNhap;
+    }
+
+    public JButton getBtnThoat() {
+        return btnThoat;
+    }
+
+    public JCheckBox getChkHienMatKhau() {
+        return chkHienMatKhau;
+    }
+
+    public JCheckBox getChkGhiNho() {
+        return chkGhiNho;
+    }
+    public static NhanVien getNhanVienDangNhap() {
+        return nhanVienDangNhap;
+    }
+
+    public static void setNhanVienDangNhap(NhanVien nhanVien) {
+        nhanVienDangNhap = nhanVien;
+    }
+
+    public static void applySystemLookAndFeel() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
