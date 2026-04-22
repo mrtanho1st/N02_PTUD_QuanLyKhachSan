@@ -474,7 +474,7 @@ public class GiaoDienChinh extends JFrame {
             if (subMenu.equals("Đặt phòng")) {
                 panel = DatPhong.createPanel();
             } else if (subMenu.equals("Check-in/Check-out")) {
-                panel = NhanTraPhong.createPanel();
+                panel = CheckInCheckOut.createPanel();
             } else if (subMenu.equals("Hóa đơn")) {
                 panel = QLHoaDon.createPanel();
             } else if (subMenu.equals("Phân công")) {

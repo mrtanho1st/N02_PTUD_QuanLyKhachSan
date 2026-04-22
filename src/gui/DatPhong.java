@@ -143,8 +143,13 @@ public class DatPhong extends JPanel {
         pnlDanhSachPhong.removeAll();
 
         Map<String, JPanel> groupMap = new LinkedHashMap<>();
+        Map<String, DonDatPhong> uniqueRooms = new LinkedHashMap<>();
 
         for (DonDatPhong room : rooms) {
+            uniqueRooms.put(room.getMaPhong(), room); 
+        }
+
+        for (DonDatPhong room : uniqueRooms.values()) {
             String groupName = room.getLoaiPhong();
 
             if (!groupMap.containsKey(groupName)) {

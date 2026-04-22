@@ -2,6 +2,7 @@ package test;
 
 import javax.swing.*;
 
+import gui.CheckInCheckOut;
 import gui.DatPhong;
 import gui.QLKhachHang;
 import gui.QLNhanVien;
@@ -19,7 +20,7 @@ public class Test {
             JFrame frame = new JFrame("Test quản lý phòng");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            JPanel panel = DatPhong.createPanel();
+            JPanel panel = CheckInCheckOut.createPanel();
             frame.setContentPane(panel);
 
             frame.setSize(1200, 700);

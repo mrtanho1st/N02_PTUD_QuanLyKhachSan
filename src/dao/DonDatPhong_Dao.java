@@ -27,14 +27,21 @@ public class DonDatPhong_Dao {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT p.maPhong, p.loaiPhong, p.trangThaiPhong, ");
-        sql.append("ddp.maDDP, ddp.tinhTrang, ddp.maKH, kh.hoTen, ");
-        sql.append("CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
-        sql.append("CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
-        sql.append("ddp.tienCoc ");
+        sql.append("x.maDDP, x.tinhTrang, x.maKH, x.hoTen, ");
+        sql.append("x.ngayNhan, x.ngayTra, x.tienCoc ");
         sql.append("FROM Phong p ");
-        sql.append("LEFT JOIN CTDonDatPhong ct ON p.maPhong = ct.maPhong ");
-        sql.append("LEFT JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
-        sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
+        sql.append("OUTER APPLY ( ");
+        sql.append("    SELECT TOP 1 ");
+        sql.append("        ddp.maDDP, ddp.tinhTrang, ddp.maKH, kh.hoTen, ");
+        sql.append("        CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
+        sql.append("        CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
+        sql.append("        ddp.tienCoc ");
+        sql.append("    FROM CTDonDatPhong ct ");
+        sql.append("    INNER JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("    LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
+        sql.append("    WHERE ct.maPhong = p.maPhong ");
+        sql.append("    ORDER BY ddp.ngayNhan DESC, ddp.maDDP DESC ");
+        sql.append(") x ");
         sql.append("WHERE 1=1 ");
 
         if (maPhong != null && !maPhong.isBlank()) {
