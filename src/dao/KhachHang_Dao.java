@@ -14,7 +14,7 @@ public class KhachHang_Dao {
     public List<KhachHang> findAll() {
         List<KhachHang> list = new ArrayList<>();
 
-        String sql = "SELECT maKH, hoTen, sdt,cccd, loaiKH, diemSo FROM khachHang";
+        String sql = "SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo FROM KhachHang";
 
         try (
             Connection con = ConnectDB.getConnection();
@@ -22,15 +22,7 @@ public class KhachHang_Dao {
             ResultSet rs = ps.executeQuery()
         ) {
             while (rs.next()) {
-                KhachHang kh = new KhachHang(
-                    rs.getString("maKH"),
-                    rs.getString("hoTen"),
-                    rs.getString("sdt"),
-                    rs.getString("cccd"),
-                    rs.getString("loaiKH"),
-                    rs.getInt("diemSo")
-                );
-                list.add(kh);
+                list.add(mapKhachHang(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -40,7 +32,7 @@ public class KhachHang_Dao {
     }
 
     public KhachHang findById(String maKH) {
-        String sql = "SELECT maKH, hoTen, sdt,  cccd, loaiKH, diem FROM khachHang WHERE maKH = ?";
+        String sql = "SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo FROM KhachHang WHERE maKH = ?";
 
         try (
             Connection con = ConnectDB.getConnection();
@@ -50,14 +42,7 @@ public class KhachHang_Dao {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new KhachHang(
-                        rs.getString("maKH"),
-                        rs.getString("hoTen"),
-                        rs.getString("sdt"),
-                        rs.getString("cccd"),
-                        rs.getString("loaiKH"),
-                        rs.getInt("diemSo")
-                    );
+                    return mapKhachHang(rs);
                 }
             }
         } catch (Exception e) {
@@ -68,7 +53,7 @@ public class KhachHang_Dao {
     }
 
     public boolean insert(KhachHang kh) {
-        String sql = "INSERT INTO khachHang(maKH, hoTen, sdt, cccd, loaiKH, diemSo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO KhachHang(maKH, hoTen, sdt, cccd, loaiKH, diemSo) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (
             Connection con = ConnectDB.getConnection();
@@ -90,7 +75,7 @@ public class KhachHang_Dao {
     }
 
     public boolean update(KhachHang kh) {
-        String sql = "UPDATE khachHang SET hoTen = ?, sdt = ?,  cccd = ?, loaiKH = ?, diemSo = ? WHERE maKH = ?";
+        String sql = "UPDATE KhachHang SET hoTen = ?, sdt = ?, cccd = ?, loaiKH = ?, diemSo = ? WHERE maKH = ?";
 
         try (
             Connection con = ConnectDB.getConnection();
@@ -112,7 +97,7 @@ public class KhachHang_Dao {
     }
 
     public boolean delete(String maKH) {
-        String sql = "DELETE FROM khachHang WHERE maKH = ?";
+        String sql = "DELETE FROM KhachHang WHERE maKH = ?";
 
         try (
             Connection con = ConnectDB.getConnection();
@@ -130,20 +115,73 @@ public class KhachHang_Dao {
     public List<KhachHang> search(String maKH, String tenKH, String loaiKH) {
         List<KhachHang> list = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo FROM khachHang WHERE 1=1"
-        );
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo ");
+        sql.append("FROM KhachHang ");
+        sql.append("WHERE 1 = 1 ");
 
         if (maKH != null && !maKH.isBlank()) {
-            sql.append(" AND maKH LIKE ?");
+            sql.append("AND maKH LIKE ? ");
         }
 
         if (tenKH != null && !tenKH.isBlank()) {
-            sql.append(" AND hoTen LIKE ?");
+            sql.append("AND hoTen LIKE ? ");
         }
 
-        if (loaiKH != null && !loaiKH.equals("Tất cả")) {
-            sql.append(" AND loaiKH = ?");
+        if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
+            sql.append("AND loaiKH = ? ");
+        }
+
+        sql.append("ORDER BY maKH");
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (maKH != null && !maKH.isBlank()) {
+                ps.setString(index++, "%" + maKH.trim() + "%");
+            }
+
+            if (tenKH != null && !tenKH.isBlank()) {
+                ps.setString(index++, "%" + tenKH.trim() + "%");
+            }
+
+            if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
+                ps.setString(index++, loaiKH.trim());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapKhachHang(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    // ===== Dùng cho Báo biểu =====
+
+    public int countKhachHang(String maKH, String tenKH, String loaiKH) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT COUNT(*) ");
+        sql.append("FROM KhachHang ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (maKH != null && !maKH.isBlank()) {
+            sql.append("AND maKH LIKE ? ");
+        }
+
+        if (tenKH != null && !tenKH.isBlank()) {
+            sql.append("AND hoTen LIKE ? ");
+        }
+
+        if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
+            sql.append("AND loaiKH = ? ");
         }
 
         try (
@@ -153,34 +191,66 @@ public class KhachHang_Dao {
             int index = 1;
 
             if (maKH != null && !maKH.isBlank()) {
-                ps.setString(index++, "%" + maKH + "%");
+                ps.setString(index++, "%" + maKH.trim() + "%");
             }
 
             if (tenKH != null && !tenKH.isBlank()) {
-                ps.setString(index++, "%" + tenKH + "%");
+                ps.setString(index++, "%" + tenKH.trim() + "%");
             }
 
-            if (loaiKH != null && !loaiKH.equals("Tất cả")) {
-                ps.setString(index++, loaiKH);
+            if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
+                ps.setString(index++, loaiKH.trim());
             }
 
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    KhachHang kh = new KhachHang(
-                        rs.getString("maKH"),
-                        rs.getString("hoTen"),
-                        rs.getString("sdt"),
-                        rs.getString("cccd"),
-                        rs.getString("loaiKH"),
-                        rs.getInt("diemSo")
-                    );
-                    list.add(kh);
+                if (rs.next()) {
+                    return rs.getInt(1);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return list;
+        return 0;
+    }
+
+    public int countByLoaiKH(String loaiKH) {
+        String sql = "SELECT COUNT(*) FROM KhachHang WHERE loaiKH = ?";
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, loaiKH);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public int countVip() {
+        return countByLoaiKH("VIP");
+    }
+
+    public int countThanThiet() {
+        return countByLoaiKH("Thân thiết");
+    }
+
+    private KhachHang mapKhachHang(ResultSet rs) throws Exception {
+        return new KhachHang(
+                rs.getString("maKH"),
+                rs.getString("hoTen"),
+                rs.getString("sdt"),
+                rs.getString("cccd"),
+                rs.getString("loaiKH"),
+                rs.getInt("diemSo")
+        );
     }
 }

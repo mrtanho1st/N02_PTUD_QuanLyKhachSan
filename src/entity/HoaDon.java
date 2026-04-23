@@ -1,57 +1,36 @@
 package entity;
 
+import java.sql.Date;
+
 public class HoaDon {
-    private String maHoaDon;
-    private String maPhong;
-    private String tenKhachHang;
-    private String ngayDen;
-    private String ngayDi;
-
+    private String maHD;
+    private String maDDP;
+    private String tenKH;
+    private String tenNV;
+    private Date ngayLap;
+    private String maThue;
+    private double tongTien;
+    
     public HoaDon() {
+    	
     }
 
-    public HoaDon(String maHoaDon, String maPhong, String tenKhachHang, String ngayDen, String ngayDi) {
-        this.maHoaDon = maHoaDon;
-        this.maPhong = maPhong;
-        this.tenKhachHang = tenKhachHang;
-        this.ngayDen = ngayDen;
-        this.ngayDi = ngayDi;
+    public HoaDon(String maHD, String maDDP, String tenKH, String tenNV,
+                         Date ngayLap, String maThue, double tongTien) {
+        this.maHD = maHD;
+        this.maDDP = maDDP;
+        this.tenKH = tenKH;
+        this.tenNV = tenNV;
+        this.ngayLap = ngayLap;
+        this.maThue = maThue;
+        this.tongTien = tongTien;
     }
 
-    public String getMaHoaDon() {
-        return maHoaDon;
-    }
-
-    public void setMaHoaDon(String maHoaDon) {
-        this.maHoaDon = maHoaDon;
-    }
-
-    public String getMaPhong() {
-        return maPhong;
-    }
-    public void setMaPhong(String maPhong) {
-        this.maPhong = maPhong;
-    }
-    public String getTenKhachHang() {
-        return tenKhachHang;
-    }
-
-    public void setTenKhachHang(String tenKhachHang) {
-        this.tenKhachHang = tenKhachHang;
-    }
-    public String getNgayDen() {
-        return ngayDen;
-    }
-
-    public void setNgayDen(String ngayDen) {
-        this.ngayDen = ngayDen;
-    }
-
-    public String getNgayDi() {
-        return ngayDi;
-    }
-
-    public void setNgayDi(String ngayDi) {
-        this.ngayDi = ngayDi;
-    }
+    public String getMaHD() { return maHD; }
+    public String getMaDDP() { return maDDP; }
+    public String getTenKH() { return tenKH; }
+    public String getTenNV() { return tenNV; }
+    public Date getNgayLap() { return ngayLap; }
+    public String getMaThue() { return maThue; }
+    public double getTongTien() { return tongTien; }
 }

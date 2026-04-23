@@ -11,88 +11,88 @@ import entity.CheckInCheckOutItem;
 
 public class CheckInCheckOut_Dao {
 
-    public List<CheckInCheckOutItem> search(String maPhong, String maDDP, String cccdSdt, String trangThaiLoc) {
-        List<CheckInCheckOutItem> list = new ArrayList<>();
+	public List<CheckInCheckOutItem> search(String maPhong, String maDDP, String cccdSdt, String trangThaiLoc) {
+	    List<CheckInCheckOutItem> list = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ");
-        sql.append("    p.maPhong, p.loaiPhong, p.giaPhong, p.trangThaiPhong, ");
-        sql.append("    ddp.maDDP, ddp.tinhTrang, ddp.maKH, ");
-        sql.append("    kh.hoTen, kh.cccd, kh.sdt, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 120) AS ngayNhan, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 120) AS ngayTra, ");
-        sql.append("    ddp.tienCoc ");
-        sql.append("FROM DonDatPhong ddp ");
-        sql.append("INNER JOIN CTDonDatPhong ct ON ddp.maDDP = ct.maDDP ");
-        sql.append("INNER JOIN Phong p ON ct.maPhong = p.maPhong ");
-        sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
-        sql.append("WHERE 1 = 1 ");
+	    StringBuilder sql = new StringBuilder();
+	    sql.append("SELECT ");
+	    sql.append("    p.maPhong, p.loaiPhong, p.giaPhong, p.trangThaiPhong, ");
+	    sql.append("    ddp.maDDP, ddp.tinhTrang, ddp.maKH, ");
+	    sql.append("    kh.hoTen, kh.cccd, kh.sdt, ");
+	    sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 120) AS ngayNhan, ");
+	    sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 120) AS ngayTra, ");
+	    sql.append("    ddp.tienCoc ");
+	    sql.append("FROM DonDatPhong ddp ");
+	    sql.append("INNER JOIN CTDonDatPhong ct ON ddp.maDDP = ct.maDDP ");
+	    sql.append("INNER JOIN Phong p ON ct.maPhong = p.maPhong ");
+	    sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
+	    sql.append("WHERE 1 = 1 ");
 
-        if (maPhong != null && !maPhong.isBlank()) {
-            sql.append("AND p.maPhong LIKE ? ");
-        }
-        if (maDDP != null && !maDDP.isBlank()) {
-            sql.append("AND ddp.maDDP LIKE ? ");
-        }
-        if (cccdSdt != null && !cccdSdt.isBlank()) {
-            sql.append("AND (kh.cccd LIKE ? OR kh.sdt LIKE ?) ");
-        }
+	    if (maPhong != null && !maPhong.isBlank()) {
+	        sql.append("AND p.maPhong LIKE ? ");
+	    }
+	    if (maDDP != null && !maDDP.isBlank()) {
+	        sql.append("AND ddp.maDDP LIKE ? ");
+	    }
+	    if (cccdSdt != null && !cccdSdt.isBlank()) {
+	        sql.append("AND (kh.cccd LIKE ? OR kh.sdt LIKE ?) ");
+	    }
 
-        if (trangThaiLoc != null && !trangThaiLoc.equals("Tất cả")) {
-            if (trangThaiLoc.equals("Chờ check-in")) {
-                sql.append("AND ddp.tinhTrang = N'Đã đặt' ");
-            } else if (trangThaiLoc.equals("Đang lưu trú")) {
-                sql.append("AND ddp.tinhTrang = N'Đã nhận' ");
-            } else if (trangThaiLoc.equals("Đã hoàn thành")) {
-                sql.append("AND ddp.tinhTrang = N'Hoàn thành' ");
-            }
-        }
+	    if ("Chưa hoàn thành".equals(trangThaiLoc) || "Tất cả".equals(trangThaiLoc)) {
+	        sql.append("AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận') ");
+	    } else if ("Chờ check-in".equals(trangThaiLoc)) {
+	        sql.append("AND ddp.tinhTrang = N'Đã đặt' ");
+	    } else if ("Đang lưu trú".equals(trangThaiLoc)) {
+	        sql.append("AND ddp.tinhTrang = N'Đã nhận' ");
+	    } else if ("Đã hoàn thành".equals(trangThaiLoc)) {
+	        sql.append("AND ddp.tinhTrang = N'Hoàn thành' ");
+	    }
 
-        sql.append("ORDER BY ddp.ngayNhan DESC, ddp.maDDP DESC");
+	    sql.append("ORDER BY ddp.ngayNhan DESC, ddp.maDDP DESC");
 
-        try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
-            int index = 1;
+	    try (
+	        Connection con = ConnectDB.getConnection();
+	        PreparedStatement ps = con.prepareStatement(sql.toString())
+	    ) {
+	        int index = 1;
 
-            if (maPhong != null && !maPhong.isBlank()) {
-                ps.setString(index++, "%" + maPhong + "%");
-            }
-            if (maDDP != null && !maDDP.isBlank()) {
-                ps.setString(index++, "%" + maDDP + "%");
-            }
-            if (cccdSdt != null && !cccdSdt.isBlank()) {
-                ps.setString(index++, "%" + cccdSdt + "%");
-                ps.setString(index++, "%" + cccdSdt + "%");
-            }
+	        if (maPhong != null && !maPhong.isBlank()) {
+	            ps.setString(index++, "%" + maPhong + "%");
+	        }
+	        if (maDDP != null && !maDDP.isBlank()) {
+	            ps.setString(index++, "%" + maDDP + "%");
+	        }
+	        if (cccdSdt != null && !cccdSdt.isBlank()) {
+	            ps.setString(index++, "%" + cccdSdt + "%");
+	            ps.setString(index++, "%" + cccdSdt + "%");
+	        }
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    CheckInCheckOutItem item = new CheckInCheckOutItem(
-                            rs.getString("maPhong"),
-                            rs.getString("loaiPhong"),
-                            rs.getDouble("giaPhong"),
-                            rs.getString("trangThaiPhong"),
-                            rs.getString("maDDP"),
-                            rs.getString("tinhTrang"),
-                            rs.getString("maKH"),
-                            rs.getString("hoTen"),
-                            rs.getString("cccd"),
-                            rs.getString("sdt"),
-                            rs.getString("ngayNhan"),
-                            rs.getString("ngayTra"),
-                            rs.getObject("tienCoc") == null ? null : rs.getDouble("tienCoc")
-                    );
-                    list.add(item);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                CheckInCheckOutItem item = new CheckInCheckOutItem(
+	                        rs.getString("maPhong"),
+	                        rs.getString("loaiPhong"),
+	                        rs.getDouble("giaPhong"),
+	                        rs.getString("trangThaiPhong"),
+	                        rs.getString("maDDP"),
+	                        rs.getString("tinhTrang"),
+	                        rs.getString("maKH"),
+	                        rs.getString("hoTen"),
+	                        rs.getString("cccd"),
+	                        rs.getString("sdt"),
+	                        rs.getString("ngayNhan"),
+	                        rs.getString("ngayTra"),
+	                        rs.getObject("tienCoc") == null ? null : rs.getDouble("tienCoc")
+	                );
+	                list.add(item);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 
-        return list;
-    }
+	    return list;
+	}
 
     public List<Object[]> findDichVuByMaPhong(String maPhong) {
         List<Object[]> list = new ArrayList<>();

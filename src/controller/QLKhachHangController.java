@@ -3,6 +3,8 @@ package controller;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 import dao.KhachHang_Dao;
@@ -23,8 +25,9 @@ public class QLKhachHangController {
     }
 
     private void initController() {
-        view.getBtnTim().addActionListener(e -> timKhachHang());
         view.getBtnLamMoiTim().addActionListener(e -> lamMoiTimKiem());
+
+        ganSuKienTimKiemTuDong();
 
         view.getBtnThem().addActionListener(e -> themKhachHang());
         view.getBtnCapNhat().addActionListener(e -> capNhatKhachHang());
@@ -38,8 +41,35 @@ public class QLKhachHangController {
         });
     }
 
+    private void ganSuKienTimKiemTuDong() {
+        DocumentListener docListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                timKhachHangKhongThongBao();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                timKhachHangKhongThongBao();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                timKhachHangKhongThongBao();
+            }
+        };
+
+        view.getTxtTimMaKH().getDocument().addDocumentListener(docListener);
+        view.getTxtTimTenKH().getDocument().addDocumentListener(docListener);
+        view.getCboTimLoaiKH().addActionListener(e -> timKhachHangKhongThongBao());
+    }
+
     private void loadDataToTable() {
         List<KhachHang> dsKhachHang = khachHangDao.findAll();
+        fillTable(dsKhachHang);
+    }
+
+    private void fillTable(List<KhachHang> dsKhachHang) {
         DefaultTableModel model = view.getTableModel();
         model.setRowCount(0);
 
@@ -127,13 +157,22 @@ public class QLKhachHangController {
             String sdt = view.getTxtSDT().getText().trim();
             String cccd = view.getTxtCCCD().getText().trim();
             String loaiKH = view.getCboLoaiKH().getSelectedItem().toString();
+            String diemSoText = view.getTxtDiemSo().getText().trim();
 
             if (maKH.isEmpty() || hoTen.isEmpty()) {
                 JOptionPane.showMessageDialog(view, "Mã KH và họ tên không được rỗng");
                 return;
             }
 
-            int diem = Integer.parseInt(view.getTblKhachHang().getValueAt(row, 6).toString());
+            int diem = 0;
+            if (!diemSoText.isEmpty()) {
+                try {
+                    diem = Integer.parseInt(diemSoText);
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(view, "Điểm số phải là số nguyên");
+                    return;
+                }
+            }
 
             KhachHang kh = new KhachHang(maKH, hoTen, sdt, cccd, loaiKH, diem);
 
@@ -177,25 +216,18 @@ public class QLKhachHangController {
         }
     }
 
-    private void timKhachHang() {
+    private void timKhachHangKhongThongBao() {
         String maKH = view.getTxtTimMaKH().getText().trim();
         String tenKH = view.getTxtTimTenKH().getText().trim();
         String loaiKH = view.getCboTimLoaiKH().getSelectedItem().toString();
 
         List<KhachHang> ds = khachHangDao.search(maKH, tenKH, loaiKH);
+        fillTable(ds);
 
-        DefaultTableModel model = view.getTableModel();
-        model.setRowCount(0);
-
-        for (KhachHang kh : ds) {
-            model.addRow(new Object[] {
-                kh.getMaKH(),
-                kh.getHoTen(),
-                kh.getSdt(),
-                kh.getCccd(),
-                kh.getLoaiKH(),
-                kh.getDiem()
-            });
+        if (!ds.isEmpty()) {
+            view.getTblKhachHang().setRowSelectionInterval(0, 0);
+        } else {
+            view.getTblKhachHang().clearSelection();
         }
     }
 

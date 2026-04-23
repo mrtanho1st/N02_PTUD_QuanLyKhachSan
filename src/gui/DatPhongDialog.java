@@ -75,7 +75,7 @@ public class DatPhongDialog extends JDialog {
     }
 
     private void initUI() {
-        setSize(900, 720);
+        setSize(900, 650);
         setMinimumSize(new Dimension(860, 650));
         setLocationRelativeTo(getOwner());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -114,7 +114,7 @@ public class DatPhongDialog extends JDialog {
         JPanel bottom = new JPanel();
         bottom.setOpaque(false);
 
-        JButton btnDatPhong = createButton("Xác nhận đặt phòng", PRIMARY, Color.WHITE);
+        JButton btnDatPhong = createButton("Xác nhận đặt phòng", PRIMARY, Color.BLACK);
         JButton btnHuy = createButton("Hủy", new Color(232, 236, 242), Color.BLACK);
 
         btnDatPhong.addActionListener(e -> submit());

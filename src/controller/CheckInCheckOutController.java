@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -27,8 +29,8 @@ public class CheckInCheckOutController {
     }
 
     private void initController() {
-        view.getBtnTim().addActionListener(e -> timKiem());
         view.getBtnTaiLai().addActionListener(e -> lamMoiTatCa());
+        ganSuKienTimKiemTuDong();
 
         view.getBtnCheckIn().addActionListener(e -> xuLyCheckIn());
         view.getBtnThemDichVu().addActionListener(e -> xuLyThemDichVu());
@@ -46,8 +48,33 @@ public class CheckInCheckOutController {
         });
     }
 
+    private void ganSuKienTimKiemTuDong() {
+        DocumentListener docListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                timKiemKhongThongBao();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                timKiemKhongThongBao();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                timKiemKhongThongBao();
+            }
+        };
+
+        view.getTxtMaPhong().getDocument().addDocumentListener(docListener);
+        view.getTxtMaDDP().getDocument().addDocumentListener(docListener);
+        view.getTxtCccdSdt().getDocument().addDocumentListener(docListener);
+
+        view.getCboTrangThai().addActionListener(e -> timKiemKhongThongBao());
+    }
+
     private void loadDanhSachMacDinh() {
-        List<CheckInCheckOutItem> ds = dao.search("", "", "", "Tất cả");
+        List<CheckInCheckOutItem> ds = dao.search("", "", "", "Chưa hoàn thành");
         fillTable(ds);
         if (!ds.isEmpty()) {
             view.getTblDanhSach().setRowSelectionInterval(0, 0);
@@ -56,22 +83,24 @@ public class CheckInCheckOutController {
         }
     }
 
-    private void timKiem() {
+    private void timKiemKhongThongBao() {
         String maPhong = view.getTxtMaPhong().getText().trim();
         String maDDP = view.getTxtMaDDP().getText().trim();
         String cccdSdt = view.getTxtCccdSdt().getText().trim();
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
+        if ("Tất cả".equals(trangThai)) {
+            trangThai = "Chưa hoàn thành";
+        }
+
         List<CheckInCheckOutItem> ds = dao.search(maPhong, maDDP, cccdSdt, trangThai);
         fillTable(ds);
 
-        if (ds.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Không tìm thấy dữ liệu phù hợp.");
+        if (!ds.isEmpty()) {
+            view.getTblDanhSach().setRowSelectionInterval(0, 0);
+        } else {
             lamMoiChiTiet();
-            return;
         }
-
-        view.getTblDanhSach().setRowSelectionInterval(0, 0);
     }
 
     private void fillTable(List<CheckInCheckOutItem> ds) {
@@ -97,6 +126,10 @@ public class CheckInCheckOutController {
         String maDDP = view.getTxtMaDDP().getText().trim();
         String cccdSdt = view.getTxtCccdSdt().getText().trim();
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
+
+        if ("Tất cả".equals(trangThai)) {
+            trangThai = "Chưa hoàn thành";
+        }
 
         List<CheckInCheckOutItem> ds = dao.search(maPhong, maDDP, cccdSdt, trangThai);
         if (ds.isEmpty()) return;

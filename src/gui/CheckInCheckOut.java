@@ -12,6 +12,7 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -37,7 +38,6 @@ public class CheckInCheckOut extends JPanel {
     private JTextField txtMaDDP;
     private JTextField txtCccdSdt;
     private JComboBox<String> cboTrangThai;
-    private JButton btnTim;
     private JButton btnTaiLai;
 
     private JTable tblDanhSach;
@@ -107,7 +107,7 @@ public class CheckInCheckOut extends JPanel {
         txtCccdSdt = new JTextField();
 
         cboTrangThai = new JComboBox<>(new String[] {
-                "Tất cả", "Chờ check-in", "Đang lưu trú", "Đã hoàn thành"
+                "Tất cả", "Chờ check-in", "Đang lưu trú"
         });
 
         styleTextField(txtMaPhong);
@@ -115,7 +115,6 @@ public class CheckInCheckOut extends JPanel {
         styleTextField(txtCccdSdt);
         styleComboBox(cboTrangThai);
 
-        btnTim = createButton("Tìm kiếm");
         btnTaiLai = createButton("Làm mới");
 
         gbc.gridx = 0;
@@ -151,11 +150,8 @@ public class CheckInCheckOut extends JPanel {
         gbc.weightx = 0.8;
         panel.add(cboTrangThai, gbc);
 
-        gbc.gridx = 8;
-        gbc.weightx = 0;
-        panel.add(btnTim, gbc);
 
-        gbc.gridx = 9;
+        gbc.gridx = 8;
         gbc.weightx = 0;
         panel.add(btnTaiLai, gbc);
 
@@ -238,7 +234,7 @@ public class CheckInCheckOut extends JPanel {
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.WEST;
 
         lblMaPhong = createValueLabel();
@@ -269,32 +265,48 @@ public class CheckInCheckOut extends JPanel {
         gbc.gridwidth = 1;
         gbc.gridy++;
 
-        addFormRow(formPanel, gbc, "Mã phòng", lblMaPhong);
-        addFormRow(formPanel, gbc, "Loại phòng", lblLoaiPhong);
-        addFormRow(formPanel, gbc, "Giá phòng", lblGiaPhong);
-        addFormRow(formPanel, gbc, "Trạng thái phòng", lblTrangThaiPhong);
+        int row = gbc.gridy;
 
-        addFormRow(formPanel, gbc, "Tên khách", lblTenKH);
-        addFormRow(formPanel, gbc, "CCCD", lblCCCD);
-        addFormRow(formPanel, gbc, "SĐT", lblSDT);
-        addFormRow(formPanel, gbc, "Mã ĐĐP", lblMaDDPChiTiet);
+        addRowPair(formPanel, gbc, row++,
+                "Mã phòng", lblMaPhong,
+                "Loại phòng", lblLoaiPhong);
 
-        addFormRow(formPanel, gbc, "Check-in dự kiến", lblCheckInDuKien);
-        addFormRow(formPanel, gbc, "Check-out dự kiến", lblCheckOutDuKien);
-        addFormRow(formPanel, gbc, "Check-in thực tế", lblCheckInThucTe);
-        addFormRow(formPanel, gbc, "Check-out thực tế", lblCheckOutThucTe);
+        addRowPair(formPanel, gbc, row++,
+                "Giá phòng", lblGiaPhong,
+                "Trạng thái phòng", lblTrangThaiPhong);
 
-        addFormRow(formPanel, gbc, "Tiền phòng", lblTienPhong);
-        addFormRow(formPanel, gbc, "Tiền dịch vụ", lblTienDichVu);
-        addFormRow(formPanel, gbc, "Tiền cọc", lblTienCoc);
-        addFormRow(formPanel, gbc, "Còn lại", lblConLai);
+        addRowPair(formPanel, gbc, row++,
+                "Tên khách", lblTenKH,
+                "CCCD", lblCCCD);
 
+        addRowPair(formPanel, gbc, row++,
+                "SĐT", lblSDT,
+                "Mã ĐĐP", lblMaDDPChiTiet);
+
+        addRowPair(formPanel, gbc, row++,
+                "Check-in dự kiến", lblCheckInDuKien,
+                "Check-out dự kiến", lblCheckOutDuKien);
+
+        addRowPair(formPanel, gbc, row++,
+                "Check-in thực tế", lblCheckInThucTe,
+                "Check-out thực tế", lblCheckOutThucTe);
+
+        addRowPair(formPanel, gbc, row++,
+                "Tiền phòng", lblTienPhong,
+                "Tiền dịch vụ", lblTienDichVu);
+
+        addRowPair(formPanel, gbc, row++,
+                "Tiền cọc", lblTienCoc,
+                "Còn lại", lblConLai);
+
+        gbc.gridy = row;
         gbc.gridx = 0;
-        gbc.weightx = 0;
+        gbc.gridwidth = 4; // chiếm toàn bộ form
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         formPanel.add(createLabel("Dịch vụ"), gbc);
 
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
+        row++;
 
         modelDichVu = new DefaultTableModel(
                 new String[] { "Mã DV", "Tên dịch vụ", "SL", "Thành tiền" }, 0) {
@@ -315,11 +327,22 @@ public class CheckInCheckOut extends JPanel {
         tblDichVu.setGridColor(CARD_BORDER);
 
         JScrollPane spDichVu = new JScrollPane(tblDichVu);
-        spDichVu.setPreferredSize(new Dimension(220, 120));
+        spDichVu.setPreferredSize(new Dimension(0, 140)); // chiều ngang tự giãn hết khung
         spDichVu.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
 
+        gbc.gridy = row;
+        gbc.gridx = 0;
+        gbc.gridwidth = 4; // chiếm toàn bộ form
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
         formPanel.add(spDichVu, gbc);
-        gbc.gridy++;
+
+        row++;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        gbc.weighty = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JScrollPane scrollPane = new JScrollPane(formPanel);
         scrollPane.setBorder(null);
@@ -331,6 +354,41 @@ public class CheckInCheckOut extends JPanel {
 
         return wrapper;
     }
+    private JPanel createFieldPair(String labelText, JComponent valueComp) {
+        JPanel panel = new JPanel(new BorderLayout(8, 0));
+        panel.setOpaque(false);
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        label.setForeground(TEXT_DARK);
+        label.setPreferredSize(new Dimension(130, 32));
+
+        panel.add(label, BorderLayout.WEST);
+        panel.add(valueComp, BorderLayout.CENTER);
+
+        return panel;
+    }
+    private void addRowPair(JPanel parent, GridBagConstraints gbc, int row,
+            String label1, JComponent value1,
+            String label2, JComponent value2) {
+
+        JPanel rowPanel = new JPanel(new GridLayout(1, 2, 24, 0));
+        rowPanel.setOpaque(false);
+
+        rowPanel.add(createFieldPair(label1, value1));
+        rowPanel.add(createFieldPair(label2, value2));
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        parent.add(rowPanel, gbc);
+
+        gbc.gridwidth = 1;
+    }
+    
 
     private JPanel createActionPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 2, 12, 12));
@@ -352,28 +410,11 @@ public class CheckInCheckOut extends JPanel {
         return panel;
     }
 
-    private void addFormRow(JPanel panel, GridBagConstraints gbc, String label, java.awt.Component component) {
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        panel.add(createLabel(label), gbc);
 
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        panel.add(component, gbc);
 
-        gbc.gridy++;
-    }
-
-    private JLabel createLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        label.setForeground(TEXT_DARK);
-        label.setPreferredSize(new Dimension(140, 38));
-        return label;
-    }
 
     private void styleTextField(JTextField textField) {
-        textField.setPreferredSize(new Dimension(220, 38));
+        textField.setPreferredSize(new Dimension(150, 32));
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
@@ -389,6 +430,14 @@ public class CheckInCheckOut extends JPanel {
                 new EmptyBorder(6, 10, 6, 10)));
     }
 
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        label.setForeground(TEXT_DARK);
+        label.setPreferredSize(new Dimension(100, 32));
+        return label;
+    }
+
     private JLabel createValueLabel() {
         JLabel lbl = new JLabel("");
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -397,7 +446,9 @@ public class CheckInCheckOut extends JPanel {
         lbl.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
                 new EmptyBorder(6, 10, 6, 10)));
-        lbl.setPreferredSize(new Dimension(220, 38));
+        lbl.setPreferredSize(new Dimension(120, 32));
+        lbl.setMinimumSize(new Dimension(120, 32));
+        lbl.setMaximumSize(new Dimension(120, 32));
         return lbl;
     }
 
@@ -434,9 +485,7 @@ public class CheckInCheckOut extends JPanel {
         return cboTrangThai;
     }
 
-    public JButton getBtnTim() {
-        return btnTim;
-    }
+
 
     public JButton getBtnTaiLai() {
         return btnTaiLai;

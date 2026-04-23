@@ -31,6 +31,8 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+import entity.LoaiBaoBieu;
+
 public class GiaoDienChinh extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -520,8 +522,21 @@ public class GiaoDienChinh extends JFrame {
             return;
 
         } else if (mainMenu.equals("Báo biểu")) {
-            showInfoMessage("Chức năng " + subMenu + " đang phát triển.");
-            return;
+            if (subMenu.equals("DS Khách hàng")) {
+                panel = BaoBieu.createPanel(LoaiBaoBieu.KHACH_HANG);
+            } else if (subMenu.equals("DS Nhân viên")) {
+                panel = BaoBieu.createPanel(LoaiBaoBieu.NHAN_VIEN);
+            } else if (subMenu.equals("DS Phòng")) {
+                panel =  BaoBieu.createPanel(LoaiBaoBieu.PHONG);
+            } else if (subMenu.equals("DS Khuyến mãi")) {
+                panel =  BaoBieu.createPanel(LoaiBaoBieu.KHUYEN_MAI);
+            } else if (subMenu.equals("DS Dịch vụ")) {
+                panel =  BaoBieu.createPanel(LoaiBaoBieu.DICH_VU);
+            } else if (subMenu.equals("DS Đơn đặt phòng")) {
+                panel =  BaoBieu.createPanel(LoaiBaoBieu.DON_DAT_PHONG);
+            } else if (subMenu.equals("DS Hóa đơn")) {
+                panel =  BaoBieu.createPanel(LoaiBaoBieu.HOA_DON);
+            }
         }
 
         if (panel != null) {

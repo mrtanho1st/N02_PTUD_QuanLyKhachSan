@@ -3,6 +3,8 @@ package controller;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 import dao.Phong_Dao;
@@ -23,8 +25,9 @@ public class QLPhongController {
     }
 
     private void initController() {
-        view.getBtnTim().addActionListener(e -> timPhong());
         view.getBtnLamMoiTim().addActionListener(e -> lamMoiTimKiem());
+
+        ganSuKienTimKiemTuDong();
 
         view.getBtnThem().addActionListener(e -> themPhong());
         view.getBtnSua().addActionListener(e -> suaPhong());
@@ -36,6 +39,31 @@ public class QLPhongController {
                 hienThiThongTinLenForm();
             }
         });
+    }
+
+    private void ganSuKienTimKiemTuDong() {
+        DocumentListener docListener = new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                timPhongKhongThongBao();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                timPhongKhongThongBao();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                timPhongKhongThongBao();
+            }
+        };
+
+        view.getTxtTimMaPhong().getDocument().addDocumentListener(docListener);
+        view.getTxtTimSoNguoi().getDocument().addDocumentListener(docListener);
+
+        view.getCboLocLoaiPhong().addActionListener(e -> timPhongKhongThongBao());
+        view.getCboLocTrangThai().addActionListener(e -> timPhongKhongThongBao());
     }
 
     private void loadDataToTable() {
@@ -152,7 +180,7 @@ public class QLPhongController {
         }
     }
 
-    private void timPhong() {
+    private void timPhongKhongThongBao() {
         String maPhong = view.getTxtTimMaPhong().getText().trim();
         String soNguoiText = view.getTxtTimSoNguoi().getText().trim();
         String loaiPhong = view.getCboLocLoaiPhong().getSelectedItem().toString();
@@ -163,21 +191,17 @@ public class QLPhongController {
             try {
                 soNguoiCanTim = Integer.parseInt(soNguoiText);
                 if (soNguoiCanTim <= 0) {
-                    JOptionPane.showMessageDialog(view, "Số người tìm kiếm phải lớn hơn 0.");
+                    fillTable(phongDao.search(maPhong, null, loaiPhong, trangThai));
                     return;
                 }
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(view, "Số người tìm kiếm phải là số nguyên.");
+                fillTable(phongDao.search(maPhong, null, loaiPhong, trangThai));
                 return;
             }
         }
 
         List<Phong> ds = phongDao.search(maPhong, soNguoiCanTim, loaiPhong, trangThai);
         fillTable(ds);
-
-        if (ds.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Không tìm thấy phòng phù hợp.");
-        }
     }
 
     private void lamMoiTimKiem() {

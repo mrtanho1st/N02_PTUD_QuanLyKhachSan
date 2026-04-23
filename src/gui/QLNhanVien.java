@@ -53,7 +53,6 @@ public class QLNhanVien extends JPanel {
     private JComboBox<String> cboCaLamViec;
     private JComboBox<String> cboViTriCongViec;
 
-    private JButton btnTim;
     private JButton btnLamMoiTim;
     private JButton btnThem;
     private JButton btnCapNhat;
@@ -99,7 +98,6 @@ public class QLNhanVien extends JPanel {
         styleTextField(txtTimHoTen);
         styleComboBox(cboLocTrangThai);
 
-        btnTim = createButton("Tìm kiếm");
         btnLamMoiTim = createButton("Làm mới");
 
         gbc.gridx = 0;
@@ -127,11 +125,8 @@ public class QLNhanVien extends JPanel {
         gbc.weightx = 0.8;
         panel.add(cboLocTrangThai, gbc);
 
-        gbc.gridx = 6;
-        gbc.weightx = 0;
-        panel.add(btnTim, gbc);
 
-        gbc.gridx = 7;
+        gbc.gridx = 6;
         panel.add(btnLamMoiTim, gbc);
 
         return panel;
@@ -413,9 +408,6 @@ public class QLNhanVien extends JPanel {
         return cboViTriCongViec;
     }
 
-    public JButton getBtnTim() {
-        return btnTim;
-    }
 
     public JButton getBtnLamMoiTim() {
         return btnLamMoiTim;

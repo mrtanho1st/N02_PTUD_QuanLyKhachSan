@@ -49,7 +49,7 @@ public class QLPhong extends JPanel {
     private JTextField txtGiaPhong;
     private JComboBox<String> cboTrangThaiPhong;
 
-    private JButton btnTim;
+
     private JButton btnLamMoiTim;
     private JButton btnThem;
     private JButton btnSua;
@@ -101,7 +101,6 @@ public class QLPhong extends JPanel {
         styleComboBox(cboLocLoaiPhong);
         styleComboBox(cboLocTrangThai);
 
-        btnTim = createButton("Tìm kiếm");
         btnLamMoiTim = createButton("Làm mới");
 
         gbc.gridx = 0;
@@ -137,11 +136,9 @@ public class QLPhong extends JPanel {
         gbc.weightx = 0.6;
         panel.add(cboLocTrangThai, gbc);
 
-        gbc.gridx = 8;
-        gbc.weightx = 0;
-        panel.add(btnTim, gbc);
 
-        gbc.gridx = 9;
+
+        gbc.gridx = 8;
         gbc.weightx = 0;
         panel.add(btnLamMoiTim, gbc);
         return panel;
@@ -383,9 +380,7 @@ public class QLPhong extends JPanel {
         return cboTrangThaiPhong;
     }
 
-    public JButton getBtnTim() {
-        return btnTim;
-    }
+   
 
     public JButton getBtnLamMoiTim() {
         return btnLamMoiTim;

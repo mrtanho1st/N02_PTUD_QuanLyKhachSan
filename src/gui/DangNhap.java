@@ -131,10 +131,10 @@ public class DangNhap extends JFrame {
         gbc.weightx = 1.0;
         gbc.insets = new Insets(8, 0, 8, 0);
 
-        txtTenDangNhap = new JTextField();
+        txtTenDangNhap = new JTextField("NguyenThiThanhThu");
         styleInput(txtTenDangNhap);
 
-        txtMatKhau = new JPasswordField();
+        txtMatKhau = new JPasswordField("123456");
         styleInput(txtMatKhau);
         defaultEchoChar = txtMatKhau.getEchoChar();
 

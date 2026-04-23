@@ -37,7 +37,7 @@ public class DatPhong extends JPanel {
     private JTextField txtTimMaPhong;
     private JComboBox<String> cboLoaiPhong;
     private JComboBox<String> cboTrangThai;
-    private JButton btnTim;
+;
     private JButton btnTaiLai;
 
     private JPanel pnlDanhSachPhong;
@@ -84,7 +84,6 @@ public class DatPhong extends JPanel {
         styleComboBox(cboLoaiPhong);
         styleComboBox(cboTrangThai);
 
-        btnTim = createButton("Tìm kiếm");
         btnTaiLai = createButton("Tải lại");
 
         gbc.gridx = 0;
@@ -112,11 +111,8 @@ public class DatPhong extends JPanel {
         gbc.weightx = 0.6;
         panel.add(cboTrangThai, gbc);
 
-        gbc.gridx = 6;
-        gbc.weightx = 0;
-        panel.add(btnTim, gbc);
 
-        gbc.gridx = 7;
+        gbc.gridx = 6;
         gbc.weightx = 0;
         panel.add(btnTaiLai, gbc);
 
@@ -219,9 +215,6 @@ public class DatPhong extends JPanel {
         return cboTrangThai;
     }
 
-    public JButton getBtnTim() {
-        return btnTim;
-    }
 
     public JButton getBtnTaiLai() {
         return btnTaiLai;
@@ -233,6 +226,7 @@ public class DatPhong extends JPanel {
 
     public static JPanel createPanel() {
         DatPhong panel = new DatPhong();
+//        new DonDatPhongController(panel);
         new DonDatPhongController(panel);
         return panel;
     }

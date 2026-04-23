@@ -58,7 +58,6 @@ public class QLKhachHang extends JPanel {
     private JComboBox<String> cboLoaiKH;
     private JTextField txtDiemSo;
 
-    private JButton btnTim;
     private JButton btnLamMoiTim;
     private JButton btnThem;
     private JButton btnCapNhat;
@@ -114,7 +113,6 @@ public class QLKhachHang extends JPanel {
         });
         styleComboBox(cboTimLoaiKH, 150, 36);
 
-        btnTim = createPrimaryButton("Tìm kiếm", 120, 36);
         btnLamMoiTim = createGhostButton("Làm mới", 110, 36);
 
         gbc.gridx = 0;
@@ -142,11 +140,8 @@ public class QLKhachHang extends JPanel {
         gbc.weightx = 0.6;
         filter.add(cboTimLoaiKH, gbc);
 
-        gbc.gridx = 6;
-        gbc.weightx = 0;
-        filter.add(btnTim, gbc);
 
-        gbc.gridx = 7;
+        gbc.gridx = 6;
         gbc.weightx = 0;
         filter.add(btnLamMoiTim, gbc);
 
@@ -417,9 +412,6 @@ public class QLKhachHang extends JPanel {
         return cboLoaiKH;
     }
 
-    public JButton getBtnTim() {
-        return btnTim;
-    }
 
     public JButton getBtnLamMoiTim() {
         return btnLamMoiTim;
