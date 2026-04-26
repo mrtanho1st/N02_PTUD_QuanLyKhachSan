@@ -2,16 +2,20 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -22,7 +26,7 @@ import javax.swing.border.EmptyBorder;
 
 import controller.DonDatPhongController;
 import entity.DonDatPhong;
-
+import entity.Phong;
 
 public class DatPhong extends JPanel {
 
@@ -37,7 +41,6 @@ public class DatPhong extends JPanel {
     private JTextField txtTimMaPhong;
     private JComboBox<String> cboLoaiPhong;
     private JComboBox<String> cboTrangThai;
-;
     private JButton btnTaiLai;
 
     private JPanel pnlDanhSachPhong;
@@ -60,7 +63,8 @@ public class DatPhong extends JPanel {
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(16, 18, 16, 18)));
+                new EmptyBorder(16, 18, 16, 18)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 8, 6, 8);
@@ -75,8 +79,9 @@ public class DatPhong extends JPanel {
         styleTextField(txtTimMaPhong);
 
         cboLoaiPhong = new JComboBox<>(new String[] {
-                "Tất cả", "Phòng đơn", "Phòng đôi", "Standard", "Superior", "Deluxe", "Suite"
+                "Tất cả", "Phòng Thượng hạng" ,"Phòng Cao cấp", "Phòng Tiêu chuẩn", "Phòng Gia đình", "Phòng Sang trọng"
         });
+
         cboTrangThai = new JComboBox<>(new String[] {
                 "Tất cả", "Trống", "Đã đặt", "Đang sử dụng", "Bảo trì"
         });
@@ -111,7 +116,6 @@ public class DatPhong extends JPanel {
         gbc.weightx = 0.6;
         panel.add(cboTrangThai, gbc);
 
-
         gbc.gridx = 6;
         gbc.weightx = 0;
         panel.add(btnTaiLai, gbc);
@@ -121,49 +125,85 @@ public class DatPhong extends JPanel {
 
     private JScrollPane createRoomArea() {
         pnlDanhSachPhong = new JPanel();
-        pnlDanhSachPhong.setLayout(new javax.swing.BoxLayout(pnlDanhSachPhong, javax.swing.BoxLayout.Y_AXIS));
+        pnlDanhSachPhong.setLayout(
+                new javax.swing.BoxLayout(pnlDanhSachPhong, javax.swing.BoxLayout.Y_AXIS)
+        );
         pnlDanhSachPhong.setBackground(APP_BG);
         pnlDanhSachPhong.setBorder(new EmptyBorder(4, 4, 4, 4));
 
         JScrollPane scrollPane = new JScrollPane(pnlDanhSachPhong);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(8, 8, 8, 8)));
+                new EmptyBorder(8, 8, 8, 8)
+        ));
         scrollPane.getViewport().setBackground(APP_BG);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         return scrollPane;
     }
 
-    public void renderRooms(List<DonDatPhong> rooms) {
+    public void renderRooms(List<Phong> rooms) {
         pnlDanhSachPhong.removeAll();
 
-        Map<String, JPanel> groupMap = new LinkedHashMap<>();
-        Map<String, DonDatPhong> uniqueRooms = new LinkedHashMap<>();
+        Map<String, Phong> uniqueRooms = new LinkedHashMap<>();
 
-        for (DonDatPhong room : rooms) {
-            uniqueRooms.put(room.getMaPhong(), room); 
+        for (Phong room : rooms) {
+            uniqueRooms.put(room.getMaPhong(), room);
         }
 
-        for (DonDatPhong room : uniqueRooms.values()) {
+        List<Phong> sortedRooms = new ArrayList<>(uniqueRooms.values());
+        sortedRooms.sort(
+                Comparator.comparing(Phong::getLoaiPhong)
+                        .thenComparing(Phong::getMaPhong)
+        );
+
+        Map<String, List<Phong>> groupMap = new LinkedHashMap<>();
+
+        for (Phong room : sortedRooms) {
             String groupName = room.getLoaiPhong();
 
             if (!groupMap.containsKey(groupName)) {
-                JLabel groupTitle = new JLabel(groupName);
-                groupTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
-                groupTitle.setForeground(new Color(91, 168, 217));
-                groupTitle.setBorder(new EmptyBorder(8, 4, 8, 4));
-                pnlDanhSachPhong.add(groupTitle);
-
-                JPanel grid = new JPanel(new GridLayout(0, 4, 12, 12));
-                grid.setOpaque(false);
-                grid.setBorder(new EmptyBorder(0, 0, 16, 0));
-
-                groupMap.put(groupName, grid);
-                pnlDanhSachPhong.add(grid);
+                groupMap.put(groupName, new ArrayList<>());
             }
 
-            groupMap.get(groupName).add(new PhongCardPanel(room));
+            groupMap.get(groupName).add(room);
+        }
+
+        for (Map.Entry<String, List<Phong>> entry : groupMap.entrySet()) {
+            String groupName = entry.getKey();
+            List<Phong> groupRooms = entry.getValue();
+
+            JPanel groupPanel = new JPanel(new BorderLayout());
+            groupPanel.setOpaque(false);
+            groupPanel.setAlignmentX(LEFT_ALIGNMENT);
+
+            JLabel groupTitle = new JLabel(groupName);
+            groupTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+            groupTitle.setForeground(new Color(91, 168, 217));
+            groupTitle.setBorder(new EmptyBorder(8, 4, 8, 4));
+
+            JPanel rowsPanel = new JPanel();
+            rowsPanel.setLayout(new BoxLayout(rowsPanel, BoxLayout.Y_AXIS));
+            rowsPanel.setOpaque(false);
+            rowsPanel.setBorder(new EmptyBorder(0, 0, 16, 0));
+
+            JPanel rowPanel = null;
+
+            for (int i = 0; i < groupRooms.size(); i++) {
+                if (i % 4 == 0) {
+                    rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 12));
+                    rowPanel.setOpaque(false);
+                    rowPanel.setAlignmentX(LEFT_ALIGNMENT);
+                    rowsPanel.add(rowPanel);
+                }
+
+                rowPanel.add(new PhongCardPanel(groupRooms.get(i)));
+            }
+
+            groupPanel.add(groupTitle, BorderLayout.NORTH);
+            groupPanel.add(rowsPanel, BorderLayout.CENTER);
+
+            pnlDanhSachPhong.add(groupPanel);
         }
 
         pnlDanhSachPhong.revalidate();
@@ -183,7 +223,8 @@ public class DatPhong extends JPanel {
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(6, 10, 6, 10)));
+                new EmptyBorder(6, 10, 6, 10)
+        ));
     }
 
     private void styleComboBox(JComboBox<?> comboBox) {
@@ -215,7 +256,6 @@ public class DatPhong extends JPanel {
         return cboTrangThai;
     }
 
-
     public JButton getBtnTaiLai() {
         return btnTaiLai;
     }
@@ -226,7 +266,6 @@ public class DatPhong extends JPanel {
 
     public static JPanel createPanel() {
         DatPhong panel = new DatPhong();
-//        new DonDatPhongController(panel);
         new DonDatPhongController(panel);
         return panel;
     }

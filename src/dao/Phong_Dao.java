@@ -16,19 +16,12 @@ public class Phong_Dao {
         String sql = "SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong FROM Phong";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
         ) {
             while (rs.next()) {
-                Phong phong = new Phong(
-                    rs.getString("maPhong"),
-                    rs.getString("loaiPhong"),
-                    rs.getInt("soNguoiToiDa"),
-                    rs.getDouble("giaPhong"),
-                    rs.getString("trangThaiPhong")
-                );
-                list.add(phong);
+                list.add(mapPhong(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,23 +31,18 @@ public class Phong_Dao {
     }
 
     public Phong findById(String maPhong) {
-        String sql = "SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong FROM Phong WHERE maPhong = ?";
+        String sql = "SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong "
+                   + "FROM Phong WHERE maPhong = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, maPhong);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new Phong(
-                        rs.getString("maPhong"),
-                        rs.getString("loaiPhong"),
-                        rs.getInt("soNguoiToiDa"),
-                        rs.getDouble("giaPhong"),
-                        rs.getString("trangThaiPhong")
-                    );
+                    return mapPhong(rs);
                 }
             }
         } catch (Exception e) {
@@ -65,11 +53,12 @@ public class Phong_Dao {
     }
 
     public boolean insert(Phong phong) {
-        String sql = "INSERT INTO Phong(maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Phong(maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong) "
+                   + "VALUES (?, ?, ?, ?, ?)";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, phong.getMaPhong());
             ps.setString(2, phong.getLoaiPhong());
@@ -86,11 +75,13 @@ public class Phong_Dao {
     }
 
     public boolean update(Phong phong) {
-        String sql = "UPDATE Phong SET loaiPhong = ?, soNguoiToiDa = ?, giaPhong = ?, trangThaiPhong = ? WHERE maPhong = ?";
+        String sql = "UPDATE Phong "
+                   + "SET loaiPhong = ?, soNguoiToiDa = ?, giaPhong = ?, trangThaiPhong = ? "
+                   + "WHERE maPhong = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, phong.getLoaiPhong());
             ps.setInt(2, phong.getSoNguoiToiDa());
@@ -110,8 +101,8 @@ public class Phong_Dao {
         String sql = "DELETE FROM Phong WHERE maPhong = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, maPhong);
             return ps.executeUpdate() > 0;
@@ -122,61 +113,155 @@ public class Phong_Dao {
         return false;
     }
 
-    public List<Phong> search(String maPhong, Integer soNguoiCanTim, String loaiPhong, String trangThai) {
+    // Hàm search cũ cho các giao diện nhiều ô.
+    // Giữ lại để không làm hư màn Quản lý phòng.
+    public List<Phong> search(
+            String maPhong,
+            Integer soNguoiCanTim,
+            Double giaPhongCanTim,
+            String loaiPhong,
+            String trangThai
+    ) {
         List<Phong> list = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong FROM Phong WHERE 1=1"
-        );
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong ");
+        sql.append("FROM Phong ");
+        sql.append("WHERE 1 = 1 ");
 
         if (maPhong != null && !maPhong.isBlank()) {
-            sql.append(" AND maPhong LIKE ?");
-        }
-        if (soNguoiCanTim != null) {
-            sql.append(" AND soNguoiToiDa = ?");
-        }
-        if (loaiPhong != null && !loaiPhong.equals("Tất cả")) {
-            sql.append(" AND loaiPhong = ?");
-        }
-        if (trangThai != null && !trangThai.equals("Tất cả")) {
-            sql.append(" AND trangThaiPhong = ?");
+            sql.append("AND maPhong LIKE ? ");
         }
 
+        if (soNguoiCanTim != null) {
+            sql.append("AND soNguoiToiDa = ? ");
+        }
+
+        if (giaPhongCanTim != null) {
+            sql.append("AND giaPhong = ? ");
+        }
+
+        if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+            sql.append("AND loaiPhong = ? ");
+        }
+
+        if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+            sql.append("AND trangThaiPhong = ? ");
+        }
+
+        sql.append("ORDER BY maPhong");
+
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
         ) {
             int index = 1;
 
             if (maPhong != null && !maPhong.isBlank()) {
-                ps.setString(index++, "%" + maPhong + "%");
+                ps.setString(index++, "%" + maPhong.trim() + "%");
             }
+
             if (soNguoiCanTim != null) {
                 ps.setInt(index++, soNguoiCanTim);
             }
-            if (loaiPhong != null && !loaiPhong.equals("Tất cả")) {
-                ps.setString(index++, loaiPhong);
+
+            if (giaPhongCanTim != null) {
+                ps.setDouble(index++, giaPhongCanTim);
             }
-            if (trangThai != null && !trangThai.equals("Tất cả")) {
-                ps.setString(index++, trangThai);
+
+            if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+                ps.setString(index++, loaiPhong.trim());
+            }
+
+            if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+                ps.setString(index++, trangThai.trim());
             }
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Phong phong = new Phong(
-                        rs.getString("maPhong"),
-                        rs.getString("loaiPhong"),
-                        rs.getInt("soNguoiToiDa"),
-                        rs.getDouble("giaPhong"),
-                        rs.getString("trangThaiPhong")
-                    );
-                    list.add(phong);
+                    list.add(mapPhong(rs));
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    // Hàm mới cho Báo biểu Phòng.
+    // Giao diện báo biểu chỉ có 1 ô từ khóa:
+    // tìm theo mã phòng, loại phòng, giá phòng, số người tối đa.
+    public List<Phong> searchBaoBieu(String tuKhoa, String loaiPhong, String trangThai) {
+        List<Phong> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong ");
+        sql.append("FROM Phong ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuKhoa != null && !tuKhoa.isBlank()) {
+            sql.append("AND (");
+            sql.append("maPhong LIKE ? ");
+            sql.append("OR loaiPhong LIKE ? ");
+            sql.append("OR CAST(soNguoiToiDa AS NVARCHAR(20)) LIKE ? ");
+            sql.append("OR CAST(giaPhong AS NVARCHAR(50)) LIKE ? ");
+            sql.append(") ");
+        }
+
+        if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+            sql.append("AND loaiPhong = ? ");
+        }
+
+        if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+            sql.append("AND trangThaiPhong = ? ");
+        }
+
+        sql.append("ORDER BY maPhong");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuKhoa != null && !tuKhoa.isBlank()) {
+                String kw = "%" + tuKhoa.trim() + "%";
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+            }
+
+            if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+                ps.setString(index++, loaiPhong.trim());
+            }
+
+            if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+                ps.setString(index++, trangThai.trim());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapPhong(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    private Phong mapPhong(ResultSet rs) throws Exception {
+        return new Phong(
+                rs.getString("maPhong"),
+                rs.getString("loaiPhong"),
+                rs.getInt("soNguoiToiDa"),
+                rs.getDouble("giaPhong"),
+                rs.getString("trangThaiPhong")
+        );
     }
 }

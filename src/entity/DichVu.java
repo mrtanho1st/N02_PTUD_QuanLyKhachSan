@@ -4,6 +4,8 @@ public class DichVu {
     private String maDV;
     private String tenDV;
     private double gia;
+    private int soLuotDung;
+    private double doanhThu;
 
     public DichVu() {
     }
@@ -12,6 +14,14 @@ public class DichVu {
         this.maDV = maDV;
         this.tenDV = tenDV;
         this.gia = gia;
+    }
+
+    public DichVu(String maDV, String tenDV, double gia, int soLuotDung, double doanhThu) {
+        this.maDV = maDV;
+        this.tenDV = tenDV;
+        this.gia = gia;
+        this.soLuotDung = soLuotDung;
+        this.doanhThu = doanhThu;
     }
 
     public String getMaDV() {
@@ -36,5 +46,21 @@ public class DichVu {
 
     public void setGia(double gia) {
         this.gia = gia;
+    }
+
+    public int getSoLuotDung() {
+        return soLuotDung;
+    }
+
+    public void setSoLuotDung(int soLuotDung) {
+        this.soLuotDung = soLuotDung;
+    }
+
+    public double getDoanhThu() {
+        return doanhThu;
+    }
+
+    public void setDoanhThu(double doanhThu) {
+        this.doanhThu = doanhThu;
     }
 }

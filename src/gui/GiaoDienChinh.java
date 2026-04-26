@@ -160,7 +160,7 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnDanhMuc);
 
         btnXuLi = createNavButton("Xử lí", new String[] {
-                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Phân công", "Thanh toán"
+                "Đặt phòng", "Hóa đơn", "Check-in/Check-out",  "Thanh toán"
         });
         nav.add(btnXuLi);
 
@@ -401,6 +401,8 @@ public class GiaoDienChinh extends JFrame {
     private JButton createLeftButton(String text, int width, int height) {
         JButton button = new JButton(text);
         button.setPreferredSize(new Dimension(width, height));
+        button.setMinimumSize(new Dimension(width, height));
+        button.setMaximumSize(new Dimension(width, height));
         button.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         button.setFocusPainted(false);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -479,9 +481,6 @@ public class GiaoDienChinh extends JFrame {
                 panel = CheckInCheckOut.createPanel();
             } else if (subMenu.equals("Hóa đơn")) {
                 panel = QLHoaDon.createPanel();
-            } else if (subMenu.equals("Phân công")) {
-                showInfoMessage("Chức năng Phân công đang phát triển.");
-                return;
             } else if (subMenu.equals("Thanh toán")) {
                 showInfoMessage("Chức năng Thanh toán đang phát triển.");
                 return;

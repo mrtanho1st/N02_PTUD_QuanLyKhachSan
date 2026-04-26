@@ -238,7 +238,7 @@ public class QLNhanVienController {
         String hoTen = view.getTxtTimHoTen().getText().trim();
         String trangThai = view.getCboLocTrangThai().getSelectedItem().toString();
 
-        List<NhanVien> ds = nhanVienDao.search(maNV, hoTen, trangThai);
+        List<NhanVien> ds = nhanVienDao.search(maNV, hoTen, trangThai, "Tất cả", "Tất cả");
         fillTable(ds);
 
         if (!ds.isEmpty()) {

@@ -1,37 +1,28 @@
 package controller;
 
 import java.awt.Component;
-import java.awt.GridLayout;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import dao.DichVu_Dao;
 import dao.DonDatPhong_Dao;
 import dao.Phong_Dao;
+import entity.DichVu;
 import entity.DonDatPhong;
-import gui.DangNhap;
+import entity.NhanVien;
+import entity.PhienDangNhap;
+import entity.Phong;
 import gui.DatPhong;
 import gui.DatPhongDialog;
 import gui.PhongCardPanel;
 import gui.ThongTinDatPhongDialog;
-
-import java.util.ArrayList;
-
-import entity.DichVu;
-import entity.NhanVien;
-import entity.PhienDangNhap;
-import entity.Phong;
 
 public class DonDatPhongController {
 
@@ -81,17 +72,18 @@ public class DonDatPhongController {
     }
 
     private void loadDanhSachPhong() {
-        List<DonDatPhong> rooms = datPhongDao.findAllRoomViews();
+        List<Phong> rooms = phongDao.findAll();
         view.renderRooms(rooms);
         ganSuKienChoCardPhong();
     }
 
     private void timPhongKhongThongBao() {
-        String maPhong = view.getTxtTimMaPhong().getText().trim();
+        String tuKhoa = view.getTxtTimMaPhong().getText().trim();
         String loaiPhong = view.getCboLoaiPhong().getSelectedItem().toString();
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
-        List<DonDatPhong> rooms = datPhongDao.searchRoomViews(maPhong, loaiPhong, trangThai);
+        List<Phong> rooms = phongDao.searchBaoBieu(tuKhoa, loaiPhong, trangThai);
+
         view.renderRooms(rooms);
         ganSuKienChoCardPhong();
     }
@@ -100,6 +92,7 @@ public class DonDatPhongController {
         view.getTxtTimMaPhong().setText("");
         view.getCboLoaiPhong().setSelectedIndex(0);
         view.getCboTrangThai().setSelectedIndex(0);
+
         loadDanhSachPhong();
     }
 
@@ -122,92 +115,132 @@ public class DonDatPhongController {
                         xuLyChonPhong(card.getData());
                     }
                 });
+
             } else if (comp instanceof JPanel) {
                 duyetPanel((JPanel) comp);
             }
         }
     }
 
-    private void xuLyChonPhong(DonDatPhong room) {
-        String trangThai = room.getTrangThaiPhong();
+    private void xuLyChonPhong(Phong phong) {
+        String trangThai = phong.getTrangThai();
 
         if ("Trống".equalsIgnoreCase(trangThai)) {
-            Phong phong = phongDao.findById(room.getMaPhong());
+            moDialogDatPhong(phong);
+            return;
+        }
 
-            if (phong == null) {
-                JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin phòng.");
+        if ("Đã đặt".equalsIgnoreCase(trangThai)
+                || "Đang sử dụng".equalsIgnoreCase(trangThai)
+                || "Đã nhận".equalsIgnoreCase(trangThai)) {
+
+            DonDatPhong donDatPhong = datPhongDao.findRoomDetailByMaPhong(phong.getMaPhong());
+
+            if (donDatPhong == null) {
+                JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin đặt phòng của phòng này.");
                 return;
             }
 
-            NhanVien nhanVien = PhienDangNhap.getNhanVienDangNhap();
+            moDialogThongTinDatPhong(donDatPhong);
+            return;
+        }
 
-            if (nhanVien == null) {
-                JOptionPane.showMessageDialog(view, "Không xác định được nhân viên đang đăng nhập.");
-                return;
+        if ("Bảo trì".equalsIgnoreCase(trangThai)) {
+            JOptionPane.showMessageDialog(view, "Phòng đang bảo trì, không thể đặt.");
+            return;
+        }
+
+        JOptionPane.showMessageDialog(view, "Trạng thái phòng không hợp lệ: " + trangThai);
+    }
+
+    private void moDialogDatPhong(Phong phong) {
+        if (phong == null) {
+            JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin phòng.");
+            return;
+        }
+
+        NhanVien nhanVien = PhienDangNhap.getNhanVienDangNhap();
+
+        if (nhanVien == null) {
+            JOptionPane.showMessageDialog(view, "Không xác định được nhân viên đang đăng nhập.");
+            return;
+        }
+
+        List<DichVu> dsDichVu = dichVuDao.findAll();
+
+        DatPhongDialog dialog = new DatPhongDialog(null, phong, nhanVien, dsDichVu);
+        dialog.setLocationRelativeTo(view);
+        dialog.setVisible(true);
+
+        if (!dialog.isSucceeded()) {
+            return;
+        }
+
+        try {
+            String tenKH = dialog.getTenKhachHang();
+            String cccd = dialog.getCccd();
+            String sdt = dialog.getSdt();
+
+            java.util.Date ngayNhan = dialog.getNgayNhan();
+            java.util.Date ngayTra = dialog.getNgayTra();
+
+            String tienCocStr = dialog.getTienCoc();
+            boolean checkInNgay = dialog.isCheckInNgay();
+
+            double tienCoc = 0;
+
+            if (tienCocStr != null && !tienCocStr.isBlank()) {
+                tienCoc = Double.parseDouble(tienCocStr);
             }
 
-            List<DichVu> dsDichVu = dichVuDao.findAll();
+            List<DatPhongDialog.DichVuDatTruoc> dsDichVuDaChon = dialog.getDichVuDaChon();
 
-            DatPhongDialog dialog = new DatPhongDialog(null, phong, nhanVien, dsDichVu);
-            dialog.setLocationRelativeTo(view);
-            dialog.setVisible(true);
+            boolean success = datPhongDao.datPhong(
+                    phong,
+                    nhanVien,
+                    tenKH,
+                    cccd,
+                    sdt,
+                    new java.sql.Timestamp(ngayNhan.getTime()),
+                    new java.sql.Timestamp(ngayTra.getTime()),
+                    tienCoc,
+                    checkInNgay,
+                    dsDichVuDaChon
+            );
 
-            if (dialog.isSucceeded()) {
-                String tenKH = dialog.getTenKhachHang();
-                String cccd = dialog.getCccd();
-                String sdt = dialog.getSdt();
-                java.util.Date ngayNhan = dialog.getNgayNhan();
-                java.util.Date ngayTra = dialog.getNgayTra();
-                String tienCocStr = dialog.getTienCoc();
-                boolean checkInNgay = dialog.isCheckInNgay();
-
-                double tienCoc = 0;
-                if (!tienCocStr.isBlank()) {
-                    tienCoc = Double.parseDouble(tienCocStr);
-                }
-
-                List<DatPhongDialog.DichVuDatTruoc> dsDichVuDaChon = dialog.getDichVuDaChon();
-
-                boolean success = datPhongDao.datPhong(
-                        phong,
-                        nhanVien,
-                        tenKH,
-                        cccd,
-                        sdt,
-                        new java.sql.Timestamp(ngayNhan.getTime()),
-                        new java.sql.Timestamp(ngayTra.getTime()),
-                        tienCoc,
-                        checkInNgay,
-                        dsDichVuDaChon
-                );
-
-                if (success) {
-                    JOptionPane.showMessageDialog(view, "Đặt phòng thành công.");
-                    loadDanhSachPhong();
-                } else {
-                    JOptionPane.showMessageDialog(view, "Đặt phòng thất bại.");
-                }
-            }
-
-        } else if ("Đã đặt".equalsIgnoreCase(trangThai) || "Đang sử dụng".equalsIgnoreCase(trangThai)) {
-            ThongTinDatPhongDialog dialog = new ThongTinDatPhongDialog(room);
-            dialog.setLocationRelativeTo(view);
-            dialog.setVisible(true);
-
-            if (dialog.isUpdated()) {
-                String ngayNhanMoi = dialog.getNgayNhan();
-                String ngayTraMoi = dialog.getNgayTra();
-
-                JOptionPane.showMessageDialog(view, "Cập nhật thời gian thành công.");
+            if (success) {
+                JOptionPane.showMessageDialog(view, "Đặt phòng thành công.");
                 loadDanhSachPhong();
-            } else if (dialog.isThemDichVu()) {
-                JOptionPane.showMessageDialog(view, "Mở dialog thêm dịch vụ ở đây.");
+            } else {
+                JOptionPane.showMessageDialog(view, "Đặt phòng thất bại.");
             }
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(view, "Tiền cọc phải là số hợp lệ.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(view, "Có lỗi khi đặt phòng: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    private void moDialogThongTinDatPhong(DonDatPhong room) {
+        ThongTinDatPhongDialog dialog = new ThongTinDatPhongDialog(room);
+        dialog.setLocationRelativeTo(view);
+        dialog.setVisible(true);
+
+        if (dialog.isUpdated()) {
+            String ngayNhanMoi = dialog.getNgayNhan();
+            String ngayTraMoi = dialog.getNgayTra();
+
+            capNhatThoiGianDatPhong(room, ngayNhanMoi, ngayTraMoi);
+        } else if (dialog.isThemDichVu()) {
+            JOptionPane.showMessageDialog(view, "Mở dialog thêm dịch vụ ở đây.");
         }
     }
 
     private void capNhatThoiGianDatPhong(DonDatPhong room, String ngayNhanStr, String ngayTraStr) {
-        if (ngayNhanStr.isEmpty() || ngayTraStr.isEmpty()) {
+        if (ngayNhanStr == null || ngayTraStr == null
+                || ngayNhanStr.isBlank() || ngayTraStr.isBlank()) {
             JOptionPane.showMessageDialog(view,
                     "Ngày nhận và ngày trả không được để trống.",
                     "Thiếu thông tin",
@@ -245,73 +278,5 @@ public class DonDatPhongController {
                     "Lỗi",
                     JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    private void themDichVuChoPhong(DonDatPhong room) {
-        JTextField txtTenDV = new JTextField();
-        JTextField txtSoLuong = new JTextField();
-
-        JPanel panel = new JPanel(new GridLayout(0, 2, 8, 8));
-        panel.add(new JLabel("Mã phòng:"));
-        panel.add(new JLabel(room.getMaPhong()));
-        panel.add(new JLabel("Tên dịch vụ:"));
-        panel.add(txtTenDV);
-        panel.add(new JLabel("Số lượng:"));
-        panel.add(txtSoLuong);
-
-        int result = JOptionPane.showConfirmDialog(
-                view,
-                panel,
-                "Thêm dịch vụ - " + room.getMaPhong(),
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
-        );
-
-        if (result != JOptionPane.OK_OPTION) {
-            return;
-        }
-
-        String tenDV = txtTenDV.getText().trim();
-        String soLuongStr = txtSoLuong.getText().trim();
-
-        if (tenDV.isEmpty() || soLuongStr.isEmpty()) {
-            JOptionPane.showMessageDialog(view,
-                    "Vui lòng nhập đầy đủ thông tin dịch vụ.",
-                    "Thiếu thông tin",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            int soLuong = Integer.parseInt(soLuongStr);
-
-            if (soLuong <= 0) {
-                JOptionPane.showMessageDialog(view,
-                        "Số lượng phải lớn hơn 0.",
-                        "Lỗi dữ liệu",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            JOptionPane.showMessageDialog(view,
-                    "Đã thêm dịch vụ cho phòng " + room.getMaPhong(),
-                    "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(view,
-                    "Số lượng phải là số nguyên hợp lệ.",
-                    "Lỗi dữ liệu",
-                    JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view,
-                    "Có lỗi khi thêm dịch vụ: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private String nullToEmpty(String value) {
-        return value == null ? "" : value;
     }
 }

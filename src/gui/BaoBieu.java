@@ -3,11 +3,13 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.Properties;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -19,6 +21,9 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+
+import org.jdatepicker.JDatePicker;
+import org.jdatepicker.UtilDateModel;
 
 import controller.BaoBieuController;
 import entity.LoaiBaoBieu;
@@ -34,22 +39,22 @@ public class BaoBieu extends JPanel {
 
     private final LoaiBaoBieu loaiBaoBieu;
 
-    private JLabel lblTitle;
-
     private JLabel lblTuNgay;
     private JLabel lblDenNgay;
     private JLabel lblTuKhoa;
     private JLabel lblLoc1;
     private JLabel lblLoc2;
-
-    private JTextField txtTuNgay;
-    private JTextField txtDenNgay;
+    private JLabel lblLoc3;
+    
+    private JDatePicker dateTuNgay;
+    private JDatePicker dateDenNgay;
     private JTextField txtTuKhoa;
 
     private JComboBox<String> cboLoc1;
     private JComboBox<String> cboLoc2;
+    private JComboBox<String> cboLoc3;
 
-    private JButton btnXemBaoCao;
+
     private JButton btnLamMoi;
     private JButton btnXuatExcel;
     private JButton btnInPdf;
@@ -88,7 +93,6 @@ public class BaoBieu extends JPanel {
         wrapper.setOpaque(false);
 
         pnlFilter = createFilterPanel();
-
         wrapper.add(pnlFilter, BorderLayout.CENTER);
 
         return wrapper;
@@ -111,68 +115,140 @@ public class BaoBieu extends JPanel {
         lblTuKhoa = createLabel("Từ khóa:");
         lblLoc1 = createLabel("Lọc 1:");
         lblLoc2 = createLabel("Lọc 2:");
+        lblLoc3 = createLabel("Lọc 3:");
 
-        txtTuNgay = new JTextField();
-        txtDenNgay = new JTextField();
+        dateTuNgay = createDatePicker();
+        dateDenNgay = createDatePicker();
         txtTuKhoa = new JTextField();
 
         cboLoc1 = new JComboBox<>(new String[] { "Tất cả" });
         cboLoc2 = new JComboBox<>(new String[] { "Tất cả" });
+        cboLoc3 = new JComboBox<>(new String[] { "Tất cả" });
 
-        styleTextField(txtTuNgay);
-        styleTextField(txtDenNgay);
         styleTextField(txtTuKhoa);
         styleComboBox(cboLoc1);
         styleComboBox(cboLoc2);
+        styleComboBox(cboLoc3);
 
-        btnXemBaoCao = createButton("Xem báo cáo");
         btnLamMoi = createButton("Làm mới");
         btnXuatExcel = createButton("Xuất Excel");
         btnInPdf = createButton("In / PDF");
 
-        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-        panel.add(lblTuNgay, gbc);
-
-        gbc.gridx = 1; gbc.weightx = 0.6;
-        panel.add(txtTuNgay, gbc);
-
-        gbc.gridx = 2; gbc.weightx = 0;
-        panel.add(lblDenNgay, gbc);
-
-        gbc.gridx = 3; gbc.weightx = 0.6;
-        panel.add(txtDenNgay, gbc);
-
-        gbc.gridx = 4; gbc.weightx = 0;
+        // Hàng 1: Từ khóa | Từ ngày | Đến ngày
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
         panel.add(lblTuKhoa, gbc);
 
-        gbc.gridx = 5; gbc.weightx = 1.0;
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
         panel.add(txtTuKhoa, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        panel.add(lblTuNgay, gbc);
+
+        gbc.gridx = 3;
+        gbc.weightx = 0.35;
+        panel.add(dateTuNgay, gbc);
+
+        gbc.gridx = 4;
+        gbc.weightx = 0;
+        panel.add(lblDenNgay, gbc);
+
+        gbc.gridx = 5;
+        gbc.weightx = 0.35;
+        panel.add(dateDenNgay, gbc);
+
+        // Hàng 2: Các combobox
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
         panel.add(lblLoc1, gbc);
 
-        gbc.gridx = 1; gbc.weightx = 0.6;
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
         panel.add(cboLoc1, gbc);
 
-        gbc.gridx = 2; gbc.weightx = 0;
+        gbc.gridx = 2;
+        gbc.weightx = 0;
         panel.add(lblLoc2, gbc);
 
-        gbc.gridx = 3; gbc.weightx = 0.6;
+        gbc.gridx = 3;
+        gbc.weightx = 0.6;
         panel.add(cboLoc2, gbc);
 
-        gbc.gridx = 4; gbc.weightx = 0;
-        panel.add(btnXemBaoCao, gbc);
+        gbc.gridx = 4;
+        gbc.weightx = 0;
+        panel.add(lblLoc3, gbc);
 
-        gbc.gridx = 5; gbc.weightx = 0;
-        panel.add(btnLamMoi, gbc);
+        gbc.gridx = 5;
+        gbc.weightx = 0.6;
+        panel.add(cboLoc3, gbc);
 
-        gbc.gridx = 6; gbc.weightx = 0;
-        panel.add(btnXuatExcel, gbc);
+        // Hàng 3: Các nút, bỏ Xem báo cáo
+        JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pnlButtons.setOpaque(false);
+        pnlButtons.add(btnLamMoi);
+        pnlButtons.add(btnXuatExcel);
+        pnlButtons.add(btnInPdf);
 
-        gbc.gridx = 7; gbc.weightx = 0;
-        panel.add(btnInPdf, gbc);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 6;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(pnlButtons, gbc);
 
         return panel;
+    }
+
+    private JDatePicker createDatePicker() {
+        UtilDateModel model = new UtilDateModel();
+        JDatePicker datePicker = new JDatePicker(model);
+
+        datePicker.setPreferredSize(new Dimension(180, 36));
+        datePicker.setMinimumSize(new Dimension(180, 36));
+        datePicker.setBackground(Color.WHITE);
+        datePicker.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        styleDatePickerChildren(datePicker);
+
+        return datePicker;
+    }
+    private void styleDatePickerChildren(java.awt.Container container) {
+        for (java.awt.Component comp : container.getComponents()) {
+            comp.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+            if (comp instanceof JTextField) {
+                JTextField textField = (JTextField) comp;
+                textField.setBackground(Color.WHITE);
+                textField.setForeground(TEXT_DARK);
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(CARD_BORDER),
+                        new EmptyBorder(6, 8, 6, 8)
+                ));
+                textField.setPreferredSize(new Dimension(140, 34));
+                textField.setMinimumSize(new Dimension(140, 34));
+            }
+
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                button.setText("📅");
+                button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
+                button.setFocusPainted(false);
+                button.setBackground(BUTTON_BG);
+                button.setForeground(TEXT_DARK);
+                button.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, CARD_BORDER));
+                button.setPreferredSize(new Dimension(30, 34));
+                button.setMinimumSize(new Dimension(30, 34));
+                button.setMargin(new Insets(0, 0, 0, 0));
+            }
+
+            if (comp instanceof java.awt.Container) {
+                styleDatePickerChildren((java.awt.Container) comp);
+            }
+        }
     }
 
     private JPanel createCenterPanel() {
@@ -244,6 +320,7 @@ public class BaoBieu extends JPanel {
 
         panel.add(title, BorderLayout.NORTH);
         panel.add(value, BorderLayout.CENTER);
+
         return panel;
     }
 
@@ -299,88 +376,142 @@ public class BaoBieu extends JPanel {
 
     private void cauHinhMacDinhTheoLoai() {
         switch (loaiBaoBieu) {
-            case HOA_DON:
-//                setTitle("Báo biểu hóa đơn");
-                setTableColumns(new String[] {
-                        "Mã HD", "Mã ĐĐP", "Khách hàng", "Nhân viên", "Ngày lập", "Thuế", "Tổng tiền"
-                });
-                setCardTitles("Tổng hóa đơn", "Tổng doanh thu", "Hóa đơn cao nhất");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Nhân viên:", "Thuế:");
-                setComboBoxData(cboLoc1, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                break;
+	        case HOA_DON:
+	            setTableColumns(new String[] {
+	                    "Mã HD", "Mã ĐĐP", "Khách hàng", "Nhân viên", "Ngày lập", "Thuế", "Tổng tiền"
+	            });
+	            setCardTitles("Tổng hóa đơn", "Tổng doanh thu", "Hóa đơn cao nhất");
+	            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+	
+	            setComboBoxData(cboLoc1, new String[] { "Tất cả" });
+	            setComboBoxData(cboLoc2, new String[] { "Tất cả" });
+	            setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+	
+	            showDateFilters(true);
+	            showLoc1(false);
+	            showLoc2(false);
+	            showLoc3(false);
+	            break;
 
             case DON_DAT_PHONG:
-//                setTitle("Báo biểu đơn đặt phòng");
                 setTableColumns(new String[] {
                         "Mã ĐĐP", "Khách hàng", "Phòng", "Ngày nhận", "Ngày trả", "Trạng thái", "Tiền cọc"
                 });
-                setCardTitles("Tổng đơn", "Đã nhận", "Chờ check-in");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Trạng thái:", "Nhân viên:");
-                setComboBoxData(cboLoc1, new String[] { "Tất cả", "Đã đặt", "Đã nhận", "Hoàn thành" });
+                setCardTitles("Tổng đơn", "Đã nhận", "Đã đặt");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
+
+                setComboBoxData(cboLoc1, new String[] {
+                        "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
+                });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
+                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+
+                showDateFilters(true);
+                showLoc1(true);
+                showLoc2(false);
+                showLoc3(false);
                 break;
 
             case PHONG:
-//                setTitle("Báo biểu phòng");
                 setTableColumns(new String[] {
                         "Mã phòng", "Loại phòng", "Số người", "Giá phòng", "Trạng thái"
                 });
                 setCardTitles("Tổng phòng", "Phòng trống", "Đang sử dụng");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "Trạng thái:");
-                setComboBoxData(cboLoc1, new String[] { "Tất cả", "Standard", "Superior", "Deluxe", "Suite", "Family" });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả", "Trống", "Đang sử dụng", "Bảo trì" });
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "Trạng thái:", "");
+
+                setComboBoxData(cboLoc1, new String[] {
+                        "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
+                });
+                setComboBoxData(cboLoc2, new String[] {
+                        "Tất cả", "Trống", "Đang sử dụng", "Bảo trì"
+                });
+                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+
+                showDateFilters(false);
+                showLoc1(true);
+                showLoc2(true);
+                showLoc3(false);
                 break;
 
             case KHACH_HANG:
-//                setTitle("Báo biểu khách hàng");
                 setTableColumns(new String[] {
                         "Mã KH", "Họ tên", "SĐT", "CCCD", "Loại KH", "Điểm"
                 });
                 setCardTitles("Tổng khách", "Khách VIP", "Thân thiết");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại KH:", "Xếp hạng:");
-                setComboBoxData(cboLoc1, new String[] { "Tất cả", "Thường", "VIP", "Thân thiết" });
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại KH:", "", "");
+
+                setComboBoxData(cboLoc1, new String[] {
+                        "Tất cả", "Thường", "VIP", "Thân thiết"
+                });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
+                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+
+                showDateFilters(false);
+                showLoc1(true);
+                showLoc2(false);
+                showLoc3(false);
                 break;
 
             case NHAN_VIEN:
-//                setTitle("Báo biểu nhân viên");
                 setTableColumns(new String[] {
                         "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Trạng thái"
                 });
                 setCardTitles("Tổng NV", "Đang làm", "Nghỉ việc");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Ca làm:", "Trạng thái:");
-                setComboBoxData(cboLoc1, new String[] { "Tất cả", "Ca sáng", "Ca chiều", "Ca tối" });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả", "Đang làm", "Nghỉ việc" });
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Ca làm:", "Trạng thái:", "Vị trí:");
+
+                setComboBoxData(cboLoc1, new String[] {
+                        "Tất cả", "Ca sáng", "Ca chiều", "Ca tối"
+                });
+                setComboBoxData(cboLoc2, new String[] {
+                        "Tất cả", "Đang làm", "Nghỉ việc"
+                });
+                setComboBoxData(cboLoc3, new String[] {
+                        "Tất cả", "Lễ tân", "Lễ Tân", "Quản lý"
+                });
+
+                showDateFilters(false);
+                showLoc1(true);
+                showLoc2(true);
+                showLoc3(true);
                 break;
 
             case DICH_VU:
-//                setTitle("Báo biểu dịch vụ");
                 setTableColumns(new String[] {
                         "Mã DV", "Tên dịch vụ", "Đơn giá", "Số lượt dùng", "Doanh thu"
                 });
                 setCardTitles("Tổng dịch vụ", "Tổng lượt dùng", "Doanh thu DV");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Nhóm DV:", "Trạng thái:");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+
                 setComboBoxData(cboLoc1, new String[] { "Tất cả" });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
+                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+
+                showDateFilters(true);
+                showLoc1(false);
+                showLoc2(false);
+                showLoc3(false);
                 break;
 
             case KHUYEN_MAI:
-//                setTitle("Báo biểu khuyến mãi");
                 setTableColumns(new String[] {
                         "Mã KM", "Tên khuyến mãi", "Giá trị", "Ngày bắt đầu", "Ngày kết thúc"
                 });
                 setCardTitles("Tổng KM", "Đang áp dụng", "Sắp hết hạn");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Trạng thái:", "Mức giảm:");
-                setComboBoxData(cboLoc1, new String[] { "Tất cả", "Đang áp dụng", "Ngưng áp dụng", "Hết hạn" });
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Khoảng giá trị:", "", "");
+
+                setComboBoxData(cboLoc1, new String[] {
+                        "Tất cả", "Dưới 10%", "Từ 10% - 30%", "Trên 30%"
+                });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
+                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+
+                showDateFilters(true);
+                showLoc1(true);
+                showLoc2(false);
+                showLoc3(false);
                 break;
         }
     }
-
-//    public void setTitle(String title) {
-//        lblTitle.setText(title);
-//    }
 
     public void setCardTitles(String c1, String c2, String c3) {
         lblCard1Title.setText(c1);
@@ -394,12 +525,13 @@ public class BaoBieu extends JPanel {
         lblCard3Value.setText(v3);
     }
 
-    public void setFilterLabels(String tuNgay, String denNgay, String tuKhoa, String loc1, String loc2) {
+    public void setFilterLabels(String tuNgay, String denNgay, String tuKhoa, String loc1, String loc2, String loc3) {
         lblTuNgay.setText(tuNgay);
         lblDenNgay.setText(denNgay);
         lblTuKhoa.setText(tuKhoa);
         lblLoc1.setText(loc1);
         lblLoc2.setText(loc2);
+        lblLoc3.setText(loc3);
     }
 
     public void setTableColumns(String[] columns) {
@@ -409,6 +541,7 @@ public class BaoBieu extends JPanel {
 
     public void setComboBoxData(JComboBox<String> comboBox, String[] data) {
         comboBox.removeAllItems();
+
         for (String item : data) {
             comboBox.addItem(item);
         }
@@ -416,9 +549,9 @@ public class BaoBieu extends JPanel {
 
     public void showDateFilters(boolean visible) {
         lblTuNgay.setVisible(visible);
-        txtTuNgay.setVisible(visible);
+        dateTuNgay.setVisible(visible);
         lblDenNgay.setVisible(visible);
-        txtDenNgay.setVisible(visible);
+        dateDenNgay.setVisible(visible);
     }
 
     public void showKeywordFilter(boolean visible) {
@@ -435,13 +568,21 @@ public class BaoBieu extends JPanel {
         lblLoc2.setVisible(visible);
         cboLoc2.setVisible(visible);
     }
-
-    public JTextField getTxtTuNgay() {
-        return txtTuNgay;
+    public void showLoc3(boolean visible) {
+        lblLoc3.setVisible(visible);
+        cboLoc3.setVisible(visible);
     }
 
-    public JTextField getTxtDenNgay() {
-        return txtDenNgay;
+    public JComboBox<String> getCboLoc3() {
+        return cboLoc3;
+    }
+
+    public JDatePicker getDateTuNgay() {
+        return dateTuNgay;
+    }
+
+    public JDatePicker getDateDenNgay() {
+        return dateDenNgay;
     }
 
     public JTextField getTxtTuKhoa() {
@@ -456,9 +597,7 @@ public class BaoBieu extends JPanel {
         return cboLoc2;
     }
 
-    public JButton getBtnXemBaoCao() {
-        return btnXemBaoCao;
-    }
+    
 
     public JButton getBtnLamMoi() {
         return btnLamMoi;
@@ -485,7 +624,7 @@ public class BaoBieu extends JPanel {
     }
 
     public static JPanel createPanel(LoaiBaoBieu loaiBaoBieu) {
-    	BaoBieu panel = new BaoBieu(loaiBaoBieu);
+        BaoBieu panel = new BaoBieu(loaiBaoBieu);
         new BaoBieuController(panel);
         return panel;
     }

@@ -17,9 +17,9 @@ public class KhachHang_Dao {
         String sql = "SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo FROM KhachHang";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
         ) {
             while (rs.next()) {
                 list.add(mapKhachHang(rs));
@@ -32,11 +32,12 @@ public class KhachHang_Dao {
     }
 
     public KhachHang findById(String maKH) {
-        String sql = "SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo FROM KhachHang WHERE maKH = ?";
+        String sql = "SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo "
+                   + "FROM KhachHang WHERE maKH = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, maKH);
 
@@ -53,11 +54,12 @@ public class KhachHang_Dao {
     }
 
     public boolean insert(KhachHang kh) {
-        String sql = "INSERT INTO KhachHang(maKH, hoTen, sdt, cccd, loaiKH, diemSo) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO KhachHang(maKH, hoTen, sdt, cccd, loaiKH, diemSo) "
+                   + "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, kh.getMaKH());
             ps.setString(2, kh.getHoTen());
@@ -75,11 +77,13 @@ public class KhachHang_Dao {
     }
 
     public boolean update(KhachHang kh) {
-        String sql = "UPDATE KhachHang SET hoTen = ?, sdt = ?, cccd = ?, loaiKH = ?, diemSo = ? WHERE maKH = ?";
+        String sql = "UPDATE KhachHang "
+                   + "SET hoTen = ?, sdt = ?, cccd = ?, loaiKH = ?, diemSo = ? "
+                   + "WHERE maKH = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, kh.getHoTen());
             ps.setString(2, kh.getSdt());
@@ -100,8 +104,8 @@ public class KhachHang_Dao {
         String sql = "DELETE FROM KhachHang WHERE maKH = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, maKH);
             return ps.executeUpdate() > 0;
@@ -112,7 +116,20 @@ public class KhachHang_Dao {
         return false;
     }
 
+    // Hàm search cũ cho các giao diện nhiều ô.
+    // Giữ lại để không làm hư màn Quản lý khách hàng.
     public List<KhachHang> search(String maKH, String tenKH, String loaiKH) {
+        return search(maKH, tenKH, "", "", null, loaiKH);
+    }
+
+    public List<KhachHang> search(
+            String maKH,
+            String tenKH,
+            String sdt,
+            String cccd,
+            Integer diemSo,
+            String loaiKH
+    ) {
         List<KhachHang> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -128,6 +145,18 @@ public class KhachHang_Dao {
             sql.append("AND hoTen LIKE ? ");
         }
 
+        if (sdt != null && !sdt.isBlank()) {
+            sql.append("AND sdt LIKE ? ");
+        }
+
+        if (cccd != null && !cccd.isBlank()) {
+            sql.append("AND cccd LIKE ? ");
+        }
+
+        if (diemSo != null) {
+            sql.append("AND diemSo = ? ");
+        }
+
         if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
             sql.append("AND loaiKH = ? ");
         }
@@ -135,8 +164,8 @@ public class KhachHang_Dao {
         sql.append("ORDER BY maKH");
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
         ) {
             int index = 1;
 
@@ -148,6 +177,18 @@ public class KhachHang_Dao {
                 ps.setString(index++, "%" + tenKH.trim() + "%");
             }
 
+            if (sdt != null && !sdt.isBlank()) {
+                ps.setString(index++, "%" + sdt.trim() + "%");
+            }
+
+            if (cccd != null && !cccd.isBlank()) {
+                ps.setString(index++, "%" + cccd.trim() + "%");
+            }
+
+            if (diemSo != null) {
+                ps.setInt(index++, diemSo);
+            }
+
             if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
                 ps.setString(index++, loaiKH.trim());
             }
@@ -157,6 +198,7 @@ public class KhachHang_Dao {
                     list.add(mapKhachHang(rs));
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -164,8 +206,66 @@ public class KhachHang_Dao {
         return list;
     }
 
-    // ===== Dùng cho Báo biểu =====
+    // Hàm mới cho Báo biểu Khách hàng.
+    // 1 ô từ khóa: tìm theo mã KH, họ tên, SĐT, CCCD, điểm số.
+    // 1 combobox: loại khách hàng.
+    public List<KhachHang> searchBaoBieu(String tuKhoa, String loaiKH) {
+        List<KhachHang> list = new ArrayList<>();
 
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maKH, hoTen, sdt, cccd, loaiKH, diemSo ");
+        sql.append("FROM KhachHang ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuKhoa != null && !tuKhoa.isBlank()) {
+            sql.append("AND (");
+            sql.append("maKH LIKE ? ");
+            sql.append("OR hoTen LIKE ? ");
+            sql.append("OR sdt LIKE ? ");
+            sql.append("OR cccd LIKE ? ");
+            sql.append("OR CAST(diemSo AS NVARCHAR(20)) LIKE ? ");
+            sql.append(") ");
+        }
+
+        if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
+            sql.append("AND loaiKH = ? ");
+        }
+
+        sql.append("ORDER BY maKH");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuKhoa != null && !tuKhoa.isBlank()) {
+                String kw = "%" + tuKhoa.trim() + "%";
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+            }
+
+            if (loaiKH != null && !loaiKH.isBlank() && !"Tất cả".equalsIgnoreCase(loaiKH)) {
+                ps.setString(index++, loaiKH.trim());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapKhachHang(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    // Các hàm count cũ nếu màn khác đang dùng thì vẫn giữ lại.
     public int countKhachHang(String maKH, String tenKH, String loaiKH) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT COUNT(*) ");
@@ -185,8 +285,8 @@ public class KhachHang_Dao {
         }
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
         ) {
             int index = 1;
 
@@ -207,6 +307,7 @@ public class KhachHang_Dao {
                     return rs.getInt(1);
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -218,8 +319,8 @@ public class KhachHang_Dao {
         String sql = "SELECT COUNT(*) FROM KhachHang WHERE loaiKH = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, loaiKH);
 
@@ -228,6 +329,7 @@ public class KhachHang_Dao {
                     return rs.getInt(1);
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }

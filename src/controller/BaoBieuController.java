@@ -1,64 +1,151 @@
 package controller;
 
+import java.awt.print.PrinterException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
+import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.JFileChooser;
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
+import org.jdatepicker.JDatePicker;
+
+import dao.DichVu_Dao;
+import dao.DonDatPhong_Dao;
 import dao.HoaDon_Dao;
 import dao.KhachHang_Dao;
+import dao.KhuyenMai_Dao;
+import dao.NhanVien_Dao;
+import dao.Phong_Dao;
+import entity.DichVu;
+import entity.DonDatPhong;
 import entity.HoaDon;
 import entity.KhachHang;
+import entity.KhuyenMai;
 import entity.LoaiBaoBieu;
+import entity.NhanVien;
+import entity.Phong;
 import gui.BaoBieu;
-
 
 public class BaoBieuController {
 
     private final BaoBieu view;
     private final LoaiBaoBieu loaiBaoBieu;
 
-    // Tạm thời làm thật cho HÓA ĐƠN trước
     private final HoaDon_Dao hoaDonDao;
     private final KhachHang_Dao khachHangDao;
+    private final DonDatPhong_Dao donDatPhongDao;
+    private final Phong_Dao phongDao;
+    private final NhanVien_Dao nhanVienDao;
+    private final DichVu_Dao dichVuDao;
+    private final KhuyenMai_Dao khuyenMaiDao;
 
     private final NumberFormat moneyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+
+    private boolean dangKhoaSuKien = false;
 
     public BaoBieuController(BaoBieu view) {
         this.view = view;
         this.loaiBaoBieu = view.getLoaiBaoBieu();
+
         this.hoaDonDao = new HoaDon_Dao();
         this.khachHangDao = new KhachHang_Dao();
+        this.donDatPhongDao = new DonDatPhong_Dao();
+        this.phongDao = new Phong_Dao();
+        this.nhanVienDao = new NhanVien_Dao();
+        this.dichVuDao = new DichVu_Dao();
+        this.khuyenMaiDao = new KhuyenMai_Dao();
 
+        dangKhoaSuKien = true;
         initController();
+        dangKhoaSuKien = false;
+
         loadMacDinh();
     }
 
     private void initController() {
-        view.getBtnXemBaoCao().addActionListener(e -> xuLyXemBaoCao());
         view.getBtnLamMoi().addActionListener(e -> lamMoiBoLoc());
         view.getBtnXuatExcel().addActionListener(e -> xuatExcel());
         view.getBtnInPdf().addActionListener(e -> inPdf());
+
+        batSuKienTuDongLoc();
+    }
+
+    private void batSuKienTuDongLoc() {
+        view.getCboLoc1().addActionListener(e -> tuDongLoc());
+        view.getCboLoc2().addActionListener(e -> tuDongLoc());
+        view.getCboLoc3().addActionListener(e -> tuDongLoc());
+
+        view.getDateTuNgay().addActionListener(e -> tuDongLoc());
+        view.getDateDenNgay().addActionListener(e -> tuDongLoc());
+
+        view.getTxtTuKhoa().getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                tuDongLoc();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                tuDongLoc();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                tuDongLoc();
+            }
+        });
+    }
+
+    private void tuDongLoc() {
+        if (dangKhoaSuKien) {
+            return;
+        }
+
+        xuLyXemBaoCao();
     }
 
     private void loadMacDinh() {
         switch (loaiBaoBieu) {
             case HOA_DON:
-                loadHoaDon(null, null, "", null, null);
+                loadHoaDon(null, null, "");
                 break;
 
             case KHACH_HANG:
-                loadKhachHang("", "", "Tất cả");
+                loadKhachHang("", "Tất cả");
                 break;
-            case NHAN_VIEN:
+
             case PHONG:
-            case KHUYEN_MAI:
-            case DICH_VU:
+                loadPhong("", "Tất cả", "Tất cả");
+                break;
+
+            case NHAN_VIEN:
+                loadNhanVien("", "Tất cả", "Tất cả", "Tất cả");
+                break;
+
             case DON_DAT_PHONG:
-                loadDuLieuMau();
+                loadDonDatPhong("", "Tất cả", null, null);
+                break;
+
+            case DICH_VU:
+                loadDichVu(null, null, "");
+                break;
+
+            case KHUYEN_MAI:
+                loadKhuyenMai(null, null, "", "Tất cả");
                 break;
 
             default:
@@ -75,23 +162,33 @@ public class BaoBieuController {
                     break;
 
                 case KHACH_HANG:
-                    loadKhachHang("", "", "Tất cả");
+                    xuLyKhachHang();
                     break;
-                case NHAN_VIEN:
+
                 case PHONG:
-                case KHUYEN_MAI:
-                case DICH_VU:
+                    xuLyPhong();
+                    break;
+
+                case NHAN_VIEN:
+                    xuLyNhanVien();
+                    break;
+
                 case DON_DAT_PHONG:
-                    JOptionPane.showMessageDialog(view,
-                            "Chức năng báo biểu " + loaiBaoBieu.getTenHienThi() + " đang nối dữ liệu.");
+                    xuLyDonDatPhong();
+                    break;
+
+                case DICH_VU:
+                    xuLyDichVu();
+                    break;
+
+                case KHUYEN_MAI:
+                    xuLyKhuyenMai();
                     break;
 
                 default:
                     JOptionPane.showMessageDialog(view, "Chưa hỗ trợ loại báo biểu này.");
                     break;
             }
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(view, "Ngày phải đúng định dạng yyyy-mm-dd.");
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(view, "Có lỗi khi tải báo biểu.");
@@ -99,37 +196,90 @@ public class BaoBieuController {
     }
 
     private void xuLyHoaDon() {
-        Date tuNgay = parseDate(view.getTxtTuNgay().getText().trim());
-        Date denNgay = parseDate(view.getTxtDenNgay().getText().trim());
+        Date tuNgay = getDateFromPicker(view.getDateTuNgay());
+        Date denNgay = getDateFromPicker(view.getDateDenNgay());
         String tuKhoa = view.getTxtTuKhoa().getText().trim();
 
-        String nhanVien = view.getCboLoc1().getSelectedItem() == null
-                ? ""
-                : view.getCboLoc1().getSelectedItem().toString();
-
-        String thue = view.getCboLoc2().getSelectedItem() == null
-                ? ""
-                : view.getCboLoc2().getSelectedItem().toString();
-
-        if (tuNgay != null && denNgay != null && tuNgay.after(denNgay)) {
-            JOptionPane.showMessageDialog(view, "Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
             return;
         }
 
-        loadHoaDon(tuNgay, denNgay, tuKhoa, nhanVien, thue);
+        loadHoaDon(tuNgay, denNgay, tuKhoa);
     }
 
-    private void loadHoaDon(Date tuNgay, Date denNgay, String tuKhoa, String nhanVien, String thue) {
-        List<HoaDon> ds = hoaDonDao.search(tuNgay, denNgay, tuKhoa);
+    private void xuLyKhachHang() {
+        String tuKhoa = view.getTxtTuKhoa().getText().trim();
+        String loaiKH = getComboValue(view.getCboLoc1());
+
+        loadKhachHang(tuKhoa, loaiKH);
+    }
+
+    private void xuLyPhong() {
+        String tuKhoa = view.getTxtTuKhoa().getText().trim();
+        String loaiPhong = getComboValue(view.getCboLoc1());
+        String trangThai = getComboValue(view.getCboLoc2());
+
+        loadPhong(tuKhoa, loaiPhong, trangThai);
+    }
+
+    private void xuLyNhanVien() {
+        String tuKhoa = view.getTxtTuKhoa().getText().trim();
+        String caLam = getComboValue(view.getCboLoc1());
+        String trangThai = getComboValue(view.getCboLoc2());
+        String viTri = getComboValue(view.getCboLoc3());
+
+        loadNhanVien(tuKhoa, caLam, trangThai, viTri);
+    }
+
+    private void xuLyDonDatPhong() {
+        Date tuNgay = getDateFromPicker(view.getDateTuNgay());
+        Date denNgay = getDateFromPicker(view.getDateDenNgay());
+        String tuKhoa = view.getTxtTuKhoa().getText().trim();
+        String tinhTrang = getComboValue(view.getCboLoc1());
+
+        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
+            return;
+        }
+
+        loadDonDatPhong(tuKhoa, tinhTrang, tuNgay, denNgay);
+    }
+
+    private void xuLyDichVu() {
+        Date tuNgay = getDateFromPicker(view.getDateTuNgay());
+        Date denNgay = getDateFromPicker(view.getDateDenNgay());
+        String tuKhoa = view.getTxtTuKhoa().getText().trim();
+
+        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
+            return;
+        }
+
+        loadDichVu(tuNgay, denNgay, tuKhoa);
+    }
+
+    private void xuLyKhuyenMai() {
+        Date tuNgay = getDateFromPicker(view.getDateTuNgay());
+        Date denNgay = getDateFromPicker(view.getDateDenNgay());
+        String tuKhoa = view.getTxtTuKhoa().getText().trim();
+        String khoangGiaTri = getComboValue(view.getCboLoc1());
+
+        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
+            return;
+        }
+
+        loadKhuyenMai(tuNgay, denNgay, tuKhoa, khoangGiaTri);
+    }
+
+    private void loadHoaDon(Date tuNgay, Date denNgay, String tuKhoa) {
+        List<HoaDon> ds = hoaDonDao.searchBaoBieu(tuNgay, denNgay, tuKhoa);
 
         DefaultTableModel model = view.getTableModel();
         model.setRowCount(0);
 
-        for (HoaDon item : ds) {
-            if (!hopLeHoaDon(item, nhanVien, thue)) {
-                continue;
-            }
+        int tongSo = 0;
+        double tongDoanhThu = 0;
+        double maxTien = 0;
 
+        for (HoaDon item : ds) {
             model.addRow(new Object[] {
                     item.getMaHD(),
                     item.getMaDDP(),
@@ -139,49 +289,24 @@ public class BaoBieuController {
                     item.getMaThue(),
                     moneyFormat.format(item.getTongTien()) + " VNĐ"
             });
-        }
 
-        int tongSo = 0;
-        double tongTien = 0;
-        double maxTien = 0;
-
-        for (int i = 0; i < model.getRowCount(); i++) {
             tongSo++;
-            String tienStr = model.getValueAt(i, 6).toString().replace(" VNĐ", "").replace(".", "").replace(",", "");
-            try {
-                double tien = Double.parseDouble(tienStr);
-                tongTien += tien;
-                if (tien > maxTien) {
-                    maxTien = tien;
-                }
-            } catch (Exception e) {
-                // bỏ qua nếu format lỗi
+            tongDoanhThu += item.getTongTien();
+
+            if (item.getTongTien() > maxTien) {
+                maxTien = item.getTongTien();
             }
         }
 
         view.setCardValues(
                 String.valueOf(tongSo),
-                moneyFormat.format(tongTien) + " VNĐ",
+                moneyFormat.format(tongDoanhThu) + " VNĐ",
                 moneyFormat.format(maxTien) + " VNĐ"
         );
     }
 
-    private boolean hopLeHoaDon(HoaDon item, String nhanVien, String thue) {
-        boolean okNhanVien = true;
-        boolean okThue = true;
-
-        if (nhanVien != null && !nhanVien.isBlank() && !"Tất cả".equalsIgnoreCase(nhanVien)) {
-            okNhanVien = item.getTenNV() != null && item.getTenNV().equalsIgnoreCase(nhanVien);
-        }
-
-        if (thue != null && !thue.isBlank() && !"Tất cả".equalsIgnoreCase(thue)) {
-            okThue = item.getMaThue() != null && item.getMaThue().equalsIgnoreCase(thue);
-        }
-
-        return okNhanVien && okThue;
-    }
-    private void loadKhachHang(String maKH, String tenKH, String loaiKH) {
-        List<KhachHang> ds = khachHangDao.search(maKH, tenKH, loaiKH);
+    private void loadKhachHang(String tuKhoa, String loaiKH) {
+        List<KhachHang> ds = khachHangDao.searchBaoBieu(tuKhoa, loaiKH);
 
         DefaultTableModel model = view.getTableModel();
         model.setRowCount(0);
@@ -192,29 +317,229 @@ public class BaoBieuController {
 
         for (KhachHang kh : ds) {
             model.addRow(new Object[] {
-                kh.getMaKH(),
-                kh.getHoTen(),
-                kh.getSdt(),
-                kh.getCccd(),
-                kh.getLoaiKH(),
-                kh.getDiem()
+                    kh.getMaKH(),
+                    kh.getHoTen(),
+                    kh.getSdt(),
+                    kh.getCccd(),
+                    kh.getLoaiKH(),
+                    kh.getDiem()
             });
 
             tong++;
-            if ("VIP".equalsIgnoreCase(kh.getLoaiKH())) vip++;
-            if ("Thân thiết".equalsIgnoreCase(kh.getLoaiKH())) thanThiet++;
+
+            if ("VIP".equalsIgnoreCase(kh.getLoaiKH())) {
+                vip++;
+            }
+
+            if ("Thân thiết".equalsIgnoreCase(kh.getLoaiKH())) {
+                thanThiet++;
+            }
         }
 
         view.setCardValues(
-            String.valueOf(tong),
-            String.valueOf(vip),
-            String.valueOf(thanThiet)
+                String.valueOf(tong),
+                String.valueOf(vip),
+                String.valueOf(thanThiet)
+        );
+    }
+
+    private void loadPhong(String tuKhoa, String loaiPhong, String trangThai) {
+        List<Phong> ds = phongDao.searchBaoBieu(tuKhoa, loaiPhong, trangThai);
+
+        DefaultTableModel model = view.getTableModel();
+        model.setRowCount(0);
+
+        int tongPhong = 0;
+        int phongTrong = 0;
+        int dangSuDung = 0;
+
+        for (Phong p : ds) {
+            model.addRow(new Object[] {
+                    p.getMaPhong(),
+                    p.getLoaiPhong(),
+                    p.getSoNguoiToiDa(),
+                    moneyFormat.format(p.getGiaPhong()) + " VNĐ",
+                    p.getTrangThai()
+            });
+
+            tongPhong++;
+
+            if ("Trống".equalsIgnoreCase(p.getTrangThai())) {
+                phongTrong++;
+            }
+
+            if ("Đang sử dụng".equalsIgnoreCase(p.getTrangThai())) {
+                dangSuDung++;
+            }
+        }
+
+        view.setCardValues(
+                String.valueOf(tongPhong),
+                String.valueOf(phongTrong),
+                String.valueOf(dangSuDung)
+        );
+    }
+
+    private void loadNhanVien(String tuKhoa, String caLam, String trangThai, String viTri) {
+        List<NhanVien> ds = nhanVienDao.searchBaoBieu(tuKhoa, caLam, trangThai, viTri);
+
+        DefaultTableModel model = view.getTableModel();
+        model.setRowCount(0);
+
+        int tong = 0;
+        int dangLam = 0;
+        int nghiViec = 0;
+
+        for (NhanVien nv : ds) {
+            model.addRow(new Object[] {
+                    nv.getMaNV(),
+                    nv.getHoTen(),
+                    nv.getSdt(),
+                    nv.getEmail(),
+                    nv.getCaLamViec(),
+                    nv.getViTriCongViec(),
+                    nv.getTrangThaiLamViec()
+            });
+
+            tong++;
+
+            if ("Đang làm".equalsIgnoreCase(nv.getTrangThaiLamViec())) {
+                dangLam++;
+            }
+
+            if ("Nghỉ việc".equalsIgnoreCase(nv.getTrangThaiLamViec())) {
+                nghiViec++;
+            }
+        }
+
+        view.setCardValues(
+                String.valueOf(tong),
+                String.valueOf(dangLam),
+                String.valueOf(nghiViec)
+        );
+    }
+
+    private void loadDonDatPhong(String tuKhoa, String tinhTrang, Date tuNgay, Date denNgay) {
+        List<DonDatPhong> ds = donDatPhongDao.searchBaoBieu(tuKhoa, tinhTrang, tuNgay, denNgay);
+
+        DefaultTableModel model = view.getTableModel();
+        model.setRowCount(0);
+
+        int tongDon = 0;
+        int daNhan = 0;
+        int daDat = 0;
+
+        for (DonDatPhong item : ds) {
+            model.addRow(new Object[] {
+                    item.getMaDDP(),
+                    item.getHoTen(),
+                    item.getMaPhong(),
+                    item.getNgayNhan(),
+                    item.getNgayTra(),
+                    item.getTinhTrang(),
+                    item.getTienCoc() == null ? "" : moneyFormat.format(item.getTienCoc()) + " VNĐ"
+            });
+
+            tongDon++;
+
+            if ("Đã nhận".equalsIgnoreCase(item.getTinhTrang())) {
+                daNhan++;
+            }
+
+            if ("Đã đặt".equalsIgnoreCase(item.getTinhTrang())) {
+                daDat++;
+            }
+        }
+
+        view.setCardValues(
+                String.valueOf(tongDon),
+                String.valueOf(daNhan),
+                String.valueOf(daDat)
+        );
+    }
+
+    private void loadDichVu(Date tuNgay, Date denNgay, String tuKhoa) {
+        List<DichVu> ds = dichVuDao.searchBaoBieu(tuNgay, denNgay, tuKhoa);
+
+        DefaultTableModel model = view.getTableModel();
+        model.setRowCount(0);
+
+        int tongDichVu = 0;
+        int tongLuotDung = 0;
+        double tongDoanhThu = 0;
+
+        for (DichVu dv : ds) {
+            model.addRow(new Object[] {
+                    dv.getMaDV(),
+                    dv.getTenDV(),
+                    moneyFormat.format(dv.getGia()) + " VNĐ",
+                    dv.getSoLuotDung(),
+                    moneyFormat.format(dv.getDoanhThu()) + " VNĐ"
+            });
+
+            tongDichVu++;
+            tongLuotDung += dv.getSoLuotDung();
+            tongDoanhThu += dv.getDoanhThu();
+        }
+
+        view.setCardValues(
+                String.valueOf(tongDichVu),
+                String.valueOf(tongLuotDung),
+                moneyFormat.format(tongDoanhThu) + " VNĐ"
+        );
+    }
+
+    private void loadKhuyenMai(Date tuNgay, Date denNgay, String tuKhoa, String khoangGiaTri) {
+        List<KhuyenMai> ds = khuyenMaiDao.searchBaoBieu(tuNgay, denNgay, tuKhoa, khoangGiaTri);
+
+        DefaultTableModel model = view.getTableModel();
+        model.setRowCount(0);
+
+        int tong = 0;
+        int dangApDung = 0;
+        int sapHetHan = 0;
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        for (KhuyenMai km : ds) {
+            model.addRow(new Object[] {
+                    km.getMaKM(),
+                    km.getTenKM(),
+                    km.getGiaTri() + "%",
+                    km.getNgayBatDau(),
+                    km.getNgayKetThuc()
+            });
+
+            tong++;
+
+            if (km.getNgayBatDau() != null && km.getNgayKetThuc() != null) {
+                boolean dangDung = !today.isBefore(km.getNgayBatDau())
+                        && !today.isAfter(km.getNgayKetThuc());
+
+                if (dangDung) {
+                    dangApDung++;
+                }
+
+                long soNgayConLai = java.time.temporal.ChronoUnit.DAYS.between(today, km.getNgayKetThuc());
+
+                if (dangDung && soNgayConLai >= 0 && soNgayConLai <= 7) {
+                    sapHetHan++;
+                }
+            }
+        }
+
+        view.setCardValues(
+                String.valueOf(tong),
+                String.valueOf(dangApDung),
+                String.valueOf(sapHetHan)
         );
     }
 
     private void lamMoiBoLoc() {
-        view.getTxtTuNgay().setText("");
-        view.getTxtDenNgay().setText("");
+        dangKhoaSuKien = true;
+
+        clearDatePicker(view.getDateTuNgay());
+        clearDatePicker(view.getDateDenNgay());
         view.getTxtTuKhoa().setText("");
 
         if (view.getCboLoc1().getItemCount() > 0) {
@@ -225,50 +550,156 @@ public class BaoBieuController {
             view.getCboLoc2().setSelectedIndex(0);
         }
 
+        if (view.getCboLoc3().getItemCount() > 0) {
+            view.getCboLoc3().setSelectedIndex(0);
+        }
+
+        dangKhoaSuKien = false;
+
         loadMacDinh();
+    }
+    private void clearDatePicker(JDatePicker datePicker) {
+        if (datePicker == null || datePicker.getModel() == null) {
+            return;
+        }
+
+        datePicker.getModel().setValue(null);
+        datePicker.getModel().setSelected(false);
+
+        datePicker.repaint();
+        datePicker.revalidate();
     }
 
     private void xuatExcel() {
-        JOptionPane.showMessageDialog(view, "Chức năng xuất Excel đang phát triển.");
+        DefaultTableModel model = view.getTableModel();
+
+        if (model.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(view, "Không có dữ liệu để xuất.");
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Lưu file Excel");
+        fileChooser.setSelectedFile(new File("bao_bieu_" + loaiBaoBieu.name().toLowerCase() + ".csv"));
+
+        int userSelection = fileChooser.showSaveDialog(view);
+
+        if (userSelection != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File file = fileChooser.getSelectedFile();
+
+        if (!file.getName().toLowerCase().endsWith(".csv")) {
+            file = new File(file.getAbsolutePath() + ".csv");
+        }
+
+        try (
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)
+                )
+        ) {
+            writer.write('\ufeff');
+
+            for (int i = 0; i < model.getColumnCount(); i++) {
+                writer.write(csvValue(model.getColumnName(i)));
+
+                if (i < model.getColumnCount() - 1) {
+                    writer.write(",");
+                }
+            }
+
+            writer.newLine();
+
+            for (int row = 0; row < model.getRowCount(); row++) {
+                for (int col = 0; col < model.getColumnCount(); col++) {
+                    Object value = model.getValueAt(row, col);
+                    writer.write(csvValue(value == null ? "" : value.toString()));
+
+                    if (col < model.getColumnCount() - 1) {
+                        writer.write(",");
+                    }
+                }
+
+                writer.newLine();
+            }
+
+            JOptionPane.showMessageDialog(view, "Xuất Excel thành công!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(view, "Lỗi khi xuất Excel.");
+        }
+    }
+
+    private String csvValue(String value) {
+        String safe = value.replace("\"", "\"\"");
+        return "\"" + safe + "\"";
     }
 
     private void inPdf() {
-        JOptionPane.showMessageDialog(view, "Chức năng in / PDF đang phát triển.");
+        try {
+            if (view.getTableModel().getRowCount() == 0) {
+                JOptionPane.showMessageDialog(view, "Không có dữ liệu để in.");
+                return;
+            }
+
+            boolean complete = view.getTblBaoBieu().print(
+                    JTable.PrintMode.FIT_WIDTH,
+                    new MessageFormat("Báo biểu " + loaiBaoBieu.getTenHienThi()),
+                    new MessageFormat("Trang {0}")
+            );
+
+            if (complete) {
+                JOptionPane.showMessageDialog(view, "In báo biểu thành công.");
+            } else {
+                JOptionPane.showMessageDialog(view, "Đã hủy in báo biểu.");
+            }
+
+        } catch (PrinterException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(view, "Lỗi khi in báo biểu.");
+        }
     }
 
-    private Date parseDate(String value) {
-        if (value == null || value.isBlank()) {
+    private Date getDateFromPicker(JDatePicker datePicker) {
+        Object value = datePicker.getModel().getValue();
+
+        if (value == null) {
             return null;
         }
-        return Date.valueOf(value);
+
+        if (value instanceof java.util.Date) {
+            java.util.Date utilDate = (java.util.Date) value;
+            return new Date(utilDate.getTime());
+        }
+
+        if (value instanceof Calendar) {
+            Calendar calendar = (Calendar) value;
+            return new Date(calendar.getTimeInMillis());
+        }
+
+        return null;
+    }
+
+    private boolean kiemTraKhoangNgay(Date tuNgay, Date denNgay) {
+        if (tuNgay != null && denNgay != null && tuNgay.after(denNgay)) {
+            JOptionPane.showMessageDialog(view, "Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private String getComboValue(JComboBox<String> comboBox) {
+        return comboBox.getSelectedItem() == null
+                ? "Tất cả"
+                : comboBox.getSelectedItem().toString();
     }
 
     private void loadDuLieuMau() {
         DefaultTableModel model = view.getTableModel();
         model.setRowCount(0);
-
-        switch (loaiBaoBieu) {
-            case KHACH_HANG:
-                view.setCardValues("0", "0", "0");
-                break;
-            case NHAN_VIEN:
-                view.setCardValues("0", "0", "0");
-                break;
-            case PHONG:
-                view.setCardValues("0", "0", "0");
-                break;
-            case KHUYEN_MAI:
-                view.setCardValues("0", "0", "0");
-                break;
-            case DICH_VU:
-                view.setCardValues("0", "0", "0");
-                break;
-            case DON_DAT_PHONG:
-                view.setCardValues("0", "0", "0");
-                break;
-            default:
-                view.setCardValues("0", "0", "0");
-                break;
-        }
+        view.setCardValues("0", "0", "0");
     }
 }

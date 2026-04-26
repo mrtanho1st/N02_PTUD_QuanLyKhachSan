@@ -187,20 +187,24 @@ public class QLPhongController {
         String trangThai = view.getCboLocTrangThai().getSelectedItem().toString();
 
         Integer soNguoiCanTim = null;
+        Double giaPhongCanTim = null; // chưa có ô giá thì để null
+
         if (!soNguoiText.isEmpty()) {
             try {
                 soNguoiCanTim = Integer.parseInt(soNguoiText);
+
                 if (soNguoiCanTim <= 0) {
-                    fillTable(phongDao.search(maPhong, null, loaiPhong, trangThai));
+                    fillTable(phongDao.search(maPhong, null, giaPhongCanTim, loaiPhong, trangThai));
                     return;
                 }
+
             } catch (NumberFormatException e) {
-                fillTable(phongDao.search(maPhong, null, loaiPhong, trangThai));
+                fillTable(phongDao.search(maPhong, null, giaPhongCanTim, loaiPhong, trangThai));
                 return;
             }
         }
 
-        List<Phong> ds = phongDao.search(maPhong, soNguoiCanTim, loaiPhong, trangThai);
+        List<Phong> ds = phongDao.search(maPhong, soNguoiCanTim, giaPhongCanTim, loaiPhong, trangThai);
         fillTable(ds);
     }
 

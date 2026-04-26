@@ -1,7 +1,6 @@
 package dao;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -14,29 +13,18 @@ public class NhanVien_Dao {
 
     public List<NhanVien> findAll() {
         List<NhanVien> list = new ArrayList<>();
-        String sql = "SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, " +
-                     "trangThaiLamViec, diaChi, caLamViec, viTriCongViec FROM NhanVien";
+
+        String sql = "SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, "
+                   + "trangThaiLamViec, diaChi, caLamViec, viTriCongViec "
+                   + "FROM NhanVien";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
         ) {
             while (rs.next()) {
-                NhanVien nv = new NhanVien(
-                    rs.getString("maNV"),
-                    rs.getString("hoTen"),
-                    rs.getDate("ngaySinh"),
-                    rs.getString("sdt"),
-                    rs.getString("email"),
-                    rs.getString("gioiTinh"),
-                    rs.getDate("ngayBatDauVaoLam"),
-                    rs.getString("trangThaiLamViec"),
-                    rs.getString("diaChi"),
-                    rs.getString("caLamViec"),
-                    rs.getString("viTriCongViec")
-                );
-                list.add(nv);
+                list.add(mapNhanVien(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -46,30 +34,20 @@ public class NhanVien_Dao {
     }
 
     public NhanVien findById(String maNV) {
-        String sql = "SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, " +
-                     "trangThaiLamViec, diaChi, caLamViec, viTriCongViec FROM NhanVien WHERE maNV = ?";
+        String sql = "SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, "
+                   + "trangThaiLamViec, diaChi, caLamViec, viTriCongViec "
+                   + "FROM NhanVien "
+                   + "WHERE maNV = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, maNV);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new NhanVien(
-                        rs.getString("maNV"),
-                        rs.getString("hoTen"),
-                        rs.getDate("ngaySinh"),
-                        rs.getString("sdt"),
-                        rs.getString("email"),
-                        rs.getString("gioiTinh"),
-                        rs.getDate("ngayBatDauVaoLam"),
-                        rs.getString("trangThaiLamViec"),
-                        rs.getString("diaChi"),
-                        rs.getString("caLamViec"),
-                        rs.getString("viTriCongViec")
-                    );
+                    return mapNhanVien(rs);
                 }
             }
         } catch (Exception e) {
@@ -80,12 +58,14 @@ public class NhanVien_Dao {
     }
 
     public boolean insert(NhanVien nv) {
-        String sql = "INSERT INTO NhanVien(maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, " +
-                     "trangThaiLamViec, diaChi, caLamViec, viTriCongViec) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO NhanVien("
+                   + "maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, "
+                   + "trangThaiLamViec, diaChi, caLamViec, viTriCongViec"
+                   + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, nv.getMaNV());
             ps.setString(2, nv.getHoTen());
@@ -108,13 +88,15 @@ public class NhanVien_Dao {
     }
 
     public boolean update(NhanVien nv) {
-        String sql = "UPDATE NhanVien SET hoTen = ?, ngaySinh = ?, sdt = ?, email = ?, gioiTinh = ?, " +
-                     "ngayBatDauVaoLam = ?, trangThaiLamViec = ?, diaChi = ?, caLamViec = ?, viTriCongViec = ? " +
-                     "WHERE maNV = ?";
+        String sql = "UPDATE NhanVien SET "
+                   + "hoTen = ?, ngaySinh = ?, sdt = ?, email = ?, gioiTinh = ?, "
+                   + "ngayBatDauVaoLam = ?, trangThaiLamViec = ?, diaChi = ?, "
+                   + "caLamViec = ?, viTriCongViec = ? "
+                   + "WHERE maNV = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, nv.getHoTen());
             ps.setDate(2, nv.getNgaySinh());
@@ -140,8 +122,8 @@ public class NhanVien_Dao {
         String sql = "DELETE FROM NhanVien WHERE maNV = ?";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
         ) {
             ps.setString(1, maNV);
             return ps.executeUpdate() > 0;
@@ -152,62 +134,180 @@ public class NhanVien_Dao {
         return false;
     }
 
-    public List<NhanVien> search(String maNV, String hoTen, String trangThai) {
+    // Hàm search cũ cho các giao diện nhiều ô.
+    // Giữ lại để không làm hư màn Quản lý nhân viên.
+    public List<NhanVien> search(
+            String maNV,
+            String hoTen,
+            String trangThai,
+            String caLamViec,
+            String viTriCongViec
+    ) {
         List<NhanVien> list = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, " +
-            "trangThaiLamViec, diaChi, caLamViec, viTriCongViec FROM NhanVien WHERE 1=1"
-        );
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, ");
+        sql.append("trangThaiLamViec, diaChi, caLamViec, viTriCongViec ");
+        sql.append("FROM NhanVien ");
+        sql.append("WHERE 1 = 1 ");
 
         if (maNV != null && !maNV.isBlank()) {
-            sql.append(" AND maNV LIKE ?");
-        }
-        if (hoTen != null && !hoTen.isBlank()) {
-            sql.append(" AND hoTen LIKE ?");
-        }
-        if (trangThai != null && !"Tất cả".equals(trangThai)) {
-            sql.append(" AND trangThaiLamViec = ?");
+            sql.append("AND maNV LIKE ? ");
         }
 
+        if (hoTen != null && !hoTen.isBlank()) {
+            sql.append("AND hoTen LIKE ? ");
+        }
+
+        if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+            sql.append("AND trangThaiLamViec = ? ");
+        }
+
+        if (caLamViec != null && !caLamViec.isBlank() && !"Tất cả".equalsIgnoreCase(caLamViec)) {
+            sql.append("AND caLamViec = ? ");
+        }
+
+        if (viTriCongViec != null && !viTriCongViec.isBlank() && !"Tất cả".equalsIgnoreCase(viTriCongViec)) {
+            sql.append("AND viTriCongViec = ? ");
+        }
+
+        sql.append("ORDER BY maNV");
+
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
         ) {
             int index = 1;
 
             if (maNV != null && !maNV.isBlank()) {
-                ps.setString(index++, "%" + maNV + "%");
+                ps.setString(index++, "%" + maNV.trim() + "%");
             }
+
             if (hoTen != null && !hoTen.isBlank()) {
-                ps.setString(index++, "%" + hoTen + "%");
+                ps.setString(index++, "%" + hoTen.trim() + "%");
             }
-            if (trangThai != null && !"Tất cả".equals(trangThai)) {
-                ps.setString(index++, trangThai);
+
+            if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+                ps.setString(index++, trangThai.trim());
+            }
+
+            if (caLamViec != null && !caLamViec.isBlank() && !"Tất cả".equalsIgnoreCase(caLamViec)) {
+                ps.setString(index++, caLamViec.trim());
+            }
+
+            if (viTriCongViec != null && !viTriCongViec.isBlank() && !"Tất cả".equalsIgnoreCase(viTriCongViec)) {
+                ps.setString(index++, viTriCongViec.trim());
             }
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    NhanVien nv = new NhanVien(
-                        rs.getString("maNV"),
-                        rs.getString("hoTen"),
-                        rs.getDate("ngaySinh"),
-                        rs.getString("sdt"),
-                        rs.getString("email"),
-                        rs.getString("gioiTinh"),
-                        rs.getDate("ngayBatDauVaoLam"),
-                        rs.getString("trangThaiLamViec"),
-                        rs.getString("diaChi"),
-                        rs.getString("caLamViec"),
-                        rs.getString("viTriCongViec")
-                    );
-                    list.add(nv);
+                    list.add(mapNhanVien(rs));
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return list;
+    }
+
+    // Hàm mới cho Báo biểu Nhân viên.
+    // 1 ô từ khóa: tìm theo mã NV hoặc họ tên.
+    // 3 combobox: ca làm, trạng thái làm việc, vị trí công việc.
+    public List<NhanVien> searchBaoBieu(
+            String tuKhoa,
+            String caLamViec,
+            String trangThaiLamViec,
+            String viTriCongViec
+    ) {
+        List<NhanVien> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, ");
+        sql.append("trangThaiLamViec, diaChi, caLamViec, viTriCongViec ");
+        sql.append("FROM NhanVien ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuKhoa != null && !tuKhoa.isBlank()) {
+            sql.append("AND (");
+            sql.append("maNV LIKE ? ");
+            sql.append("OR hoTen LIKE ? ");
+            sql.append(") ");
+        }
+
+        if (caLamViec != null && !caLamViec.isBlank() && !"Tất cả".equalsIgnoreCase(caLamViec)) {
+            sql.append("AND caLamViec = ? ");
+        }
+
+        if (trangThaiLamViec != null
+                && !trangThaiLamViec.isBlank()
+                && !"Tất cả".equalsIgnoreCase(trangThaiLamViec)) {
+            sql.append("AND trangThaiLamViec = ? ");
+        }
+
+        if (viTriCongViec != null
+                && !viTriCongViec.isBlank()
+                && !"Tất cả".equalsIgnoreCase(viTriCongViec)) {
+            sql.append("AND viTriCongViec = ? ");
+        }
+
+        sql.append("ORDER BY maNV");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuKhoa != null && !tuKhoa.isBlank()) {
+                String kw = "%" + tuKhoa.trim() + "%";
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+            }
+
+            if (caLamViec != null && !caLamViec.isBlank() && !"Tất cả".equalsIgnoreCase(caLamViec)) {
+                ps.setString(index++, caLamViec.trim());
+            }
+
+            if (trangThaiLamViec != null
+                    && !trangThaiLamViec.isBlank()
+                    && !"Tất cả".equalsIgnoreCase(trangThaiLamViec)) {
+                ps.setString(index++, trangThaiLamViec.trim());
+            }
+
+            if (viTriCongViec != null
+                    && !viTriCongViec.isBlank()
+                    && !"Tất cả".equalsIgnoreCase(viTriCongViec)) {
+                ps.setString(index++, viTriCongViec.trim());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapNhanVien(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    private NhanVien mapNhanVien(ResultSet rs) throws Exception {
+        return new NhanVien(
+                rs.getString("maNV"),
+                rs.getString("hoTen"),
+                rs.getDate("ngaySinh"),
+                rs.getString("sdt"),
+                rs.getString("email"),
+                rs.getString("gioiTinh"),
+                rs.getDate("ngayBatDauVaoLam"),
+                rs.getString("trangThaiLamViec"),
+                rs.getString("diaChi"),
+                rs.getString("caLamViec"),
+                rs.getString("viTriCongViec")
+        );
     }
 }
