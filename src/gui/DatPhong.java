@@ -2,18 +2,26 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
+import javax.swing.JOptionPane;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -25,7 +33,6 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import controller.DonDatPhongController;
-import entity.DonDatPhong;
 import entity.Phong;
 
 public class DatPhong extends JPanel {
@@ -37,6 +44,12 @@ public class DatPhong extends JPanel {
     private static final Color CARD_BORDER = new Color(210, 220, 235);
     private static final Color TEXT_DARK = new Color(24, 39, 75);
     private static final Color BUTTON_BG = new Color(233, 239, 248);
+    private static final Color BUTTON_PRIMARY = new Color(220, 235, 255);
+    private static final Color BUTTON_DANGER = new Color(252, 230, 230);
+
+    private static final Color SELECTED_BG = new Color(219, 234, 254);
+    private static final Color SELECTED_BORDER = new Color(37, 99, 235);
+    private static final Color DISABLED_BG = new Color(241, 245, 249);
 
     private JTextField txtTimMaPhong;
     private JComboBox<String> cboLoaiPhong;
@@ -44,6 +57,16 @@ public class DatPhong extends JPanel {
     private JButton btnTaiLai;
 
     private JPanel pnlDanhSachPhong;
+
+    private JButton btnTaoDonDatPhong;
+    private JButton btnBoChonPhong;
+    private JLabel lblSoPhongDaChon;
+
+    private final List<Phong> selectedRooms = new ArrayList<>();
+    private final Set<String> selectedRoomIds = new LinkedHashSet<>();
+    private final Map<String, JPanel> roomCardWrappers = new LinkedHashMap<>();
+    
+    private Consumer<Phong> occupiedRoomClickListener;
 
     public DatPhong() {
         initUI();
@@ -56,6 +79,7 @@ public class DatPhong extends JPanel {
 
         add(createFilterPanel(), BorderLayout.NORTH);
         add(createRoomArea(), BorderLayout.CENTER);
+        add(createActionPanel(), BorderLayout.SOUTH);
     }
 
     private JPanel createFilterPanel() {
@@ -79,7 +103,12 @@ public class DatPhong extends JPanel {
         styleTextField(txtTimMaPhong);
 
         cboLoaiPhong = new JComboBox<>(new String[] {
-                "Tất cả", "Phòng Thượng hạng" ,"Phòng Cao cấp", "Phòng Tiêu chuẩn", "Phòng Gia đình", "Phòng Sang trọng"
+                "Tất cả",
+                "Phòng Thượng hạng",
+                "Phòng Cao cấp",
+                "Phòng Tiêu chuẩn",
+                "Phòng Gia đình",
+                "Phòng Sang trọng"
         });
 
         cboTrangThai = new JComboBox<>(new String[] {
@@ -125,9 +154,7 @@ public class DatPhong extends JPanel {
 
     private JScrollPane createRoomArea() {
         pnlDanhSachPhong = new JPanel();
-        pnlDanhSachPhong.setLayout(
-                new javax.swing.BoxLayout(pnlDanhSachPhong, javax.swing.BoxLayout.Y_AXIS)
-        );
+        pnlDanhSachPhong.setLayout(new BoxLayout(pnlDanhSachPhong, BoxLayout.Y_AXIS));
         pnlDanhSachPhong.setBackground(APP_BG);
         pnlDanhSachPhong.setBorder(new EmptyBorder(4, 4, 4, 4));
 
@@ -142,8 +169,38 @@ public class DatPhong extends JPanel {
         return scrollPane;
     }
 
+    private JPanel createActionPanel() {
+        JPanel panel = new JPanel(new BorderLayout(12, 0));
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(12, 18, 12, 18)
+        ));
+
+        lblSoPhongDaChon = new JLabel("Đã chọn: 0 phòng");
+        lblSoPhongDaChon.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblSoPhongDaChon.setForeground(TEXT_DARK);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonPanel.setOpaque(false);
+
+        btnBoChonPhong = createDangerButton("Bỏ chọn phòng");
+        btnTaoDonDatPhong = createPrimaryButton("Tạo đơn đặt phòng");
+
+        btnBoChonPhong.addActionListener(e -> clearSelectedRooms());
+
+        buttonPanel.add(btnBoChonPhong);
+        buttonPanel.add(btnTaoDonDatPhong);
+
+        panel.add(lblSoPhongDaChon, BorderLayout.WEST);
+        panel.add(buttonPanel, BorderLayout.EAST);
+
+        return panel;
+    }
+
     public void renderRooms(List<Phong> rooms) {
         pnlDanhSachPhong.removeAll();
+        roomCardWrappers.clear();
 
         Map<String, Phong> uniqueRooms = new LinkedHashMap<>();
 
@@ -197,7 +254,9 @@ public class DatPhong extends JPanel {
                     rowsPanel.add(rowPanel);
                 }
 
-                rowPanel.add(new PhongCardPanel(groupRooms.get(i)));
+                Phong room = groupRooms.get(i);
+                JPanel roomWrapper = createSelectableRoomCard(room);
+                rowPanel.add(roomWrapper);
             }
 
             groupPanel.add(groupTitle, BorderLayout.NORTH);
@@ -206,20 +265,181 @@ public class DatPhong extends JPanel {
             pnlDanhSachPhong.add(groupPanel);
         }
 
+        removeSelectedRoomsNotInList(uniqueRooms);
+        updateSelectedLabel();
+
         pnlDanhSachPhong.revalidate();
         pnlDanhSachPhong.repaint();
+    }
+
+    private JPanel createSelectableRoomCard(Phong room) {
+        PhongCardPanel card = new PhongCardPanel(room);
+
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBorder(new EmptyBorder(3, 3, 3, 3));
+        wrapper.setBackground(Color.WHITE);
+        wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        wrapper.add(card, BorderLayout.CENTER);
+
+        roomCardWrappers.put(room.getMaPhong(), wrapper);
+
+        updateRoomCardColor(room, wrapper);
+
+        wrapper.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                toggleSelectRoom(room);
+            }
+        });
+
+        addMouseListenerToChildren(card, room);
+
+        return wrapper;
+    }
+
+    private void addMouseListenerToChildren(Component component, Phong room) {
+        component.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                toggleSelectRoom(room);
+            }
+        });
+
+        if (component instanceof JPanel) {
+            Component[] children = ((JPanel) component).getComponents();
+
+            for (Component child : children) {
+                addMouseListenerToChildren(child, room);
+            }
+        }
+    }
+
+    private void toggleSelectRoom(Phong room) {
+        if (room == null) {
+            return;
+        }
+
+        String trangThai = room.getTrangThai();
+
+        if ("Trống".equalsIgnoreCase(trangThai)) {
+            togglePhongTrong(room);
+            return;
+        }
+
+        if ("Đã đặt".equalsIgnoreCase(trangThai)
+                || "Đang sử dụng".equalsIgnoreCase(trangThai)
+                || "Đã nhận".equalsIgnoreCase(trangThai)) {
+
+            if (occupiedRoomClickListener != null) {
+                occupiedRoomClickListener.accept(room);
+            }
+
+            return;
+        }
+
+        if ("Bảo trì".equalsIgnoreCase(trangThai)) {
+            JOptionPane.showMessageDialog(this, "Phòng đang bảo trì, không thể thao tác.");
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Trạng thái phòng không hợp lệ: " + trangThai);
+    }
+    
+    private void togglePhongTrong(Phong room) {
+        String maPhong = room.getMaPhong();
+
+        if (selectedRoomIds.contains(maPhong)) {
+            selectedRoomIds.remove(maPhong);
+            selectedRooms.removeIf(p -> p.getMaPhong().equals(maPhong));
+        } else {
+            selectedRoomIds.add(maPhong);
+            selectedRooms.add(room);
+        }
+
+        JPanel wrapper = roomCardWrappers.get(maPhong);
+
+        if (wrapper != null) {
+            updateRoomCardColor(room, wrapper);
+        }
+
+        updateSelectedLabel();
+    }
+
+    private boolean isRoomSelectable(Phong room) {
+        return "Trống".equalsIgnoreCase(room.getTrangThai());
+    }
+
+    private void updateRoomCardColor(Phong room, JPanel wrapper) {
+        boolean selected = selectedRoomIds.contains(room.getMaPhong());
+        boolean selectable = isRoomSelectable(room);
+
+        if (selected) {
+            wrapper.setBackground(SELECTED_BG);
+            wrapper.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(SELECTED_BORDER, 3),
+                    new EmptyBorder(3, 3, 3, 3)
+            ));
+        } else if (!selectable) {
+            wrapper.setBackground(DISABLED_BG);
+            wrapper.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(203, 213, 225), 1),
+                    new EmptyBorder(3, 3, 3, 3)
+            ));
+            wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        } else {
+            wrapper.setBackground(Color.WHITE);
+            wrapper.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(CARD_BORDER, 1),
+                    new EmptyBorder(3, 3, 3, 3)
+            ));
+            wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+
+        wrapper.revalidate();
+        wrapper.repaint();
+    }
+
+    private void updateSelectedLabel() {
+        lblSoPhongDaChon.setText("Đã chọn: " + selectedRooms.size() + " phòng");
+    }
+
+    private void removeSelectedRoomsNotInList(Map<String, Phong> currentRooms) {
+        selectedRooms.removeIf(room -> !currentRooms.containsKey(room.getMaPhong()));
+
+        selectedRoomIds.clear();
+
+        for (Phong room : selectedRooms) {
+            selectedRoomIds.add(room.getMaPhong());
+        }
+    }
+
+    public void clearSelectedRooms() {
+        selectedRooms.clear();
+        selectedRoomIds.clear();
+
+        for (Map.Entry<String, JPanel> entry : roomCardWrappers.entrySet()) {
+            JPanel wrapper = entry.getValue();
+            wrapper.setBackground(Color.WHITE);
+            wrapper.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(CARD_BORDER, 1),
+                    new EmptyBorder(3, 3, 3, 3)
+            ));
+            wrapper.repaint();
+        }
+
+        updateSelectedLabel();
     }
 
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Segoe UI", Font.BOLD, 15));
         label.setForeground(TEXT_DARK);
-        label.setPreferredSize(new java.awt.Dimension(110, 38));
+        label.setPreferredSize(new Dimension(110, 38));
         return label;
     }
 
     private void styleTextField(JTextField textField) {
-        textField.setPreferredSize(new java.awt.Dimension(180, 38));
+        textField.setPreferredSize(new Dimension(180, 38));
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
@@ -228,7 +448,7 @@ public class DatPhong extends JPanel {
     }
 
     private void styleComboBox(JComboBox<?> comboBox) {
-        comboBox.setPreferredSize(new java.awt.Dimension(180, 38));
+        comboBox.setPreferredSize(new Dimension(180, 38));
         comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         comboBox.setBackground(Color.WHITE);
     }
@@ -240,7 +460,21 @@ public class DatPhong extends JPanel {
         button.setBackground(BUTTON_BG);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
-        button.setPreferredSize(new java.awt.Dimension(120, 42));
+        button.setPreferredSize(new Dimension(140, 42));
+        return button;
+    }
+
+    private JButton createPrimaryButton(String text) {
+        JButton button = createButton(text);
+        button.setBackground(BUTTON_PRIMARY);
+        button.setPreferredSize(new Dimension(180, 42));
+        return button;
+    }
+
+    private JButton createDangerButton(String text) {
+        JButton button = createButton(text);
+        button.setBackground(BUTTON_DANGER);
+        button.setPreferredSize(new Dimension(150, 42));
         return button;
     }
 
@@ -262,6 +496,34 @@ public class DatPhong extends JPanel {
 
     public JPanel getPnlDanhSachPhong() {
         return pnlDanhSachPhong;
+    }
+
+    public JButton getBtnTaoDonDatPhong() {
+        return btnTaoDonDatPhong;
+    }
+
+    public JButton getBtnBoChonPhong() {
+        return btnBoChonPhong;
+    }
+
+    public JLabel getLblSoPhongDaChon() {
+        return lblSoPhongDaChon;
+    }
+
+    public List<Phong> getSelectedRooms() {
+        return new ArrayList<>(selectedRooms);
+    }
+
+    public List<String> getSelectedRoomIds() {
+        return new ArrayList<>(selectedRoomIds);
+    }
+    
+    public void setOccupiedRoomClickListener(Consumer<Phong> listener) {
+        this.occupiedRoomClickListener = listener;
+    }
+
+    public boolean hasSelectedRooms() {
+        return !selectedRooms.isEmpty();
     }
 
     public static JPanel createPanel() {

@@ -203,8 +203,8 @@ public class QLKhachHang extends JPanel {
 
         addFormRow(formPanel, gbc, "Mã KH", txtMaKH);
         addFormRow(formPanel, gbc, "Họ tên", txtHoTen);
-        addFormRow(formPanel, gbc, "Số điện thoại", txtSDT);
         addFormRow(formPanel, gbc, "CCCD", txtCCCD);
+        addFormRow(formPanel, gbc, "Số điện thoại", txtSDT);
         addFormRow(formPanel, gbc, "Phân loại", cboLoaiKH);
         addFormRow(formPanel, gbc, "Điểm số", txtDiemSo);
 
@@ -229,7 +229,7 @@ public class QLKhachHang extends JPanel {
         title.setForeground(TEXT);
 
         tableModel = new DefaultTableModel(
-                new Object[] { "Mã KH", "Họ tên", "SĐT", "CCCD", "Phân loại", "Điểm" }, 0) {
+                new Object[] { "Mã KH", "Họ tên", "CCCD", "SĐT", "Phân loại", "Điểm" }, 0) {
             private static final long serialVersionUID = 1L;
 
             @Override

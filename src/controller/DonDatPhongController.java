@@ -1,13 +1,11 @@
 package controller;
 
-import java.awt.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -20,8 +18,7 @@ import entity.NhanVien;
 import entity.PhienDangNhap;
 import entity.Phong;
 import gui.DatPhong;
-import gui.DatPhongDialog;
-import gui.PhongCardPanel;
+import gui.DonDatPhongDialog;
 import gui.ThongTinDatPhongDialog;
 
 public class DonDatPhongController {
@@ -45,6 +42,13 @@ public class DonDatPhongController {
 
     private void initController() {
         view.getBtnTaiLai().addActionListener(e -> lamMoiLoc());
+
+        view.getBtnBoChonPhong().addActionListener(e -> view.clearSelectedRooms());
+
+        view.getBtnTaoDonDatPhong().addActionListener(e -> moDialogTaoDonDatPhong());
+
+        view.setOccupiedRoomClickListener(phong -> moDialogThongTinPhongDangCoDon(phong));
+
         ganSuKienTimKiemTuDong();
     }
 
@@ -74,7 +78,6 @@ public class DonDatPhongController {
     private void loadDanhSachPhong() {
         List<Phong> rooms = phongDao.findAll();
         view.renderRooms(rooms);
-        ganSuKienChoCardPhong();
     }
 
     private void timPhongKhongThongBao() {
@@ -83,9 +86,7 @@ public class DonDatPhongController {
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
         List<Phong> rooms = phongDao.searchBaoBieu(tuKhoa, loaiPhong, trangThai);
-
         view.renderRooms(rooms);
-        ganSuKienChoCardPhong();
     }
 
     private void lamMoiLoc() {
@@ -93,82 +94,40 @@ public class DonDatPhongController {
         view.getCboLoaiPhong().setSelectedIndex(0);
         view.getCboTrangThai().setSelectedIndex(0);
 
+        view.clearSelectedRooms();
         loadDanhSachPhong();
     }
 
-    private void ganSuKienChoCardPhong() {
-        duyetPanel(view.getPnlDanhSachPhong());
-    }
-
-    private void duyetPanel(JPanel panel) {
-        for (Component comp : panel.getComponents()) {
-            if (comp instanceof PhongCardPanel) {
-                PhongCardPanel card = (PhongCardPanel) comp;
-
-                for (var ml : card.getMouseListeners()) {
-                    card.removeMouseListener(ml);
-                }
-
-                card.addMouseListener(new java.awt.event.MouseAdapter() {
-                    @Override
-                    public void mouseClicked(java.awt.event.MouseEvent e) {
-                        xuLyChonPhong(card.getData());
-                    }
-                });
-
-            } else if (comp instanceof JPanel) {
-                duyetPanel((JPanel) comp);
-            }
-        }
-    }
-
-    private void xuLyChonPhong(Phong phong) {
-        String trangThai = phong.getTrangThai();
-
-        if ("Trống".equalsIgnoreCase(trangThai)) {
-            moDialogDatPhong(phong);
+    private void moDialogTaoDonDatPhong() {
+        if (!view.hasSelectedRooms()) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Vui lòng chọn ít nhất một phòng để tạo đơn đặt phòng."
+            );
             return;
         }
 
-        if ("Đã đặt".equalsIgnoreCase(trangThai)
-                || "Đang sử dụng".equalsIgnoreCase(trangThai)
-                || "Đã nhận".equalsIgnoreCase(trangThai)) {
-
-            DonDatPhong donDatPhong = datPhongDao.findRoomDetailByMaPhong(phong.getMaPhong());
-
-            if (donDatPhong == null) {
-                JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin đặt phòng của phòng này.");
-                return;
-            }
-
-            moDialogThongTinDatPhong(donDatPhong);
-            return;
-        }
-
-        if ("Bảo trì".equalsIgnoreCase(trangThai)) {
-            JOptionPane.showMessageDialog(view, "Phòng đang bảo trì, không thể đặt.");
-            return;
-        }
-
-        JOptionPane.showMessageDialog(view, "Trạng thái phòng không hợp lệ: " + trangThai);
-    }
-
-    private void moDialogDatPhong(Phong phong) {
-        if (phong == null) {
-            JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin phòng.");
-            return;
-        }
+        List<Phong> dsPhongDaChon = view.getSelectedRooms();
 
         NhanVien nhanVien = PhienDangNhap.getNhanVienDangNhap();
 
         if (nhanVien == null) {
-            JOptionPane.showMessageDialog(view, "Không xác định được nhân viên đang đăng nhập.");
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Không xác định được nhân viên đang đăng nhập."
+            );
             return;
         }
 
         List<DichVu> dsDichVu = dichVuDao.findAll();
 
-        DatPhongDialog dialog = new DatPhongDialog(null, phong, nhanVien, dsDichVu);
+        DonDatPhongDialog dialog = new DonDatPhongDialog(
+                null,
+                dsPhongDaChon,
+                nhanVien,
+                dsDichVu
+        );
+
         dialog.setLocationRelativeTo(view);
         dialog.setVisible(true);
 
@@ -177,54 +136,58 @@ public class DonDatPhongController {
         }
 
         try {
-            String tenKH = dialog.getTenKhachHang();
-            String cccd = dialog.getCccd();
-            String sdt = dialog.getSdt();
-
-            java.util.Date ngayNhan = dialog.getNgayNhan();
-            java.util.Date ngayTra = dialog.getNgayTra();
-
             String tienCocStr = dialog.getTienCoc();
-            boolean checkInNgay = dialog.isCheckInNgay();
-
             double tienCoc = 0;
 
             if (tienCocStr != null && !tienCocStr.isBlank()) {
                 tienCoc = Double.parseDouble(tienCocStr);
             }
 
-            List<DatPhongDialog.DichVuDatTruoc> dsDichVuDaChon = dialog.getDichVuDaChon();
-
             boolean success = datPhongDao.datPhong(
-                    phong,
+                    dialog.getDsPhongDaChon(),
                     nhanVien,
-                    tenKH,
-                    cccd,
-                    sdt,
-                    new java.sql.Timestamp(ngayNhan.getTime()),
-                    new java.sql.Timestamp(ngayTra.getTime()),
+                    dialog.getTenKhachHang(),
+                    dialog.getCccd(),
+                    dialog.getSdt(),
+                    dialog.getLoaiKH(),
+                    dialog.getDiemSo(),
+                    new java.sql.Timestamp(dialog.getNgayNhan().getTime()),
+                    new java.sql.Timestamp(dialog.getNgayTra().getTime()),
                     tienCoc,
-                    checkInNgay,
-                    dsDichVuDaChon
+                    dialog.isCheckInNgay(),
+                    dialog.getDichVuDaChon()
             );
 
             if (success) {
-                JOptionPane.showMessageDialog(view, "Đặt phòng thành công.");
+                JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thành công.");
+                view.clearSelectedRooms();
                 loadDanhSachPhong();
             } else {
-                JOptionPane.showMessageDialog(view, "Đặt phòng thất bại.");
+                JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thất bại.");
             }
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(view, "Tiền cọc phải là số hợp lệ.");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view, "Có lỗi khi đặt phòng: " + ex.getMessage());
+            JOptionPane.showMessageDialog(view, "Có lỗi khi tạo đơn đặt phòng: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
 
-    private void moDialogThongTinDatPhong(DonDatPhong room) {
-        ThongTinDatPhongDialog dialog = new ThongTinDatPhongDialog(room);
+    private void moDialogThongTinPhongDangCoDon(Phong phong) {
+        if (phong == null) {
+            JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin phòng.");
+            return;
+        }
+
+        DonDatPhong donDatPhong = datPhongDao.findRoomDetailByMaPhong(phong.getMaPhong());
+
+        if (donDatPhong == null) {
+            JOptionPane.showMessageDialog(view, "Không tìm thấy thông tin đặt phòng của phòng này.");
+            return;
+        }
+
+        ThongTinDatPhongDialog dialog = new ThongTinDatPhongDialog(donDatPhong);
         dialog.setLocationRelativeTo(view);
         dialog.setVisible(true);
 
@@ -232,19 +195,27 @@ public class DonDatPhongController {
             String ngayNhanMoi = dialog.getNgayNhan();
             String ngayTraMoi = dialog.getNgayTra();
 
-            capNhatThoiGianDatPhong(room, ngayNhanMoi, ngayTraMoi);
-        } else if (dialog.isThemDichVu()) {
-            JOptionPane.showMessageDialog(view, "Mở dialog thêm dịch vụ ở đây.");
+            capNhatThoiGianDatPhong(donDatPhong, ngayNhanMoi, ngayTraMoi);
+            return;
         }
+
+        if (dialog.isThemDichVu()) {
+            JOptionPane.showMessageDialog(view, "Mở dialog thêm dịch vụ ở đây.");
+            return;
+        }
+
+        loadDanhSachPhong();
     }
 
     private void capNhatThoiGianDatPhong(DonDatPhong room, String ngayNhanStr, String ngayTraStr) {
         if (ngayNhanStr == null || ngayTraStr == null
                 || ngayNhanStr.isBlank() || ngayTraStr.isBlank()) {
-            JOptionPane.showMessageDialog(view,
+            JOptionPane.showMessageDialog(
+                    view,
                     "Ngày nhận và ngày trả không được để trống.",
                     "Thiếu thông tin",
-                    JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.WARNING_MESSAGE
+            );
             return;
         }
 
@@ -253,30 +224,38 @@ public class DonDatPhongController {
             LocalDateTime ngayTra = LocalDateTime.parse(ngayTraStr, formatter);
 
             if (!ngayTra.isAfter(ngayNhan)) {
-                JOptionPane.showMessageDialog(view,
+                JOptionPane.showMessageDialog(
+                        view,
                         "Ngày trả phải sau ngày nhận.",
                         "Lỗi thời gian",
-                        JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
 
-            JOptionPane.showMessageDialog(view,
+            JOptionPane.showMessageDialog(
+                    view,
                     "Cập nhật thời gian đặt phòng thành công cho phòng " + room.getMaPhong(),
                     "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.INFORMATION_MESSAGE
+            );
 
             loadDanhSachPhong();
 
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(view,
+            JOptionPane.showMessageDialog(
+                    view,
                     "Ngày giờ phải đúng định dạng dd/MM/yyyy HH:mm",
                     "Lỗi định dạng",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(view,
+            JOptionPane.showMessageDialog(
+                    view,
                     "Có lỗi khi cập nhật thời gian: " + ex.getMessage(),
                     "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 }

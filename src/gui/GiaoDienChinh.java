@@ -170,7 +170,7 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnTimKiem);
 
         btnCapNhat = createNavButton("Cập nhật", new String[] {
-                "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Tài khoản"
+                "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Đơn đặt phòng"
         });
         nav.add(btnCapNhat);
 
@@ -461,8 +461,10 @@ public class GiaoDienChinh extends JFrame {
         JPanel panel = null;
 
         if (mainMenu.equals("Hệ thống")) {
-            if (subMenu.equals("Phân quyền") || subMenu.equals("Tạo tài khoản")) {
-                panel = QLTaiKhoan.createPanel();
+            if (subMenu.equals("Phân quyền")) {
+                panel = QLPhanQuyen.createPanel();
+            } else if (subMenu.equals("Tạo tài khoản")) {
+                panel = TaoTaiKhoan.createPanel();
             }
 
         } else if (mainMenu.equals("Danh mục")) {
@@ -482,8 +484,7 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Hóa đơn")) {
                 panel = QLHoaDon.createPanel();
             } else if (subMenu.equals("Thanh toán")) {
-                showInfoMessage("Chức năng Thanh toán đang phát triển.");
-                return;
+            	 panel = ThanhToan.createPanel();
             }
 
         } else if (mainMenu.equals("Tìm kiếm")) {
@@ -496,7 +497,7 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Nhân viên")) {
                 panel = QLNhanVien.createPanel();
             } else if (subMenu.equals("Khuyến mãi")) {
-                panel = GiaoDienKhuyenMai.createPanel();
+                panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
             }
@@ -509,11 +510,11 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Nhân viên")) {
                 panel = QLNhanVien.createPanel();
             } else if (subMenu.equals("Khuyến mãi")) {
-                panel = GiaoDienKhuyenMai.createPanel();
+                panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
-            } else if (subMenu.equals("Tài khoản")) {
-                panel = QLTaiKhoan.createPanel();
+            } else if(subMenu.equals("Đơn đặt phòng")) {
+            	panel = QLDonDatPhong.createPanel();
             }
 
         } else if (mainMenu.equals("Thống kê")) {
@@ -634,6 +635,27 @@ public class GiaoDienChinh extends JFrame {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             // Keep default look and feel
+        }
+    }
+    
+    public void moThanhToanTheoDon(String maDDP) {
+        String panelKey = "Xử lí/Thanh toán";
+
+        JPanel panel = loadedPanels.get(panelKey);
+
+        if (panel == null) {
+            panel = ThanhToan.createPanel();
+            panel.setBorder(BorderFactory.createEmptyBorder());
+            contentPanel.add(panel, panelKey);
+            loadedPanels.put(panelKey, panel);
+        }
+
+        cardLayout.show(contentPanel, panelKey);
+        updateAppTitle("Quản lý Thanh toán");
+
+        if (panel instanceof ThanhToan) {
+            ThanhToan thanhToanPanel = (ThanhToan) panel;
+            thanhToanPanel.loadDonThanhToan(maDDP);
         }
     }
 }

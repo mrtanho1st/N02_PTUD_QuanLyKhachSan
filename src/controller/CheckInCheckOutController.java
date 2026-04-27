@@ -33,7 +33,6 @@ public class CheckInCheckOutController {
         ganSuKienTimKiemTuDong();
 
         view.getBtnCheckIn().addActionListener(e -> xuLyCheckIn());
-        view.getBtnThemDichVu().addActionListener(e -> xuLyThemDichVu());
         view.getBtnCapNhatThoiGian().addActionListener(e -> xuLyCapNhatThoiGian());
         view.getBtnCheckOut().addActionListener(e -> xuLyCheckOut());
         view.getBtnLamMoi().addActionListener(e -> lamMoiChiTiet());
@@ -66,7 +65,6 @@ public class CheckInCheckOutController {
             }
         };
 
-        view.getTxtMaPhong().getDocument().addDocumentListener(docListener);
         view.getTxtMaDDP().getDocument().addDocumentListener(docListener);
         view.getTxtCccdSdt().getDocument().addDocumentListener(docListener);
 
@@ -74,7 +72,7 @@ public class CheckInCheckOutController {
     }
 
     private void loadDanhSachMacDinh() {
-        List<CheckInCheckOutItem> ds = dao.search("", "", "", "Chưa hoàn thành");
+        List<CheckInCheckOutItem> ds = dao.search("", "", "Chưa hoàn thành");
         fillTable(ds);
         if (!ds.isEmpty()) {
             view.getTblDanhSach().setRowSelectionInterval(0, 0);
@@ -84,7 +82,6 @@ public class CheckInCheckOutController {
     }
 
     private void timKiemKhongThongBao() {
-        String maPhong = view.getTxtMaPhong().getText().trim();
         String maDDP = view.getTxtMaDDP().getText().trim();
         String cccdSdt = view.getTxtCccdSdt().getText().trim();
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
@@ -93,7 +90,7 @@ public class CheckInCheckOutController {
             trangThai = "Chưa hoàn thành";
         }
 
-        List<CheckInCheckOutItem> ds = dao.search(maPhong, maDDP, cccdSdt, trangThai);
+        List<CheckInCheckOutItem> ds = dao.search(maDDP, cccdSdt, trangThai);
         fillTable(ds);
 
         if (!ds.isEmpty()) {
@@ -109,9 +106,11 @@ public class CheckInCheckOutController {
 
         for (CheckInCheckOutItem item : ds) {
             model.addRow(new Object[] {
-                    item.getMaPhong(),
+                    item.getMaDDP(),
                     item.getTenKH(),
                     mapTinhTrang(item.getTinhTrang()),
+                    item.getCccd(),
+                    item.getSdt(),
                     item.getNgayNhan(),
                     item.getNgayTra()
             });
@@ -120,10 +119,11 @@ public class CheckInCheckOutController {
 
     private void hienThiChiTietDongDangChon() {
         int row = view.getTblDanhSach().getSelectedRow();
-        if (row == -1) return;
+        if (row == -1) {
+            return;
+        }
 
-        String maPhong = safeValue(row, 0);
-        String maDDP = view.getTxtMaDDP().getText().trim();
+        String maDDP = safeValue(row, 0);
         String cccdSdt = view.getTxtCccdSdt().getText().trim();
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
@@ -131,15 +131,14 @@ public class CheckInCheckOutController {
             trangThai = "Chưa hoàn thành";
         }
 
-        List<CheckInCheckOutItem> ds = dao.search(maPhong, maDDP, cccdSdt, trangThai);
-        if (ds.isEmpty()) return;
+        List<CheckInCheckOutItem> ds = dao.search(maDDP, cccdSdt, trangThai);
+        if (ds.isEmpty()) {
+            return;
+        }
 
         CheckInCheckOutItem item = ds.get(0);
 
-        view.getLblMaPhong().setText(item.getMaPhong());
-        view.getLblLoaiPhong().setText(item.getLoaiPhong());
-        view.getLblGiaPhong().setText(formatMoney(item.getGiaPhong()) + " VNĐ");
-        view.getLblTrangThaiPhong().setText(item.getTrangThaiPhong());
+        loadPhongChiTiet(maDDP);
 
         view.getLblTenKH().setText(item.getTenKH());
         view.getLblCCCD().setText(item.getCccd());
@@ -148,13 +147,12 @@ public class CheckInCheckOutController {
 
         view.getLblCheckInDuKien().setText(item.getNgayNhan());
         view.getLblCheckOutDuKien().setText(item.getNgayTra());
-        view.getLblCheckInThucTe().setText("Đã nhận".equals(item.getTinhTrang()) ? item.getNgayNhan() : "");
-        view.getLblCheckOutThucTe().setText("");
 
-        loadDichVu(item.getMaPhong());
 
-        double tienPhong = item.getGiaPhong();
-        double tienDichVu = tinhTienDichVu(item.getMaPhong());
+        loadDichVuTheoDon(maDDP);
+
+        double tienPhong = tinhTienPhongTheoDon(maDDP);
+        double tienDichVu = tinhTienDichVuTheoDon(maDDP);
         double tienCoc = item.getTienCoc() == null ? 0 : item.getTienCoc();
         double conLai = tienPhong + tienDichVu - tienCoc;
 
@@ -165,12 +163,45 @@ public class CheckInCheckOutController {
 
         capNhatTrangThaiNut(item.getTinhTrang());
     }
+    private double tinhTienDichVuTheoDon(String maDDP) {
+        double tong = 0;
 
-    private void loadDichVu(String maPhong) {
+        List<Object[]> ds = dao.findDichVuByMaDDP(maDDP);
+
+        for (Object[] row : ds) {
+            tong += (Double) row[3];
+        }
+
+        return tong;
+    }
+    private double tinhTienPhongTheoDon(String maDDP) {
+        double tong = 0;
+
+        List<Object[]> dsPhong = dao.findPhongByMaDDP(maDDP);
+
+        for (Object[] row : dsPhong) {
+            Object giaObj = row[2];
+
+            if (giaObj instanceof Number) {
+                tong += ((Number) giaObj).doubleValue();
+            } else if (giaObj != null) {
+                try {
+                    tong += Double.parseDouble(giaObj.toString());
+                } catch (NumberFormatException e) {
+                    // bỏ qua dòng không parse được
+                }
+            }
+        }
+
+        return tong;
+    }
+    
+    private void loadDichVuTheoDon(String maDDP) {
         DefaultTableModel model = view.getModelDichVu();
         model.setRowCount(0);
 
-        List<Object[]> ds = dao.findDichVuByMaPhong(maPhong);
+        List<Object[]> ds = dao.findDichVuByMaDDP(maDDP);
+
         for (Object[] row : ds) {
             model.addRow(new Object[] {
                     row[0],
@@ -180,14 +211,15 @@ public class CheckInCheckOutController {
             });
         }
     }
+    private void loadPhongChiTiet(String maDDP) {
+        DefaultTableModel model = view.getModelPhongChiTiet();
+        model.setRowCount(0);
 
-    private double tinhTienDichVu(String maPhong) {
-        double tong = 0;
-        List<Object[]> ds = dao.findDichVuByMaPhong(maPhong);
-        for (Object[] row : ds) {
-            tong += (Double) row[3];
+        List<Object[]> dsPhong = dao.findPhongByMaDDP(maDDP);
+
+        for (Object[] row : dsPhong) {
+            model.addRow(row);
         }
-        return tong;
     }
 
     private void capNhatTrangThaiNut(String tinhTrangDB) {
@@ -196,36 +228,33 @@ public class CheckInCheckOutController {
         boolean daHoanThanh = "Hoàn thành".equals(tinhTrangDB);
 
         view.getBtnCheckIn().setEnabled(choCheckIn);
-        view.getBtnThemDichVu().setEnabled(dangLuuTru);
         view.getBtnCapNhatThoiGian().setEnabled(choCheckIn || dangLuuTru);
         view.getBtnCheckOut().setEnabled(dangLuuTru);
 
         if (daHoanThanh) {
             view.getBtnCheckIn().setEnabled(false);
-            view.getBtnThemDichVu().setEnabled(false);
             view.getBtnCapNhatThoiGian().setEnabled(false);
             view.getBtnCheckOut().setEnabled(false);
         }
     }
 
     private void xuLyCheckIn() {
-        String maPhong = view.getLblMaPhong().getText().trim();
         String maDDP = view.getLblMaDDPChiTiet().getText().trim();
 
-        if (maPhong.isEmpty() || maDDP.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng chọn dòng cần check-in.");
+        if (maDDP.isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng chọn đơn cần check-in.");
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(
                 view,
-                "Xác nhận check-in cho phòng " + maPhong + "?",
+                "Xác nhận check-in cho đơn " + maDDP + "?",
                 "Check-in",
                 JOptionPane.YES_NO_OPTION
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            if (dao.checkIn(maDDP, maPhong)) {
+            if (dao.checkIn(maDDP)) {
                 JOptionPane.showMessageDialog(view, "Check-in thành công.");
                 loadDanhSachMacDinh();
             } else {
@@ -235,41 +264,41 @@ public class CheckInCheckOutController {
     }
 
     private void xuLyCheckOut() {
-        String maPhong = view.getLblMaPhong().getText().trim();
         String maDDP = view.getLblMaDDPChiTiet().getText().trim();
 
-        if (maPhong.isEmpty() || maDDP.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Vui lòng chọn dòng cần check-out.");
+        if (maDDP.isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Vui lòng chọn đơn cần thanh toán.");
             return;
         }
 
         int confirm = JOptionPane.showConfirmDialog(
                 view,
-                "Xác nhận check-out cho phòng " + maPhong + "?",
-                "Check-out",
+                "Chuyển sang màn hình thanh toán cho đơn " + maDDP + "?",
+                "Thanh toán",
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (dao.checkOut(maDDP, maPhong)) {
-                JOptionPane.showMessageDialog(view, "Check-out thành công.");
-                loadDanhSachMacDinh();
-            } else {
-                JOptionPane.showMessageDialog(view, "Check-out thất bại.");
-            }
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(view);
+
+        if (window instanceof gui.GiaoDienChinh) {
+            gui.GiaoDienChinh main = (gui.GiaoDienChinh) window;
+            main.moThanhToanTheoDon(maDDP);
+        } else {
+            JOptionPane.showMessageDialog(view, "Không tìm thấy giao diện chính để chuyển sang thanh toán.");
         }
     }
 
-    private void xuLyThemDichVu() {
-        JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog thêm dịch vụ ở đây.");
-    }
+    
 
     private void xuLyCapNhatThoiGian() {
         JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog cập nhật thời gian ở đây.");
     }
 
     private void lamMoiTatCa() {
-        view.getTxtMaPhong().setText("");
         view.getTxtMaDDP().setText("");
         view.getTxtCccdSdt().setText("");
         view.getCboTrangThai().setSelectedIndex(0);
@@ -277,18 +306,14 @@ public class CheckInCheckOutController {
     }
 
     private void lamMoiChiTiet() {
-        view.getLblMaPhong().setText("");
-        view.getLblLoaiPhong().setText("");
-        view.getLblGiaPhong().setText("");
-        view.getLblTrangThaiPhong().setText("");
+    	view.getModelPhongChiTiet().setRowCount(0);
         view.getLblTenKH().setText("");
         view.getLblCCCD().setText("");
         view.getLblSDT().setText("");
         view.getLblMaDDPChiTiet().setText("");
         view.getLblCheckInDuKien().setText("");
         view.getLblCheckOutDuKien().setText("");
-        view.getLblCheckInThucTe().setText("");
-        view.getLblCheckOutThucTe().setText("");
+
         view.getLblTienPhong().setText("");
         view.getLblTienDichVu().setText("");
         view.getLblTienCoc().setText("");
@@ -302,9 +327,9 @@ public class CheckInCheckOutController {
     }
 
     private String mapTinhTrang(String tinhTrangDB) {
-        if ("Đã đặt".equals(tinhTrangDB)) return "Chờ check-in";
-        if ("Đã nhận".equals(tinhTrangDB)) return "Đang lưu trú";
-        if ("Hoàn thành".equals(tinhTrangDB)) return "Đã hoàn thành";
+        if ("Đã đặt".equals(tinhTrangDB)) return "Đã đặt";
+        if ("Đã nhận".equals(tinhTrangDB)) return "Đã nhận";
+        if ("Hoàn thành".equals(tinhTrangDB)) return "Hoàn thành";
         return tinhTrangDB;
     }
 

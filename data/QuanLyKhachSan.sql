@@ -224,7 +224,16 @@ INSERT INTO NhanVien(maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoL
 ('NV02', N'NLê Minh Tân', '1998-04-12', '0911222334', 'lan@hotel.com',  N'Nữ',  '2024-01-10', N'Đang làm', N'Hà Nội',     N'Ca sáng',  N'Lễ tân'),
 ('NV03', N'Nguyễn Thị Thanh Thư',  '1995-08-20', '0911222335', 'minh@hotel.com', N'Nam', '2023-11-01', N'Đang làm', N'Hải Phòng',  N'Ca chiều', N'Lễ Tân'),
 ('NV04', N'Nguyễn Gia Quân',     '1997-02-15', '0911222336', 'hoa@hotel.com',  N'Nữ',  '2024-03-05', N'Đang làm', N'Đà Nẵng',    N'Ca sáng',  N'Lễ Tân'),
-('NV05', N'Pham Quoc Dat',  '1994-12-09', '0911222337', 'dat@hotel.com',  N'Nam', '2022-09-18', N'Đang làm', N'TP.HCM',     N'Ca tối',   N'Lễ Tân');
+('NV05', N'Pham Quoc Dat',  '1994-12-09', '0911222337', 'dat@hotel.com',  N'Nam', '2022-09-18', N'Đang làm', N'TP.HCM',     N'Ca tối',   N'Lễ Tân'),
+('NV06', N'Phạm Ngọc Anh',          '1999-12-03', '0911222338', 'ngocanh@hotel.com', N'Nữ',  '2024-05-20', N'Đang làm', N'Hà Nội',         N'Ca chiều', N'Lễ tân'),
+('NV07', N'Lê Quốc Bảo',            '1993-07-25', '0911222339', 'bao@hotel.com',     N'Nam', '2021-10-01', N'Đang làm', N'Cần Thơ',        N'Ca sáng',  N'Quản lý'),
+('NV08', N'Vũ Thị Mai Linh',        '2000-03-14', '0911222340', 'linh@hotel.com',    N'Nữ',  '2024-06-10', N'Đang làm', N'Hải Phòng',      N'Ca tối',   N'Lễ tân'),
+('NV09', N'Đặng Minh Khang',        '1996-11-29', '0911222341', 'khang@hotel.com',   N'Nam', '2023-02-12', N'Tạm nghỉ', N'Đà Nẵng',        N'Ca chiều', N'Lễ tân'),
+('NV10', N'Hoàng Thu Hà',           '1998-09-08', '0911222342', 'ha@hotel.com',      N'Nữ',  '2023-08-01', N'Đang làm', N'Hà Nội',         N'Ca sáng',  N'Lễ tân'),
+('NV11', N'Bùi Anh Tuấn',           '1992-05-21', '0911222343', 'tuan@hotel.com',    N'Nam', '2020-04-18', N'Đang làm', N'Nha Trang',      N'Ca tối',   N'Lễ tân'),
+('NV12', N'Ngô Phương Thảo',        '1997-10-30', '0911222344', 'thao@hotel.com',    N'Nữ',  '2022-12-05', N'Đang làm', N'Huế',            N'Ca chiều', N'Lễ tân'),
+('NV13', N'Đinh Gia Huy',           '1995-01-17', '0911222345', 'huy@hotel.com',     N'Nam', '2021-06-25', N'Nghỉ việc', N'TP Hồ Chí Minh', N'Ca sáng',  N'Quản lý'),
+('NV14', N'Phan Khánh Vy',          '2001-04-09', '0911222346', 'vy@hotel.com',      N'Nữ',  '2024-07-15', N'Đang làm', N'Đà Lạt',         N'Ca chiều', N'Lễ tân');
 GO
 
 INSERT INTO TaiKhoan(tenDangNhap, matKhau, vaiTro, maNV) VALUES
@@ -491,3 +500,5 @@ SELECT COUNT(*) AS soDonDatPhong FROM DonDatPhong;
 SELECT COUNT(*) AS soHoaDon FROM HoaDon;
 SELECT COUNT(*) AS soPhieuDichVu FROM PhieuDichVu;
 GO
+
+

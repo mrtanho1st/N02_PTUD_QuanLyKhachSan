@@ -120,6 +120,121 @@ public class DichVu_Dao {
 
         return list;
     }
+    public boolean insert(DichVu dv) {
+        String sql = """
+                INSERT INTO DichVu(maDV, tenDichVu, giaDichVu)
+                VALUES (?, ?, ?)
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, dv.getMaDV());
+            ps.setString(2, dv.getTenDV());
+            ps.setDouble(3, dv.getGia());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean update(DichVu dv) {
+        String sql = """
+                UPDATE DichVu
+                SET tenDichVu = ?, giaDichVu = ?
+                WHERE maDV = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, dv.getTenDV());
+            ps.setDouble(2, dv.getGia());
+            ps.setString(3, dv.getMaDV());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean delete(String maDV) {
+        String sql = """
+                DELETE FROM DichVu
+                WHERE maDV = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maDV);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean existsByMaDV(String maDV) {
+        String sql = """
+                SELECT maDV
+                FROM DichVu
+                WHERE maDV = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maDV);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean dangDuocSuDung(String maDV) {
+        String sql = """
+                SELECT maDV
+                FROM PhieuDichVu
+                WHERE maDV = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maDV);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     // Hàm mới cho Báo biểu Dịch vụ.
     // 1 ô từ khóa: tìm theo mã DV, tên dịch vụ, giá dịch vụ.

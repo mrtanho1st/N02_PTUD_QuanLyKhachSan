@@ -91,8 +91,8 @@ public class QLKhachHangController {
 
         view.getTxtMaKH().setText(view.getTblKhachHang().getValueAt(row, 0).toString());
         view.getTxtHoTen().setText(view.getTblKhachHang().getValueAt(row, 1).toString());
-        view.getTxtSDT().setText(view.getTblKhachHang().getValueAt(row, 2).toString());
-        view.getTxtCCCD().setText(view.getTblKhachHang().getValueAt(row, 3).toString());
+        view.getTxtSDT().setText(view.getTblKhachHang().getValueAt(row, 3).toString());
+        view.getTxtCCCD().setText(view.getTblKhachHang().getValueAt(row, 2).toString());
         view.getCboLoaiKH().setSelectedItem(view.getTblKhachHang().getValueAt(row, 4).toString());
         view.getTxtDiemSo().setText(view.getTblKhachHang().getValueAt(row, 5).toString());
 

@@ -2,187 +2,172 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.RenderingHints;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import java.awt.Component;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-public class QLDichVu {
+import controller.QLDichVuController;
+
+public class QLDichVu extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color APP_BG = new Color(238, 243, 250);
-    private static final Color CARD_BG = new Color(255, 255, 255);
-    private static final Color PRIMARY = new Color(32, 104, 185);
-    private static final Color PRIMARY_DARK = new Color(15, 62, 127);
-    private static final Color TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_TEXT = new Color(33, 48, 73);
-    private static final Color BUTTON_PRIMARY_BG = new Color(220, 235, 255);
-    private static final Color BUTTON_GHOST_BG = new Color(238, 245, 255);
-    private static final Color BUTTON_DANGER_BG = new Color(252, 230, 230);
+    private static final Color APP_BG = new Color(237, 242, 247);
+    private static final Color PANEL_BG = new Color(248, 250, 253);
+    private static final Color CARD_BORDER = new Color(210, 220, 235);
+    private static final Color TEXT_DARK = new Color(24, 39, 75);
+    private static final Color BUTTON_BG = new Color(233, 239, 248);
+    private static final Color BUTTON_DANGER = new Color(252, 230, 230);
 
-    public static JPanel createPanel() {
-        JPanel root = new JPanel(new BorderLayout(0, 12));
-        root.setBackground(APP_BG);
-        root.setBorder(new EmptyBorder(12, 14, 12, 14));
+    // Bộ lọc
+ // Bộ lọc
+    private JTextField txtTimMaDV;
+    private JTextField txtTimTenDV;
+    private JTextField txtTimGia;
+    private JButton btnLamMoiTim;
 
-        root.add(createBody(), BorderLayout.CENTER);
+    // Bảng dịch vụ
+    private JTable tblDichVu;
+    private DefaultTableModel tableModel;
 
-        return root;
+    // Form chi tiết
+    private JTextField txtMaDV;
+    private JTextField txtTenDV;
+    private JTextField txtGia;
+
+    // Nút thao tác
+    private JButton btnThem;
+    private JButton btnCapNhat;
+    private JButton btnXoa;
+    private JButton btnLamMoiForm;
+
+    public QLDichVu() {
+        initUI();
     }
 
-    private static JPanel createBody() {
-        JPanel body = new JPanel(new BorderLayout(0, 12));
-        body.setOpaque(false);
+    private void initUI() {
+        setLayout(new BorderLayout(0, 16));
+        setBackground(APP_BG);
+        setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        body.add(createFilterPanel(), BorderLayout.NORTH);
-        body.add(createCenterPanel(), BorderLayout.CENTER);
-        body.add(createActionPanel(), BorderLayout.SOUTH);
-        return body;
+        add(createFilterPanel(), BorderLayout.NORTH);
+        add(createBodyPanel(), BorderLayout.CENTER);
     }
 
-    private static JPanel createFilterPanel() {
-        JPanel filter = new RoundedPanel(20, CARD_BG);
-        filter.setLayout(new BorderLayout(12, 0));
-        filter.setBorder(new EmptyBorder(12, 14, 12, 14));
+    private JPanel createFilterPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(16, 18, 16, 18)));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        left.setOpaque(false);
-
-        JLabel lbSearch = new JLabel("Tìm dịch vụ:");
-        lbSearch.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lbSearch.setForeground(TEXT);
-
-        JTextField txtSearch = createInputField("");
-        txtSearch.setPreferredSize(new Dimension(320, 36));
-
-        JComboBox<String> cbFilter = new JComboBox<String>(
-                new String[] { "Mã dịch vụ", "Tên dịch vụ", "Nhóm dịch vụ", "Trạng thái" });
-        cbFilter.setPreferredSize(new Dimension(180, 36));
-        cbFilter.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-
-        left.add(lbSearch);
-        left.add(txtSearch);
-        left.add(cbFilter);
-
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        right.setOpaque(false);
-        right.add(createPrimaryButton("Lọc", 100, 36));
-        right.add(createGhostButton("Hiển thị tất cả", 140, 36));
-
-        filter.add(left, BorderLayout.WEST);
-        filter.add(right, BorderLayout.EAST);
-        return filter;
-    }
-
-    private static JPanel createCenterPanel() {
-        JPanel center = new JPanel(new BorderLayout(12, 0));
-        center.setOpaque(false);
-
-        center.add(createFormPanel(), BorderLayout.WEST);
-        center.add(createTablePanel(), BorderLayout.CENTER);
-        return center;
-    }
-
-    private static JPanel createFormPanel() {
-        JPanel formCard = new RoundedPanel(20, CARD_BG);
-        formCard.setLayout(new BorderLayout());
-        formCard.setBorder(new EmptyBorder(14, 14, 14, 14));
-        formCard.setPreferredSize(new Dimension(440, 0));
-
-        JLabel title = new JLabel("Thông tin dịch vụ");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(TEXT);
-
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 8, 6, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JLabel lblMaDV = createLabel("Mã DV:");
+        JLabel lblTenDV = createLabel("Tên DV:");
+        JLabel lblGiaDV = createLabel("Giá DV:");
+
+        txtTimMaDV = new JTextField();
+        txtTimTenDV = new JTextField();
+        txtTimGia = new JTextField();
+
+
+        styleTextField(txtTimMaDV);
+        styleTextField(txtTimTenDV);
+        styleTextField(txtTimGia);
+
+
+        btnLamMoiTim = createButton("Làm mới");
+
+        // Dòng 1: Mã DV - Tên DV - Giá DV
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 4, 6, 4);
+        gbc.weightx = 0;
+        panel.add(lblMaDV, gbc);
 
-        addFormRow(form, gbc, "Mã dịch vụ", createInputField(""));
-        addFormRow(form, gbc, "Tên dịch vụ", createInputField(""));
-        addFormRow(form, gbc, "Nhóm dịch vụ", new JComboBox<String>(
-                new String[] { "Ẩm thực", "Giặt ủi", "Đưa đón", "Giải trí", "Khác" }));
-        addFormRow(form, gbc, "Đơn vị tính", new JComboBox<String>(
-                new String[] { "Lần", "Suất", "Giờ", "Chai", "Phần" }));
-        addFormRow(form, gbc, "Đơn giá", createInputField("0"));
-        addFormRow(form, gbc, "Trạng thái", new JComboBox<String>(
-                new String[] { "Đang áp dụng", "Tạm ngưng" }));
-
-        JLabel lbNote = new JLabel("Mô tả");
-        lbNote.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        lbNote.setForeground(TEXT);
-        lbNote.setPreferredSize(new Dimension(120, 36));
-
-        JTextArea txtMoTa = new JTextArea(4, 20);
-        txtMoTa.setLineWrap(true);
-        txtMoTa.setWrapStyleWord(true);
-        txtMoTa.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtMoTa.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
-                new EmptyBorder(6, 10, 6, 10)));
-
-        JScrollPane moTaScroll = new JScrollPane(txtMoTa);
-        moTaScroll.setPreferredSize(new Dimension(260, 90));
-
-        gbc.gridx = 0;
-        form.add(lbNote, gbc);
         gbc.gridx = 1;
-        form.add(moTaScroll, gbc);
+        gbc.weightx = 0.8;
+        panel.add(txtTimMaDV, gbc);
 
-        JScrollPane formScroll = new JScrollPane(form);
-        formScroll.setBorder(null);
-        formScroll.getViewport().setBackground(CARD_BG);
-        formScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        formScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        gbc.gridx = 2;
+        gbc.weightx = 0;
+        panel.add(lblTenDV, gbc);
 
-        formCard.add(title, BorderLayout.NORTH);
-        formCard.add(formScroll, BorderLayout.CENTER);
-        return formCard;
+        gbc.gridx = 3;
+        gbc.weightx = 1.0;
+        panel.add(txtTimTenDV, gbc);
+
+        gbc.gridx = 4;
+        gbc.weightx = 0;
+        panel.add(lblGiaDV, gbc);
+
+        gbc.gridx = 5;
+        gbc.weightx = 0.8;
+        panel.add(txtTimGia, gbc);
+
+        
+
+
+        gbc.gridx = 6;
+        gbc.weightx = 0;
+        panel.add(btnLamMoiTim, gbc);
+
+        return panel;
     }
 
-    private static JPanel createTablePanel() {
-        JPanel tableCard = new RoundedPanel(20, CARD_BG);
-        tableCard.setLayout(new BorderLayout(0, 10));
-        tableCard.setBorder(new EmptyBorder(14, 14, 14, 14));
+    private JPanel createBodyPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
 
-        JLabel title = new JLabel("Danh sách dịch vụ");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        title.setForeground(TEXT);
+        JSplitPane splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                createTablePanel(),
+                createDetailPanel());
 
-        DefaultTableModel tableModel = new DefaultTableModel(
-                new Object[] { "Mã dịch vụ", "Tên dịch vụ", "Nhóm dịch vụ", "Đơn vị tính", "Đơn giá", "Trạng thái" },
-                0) {
+        splitPane.setDividerLocation(760);
+        splitPane.setResizeWeight(0.62);
+        splitPane.setBorder(null);
+        splitPane.setOpaque(false);
+        splitPane.setContinuousLayout(true);
+
+        panel.add(splitPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createTablePanel() {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(16, 16, 16, 16)));
+
+        JLabel lblTitle = new JLabel("Danh sách dịch vụ");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(TEXT_DARK);
+
+        String[] columns = {
+                "Mã DV", "Tên dịch vụ", "Giá dịch vụ", "Số lượt dùng", "Doanh thu"
+        };
+
+        tableModel = new DefaultTableModel(new Object[][] {}, columns) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -191,177 +176,227 @@ public class QLDichVu {
             }
         };
 
-        JTable table = new JTable(tableModel);
-        table.setRowHeight(34);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-        table.getTableHeader().setBackground(new Color(231, 240, 252));
-        table.getTableHeader().setForeground(TEXT);
-        table.setGridColor(new Color(229, 236, 247));
-        table.setShowVerticalLines(false);
-        table.setSelectionBackground(new Color(210, 229, 255));
-        table.setSelectionForeground(TEXT);
+        tblDichVu = new JTable(tableModel);
+        styleTable(tblDichVu);
 
-        DefaultTableCellRenderer centerAlign = new DefaultTableCellRenderer();
-        centerAlign.setHorizontalAlignment(SwingConstants.CENTER);
-        table.getColumnModel().getColumn(0).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(2).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(3).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(4).setCellRenderer(centerAlign);
-        table.getColumnModel().getColumn(5).setCellRenderer(centerAlign);
+        tblDichVu.getColumnModel().getColumn(0).setPreferredWidth(90);
+        tblDichVu.getColumnModel().getColumn(1).setPreferredWidth(220);
+        tblDichVu.getColumnModel().getColumn(2).setPreferredWidth(110);
+        tblDichVu.getColumnModel().getColumn(3).setPreferredWidth(110);
+        tblDichVu.getColumnModel().getColumn(4).setPreferredWidth(130);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(218, 229, 244), 1));
-        scrollPane.getViewport().setBackground(Color.WHITE);
+        JScrollPane scrollPane = new JScrollPane(tblDichVu);
+        scrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
 
-        tableCard.add(title, BorderLayout.NORTH);
-        tableCard.add(scrollPane, BorderLayout.CENTER);
+        panel.add(lblTitle, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
 
-        seedData(tableModel);
-        return tableCard;
+        return panel;
     }
 
-    private static JPanel createActionPanel() {
-        JPanel actions = new RoundedPanel(20, CARD_BG);
-        actions.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        actions.setBorder(new EmptyBorder(4, 10, 4, 10));
+    private JPanel createDetailPanel() {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 12));
+        wrapper.setBackground(APP_BG);
+        wrapper.setBorder(new EmptyBorder(0, 16, 0, 0));
 
-        actions.add(createGhostButton("Làm mới", 120, 38));
-        actions.add(createPrimaryButton("Thêm", 110, 38));
-        actions.add(createPrimaryButton("Cập nhật", 120, 38));
-        actions.add(createDangerButton("Xóa", 110, 38));
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBackground(PANEL_BG);
+        formPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(16, 16, 16, 16)));
 
-        return actions;
-    }
+        JLabel lblTitle = new JLabel("Thông tin dịch vụ");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(TEXT_DARK);
 
-    private static void addFormRow(JPanel container, GridBagConstraints gbc, String labelText,
-            java.awt.Component input) {
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        label.setForeground(TEXT);
-        label.setPreferredSize(new Dimension(120, 36));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-        if (input instanceof JTextField) {
-            JTextField textField = (JTextField) input;
-            textField.setPreferredSize(new Dimension(260, 36));
-            textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-            textField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(new Color(200, 214, 235), 1),
-                    new EmptyBorder(6, 10, 6, 10)));
-            textField.setEditable(true);
-            textField.setEnabled(true);
-            textField.setFocusable(true);
-        }
+        txtMaDV = new JTextField();
+        txtTenDV = new JTextField();
+        txtGia = new JTextField();
 
-        if (input instanceof JComboBox) {
-            JComboBox<?> combo = (JComboBox<?>) input;
-            combo.setPreferredSize(new Dimension(260, 36));
-            combo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        }
+        styleTextField(txtMaDV);
+        styleTextField(txtTenDV);
+        styleTextField(txtGia);
 
         gbc.gridx = 0;
-        container.add(label, gbc);
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        formPanel.add(lblTitle, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.gridy++;
+
+        addFormRow(formPanel, gbc, "Mã DV", txtMaDV);
+        addFormRow(formPanel, gbc, "Tên dịch vụ", txtTenDV);
+        addFormRow(formPanel, gbc, "Giá dịch vụ", txtGia);
+
+        JScrollPane formScrollPane = new JScrollPane(formPanel);
+        formScrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
+        formScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        formScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        wrapper.add(formScrollPane, BorderLayout.CENTER);
+        wrapper.add(createActionPanel(), BorderLayout.SOUTH);
+
+        return wrapper;
+    }
+
+    private JPanel createActionPanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 2, 16, 16));
+        panel.setBackground(APP_BG);
+        panel.setBorder(new EmptyBorder(8, 0, 0, 0));
+
+        btnThem = createButton("Thêm");
+        btnCapNhat = createButton("Cập nhật");
+        btnXoa = createDangerButton("Xóa");
+        btnLamMoiForm = createButton("Làm mới");
+
+        Dimension btnSize = new Dimension(160, 48);
+        btnThem.setPreferredSize(btnSize);
+        btnCapNhat.setPreferredSize(btnSize);
+        btnXoa.setPreferredSize(btnSize);
+        btnLamMoiForm.setPreferredSize(btnSize);
+
+        panel.add(btnThem);
+        panel.add(btnCapNhat);
+        panel.add(btnXoa);
+        panel.add(btnLamMoiForm);
+
+        return panel;
+    }
+
+    private void addFormRow(JPanel panel, GridBagConstraints gbc, String label, Component component) {
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(createLabel(label), gbc);
+
         gbc.gridx = 1;
-        container.add(input, gbc);
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(component, gbc);
+
         gbc.gridy++;
     }
 
-    private static JTextField createInputField(String initialText) {
-        JTextField textField = new JTextField(initialText);
-        textField.setEditable(true);
-        textField.setEnabled(true);
-        textField.setFocusable(true);
-        return textField;
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        label.setForeground(TEXT_DARK);
+        label.setPreferredSize(new Dimension(130, 38));
+        return label;
     }
 
-    private static JButton createPrimaryButton(String text, int width, int height) {
+    private void styleTextField(JTextField textField) {
+        textField.setPreferredSize(new Dimension(220, 38));
+        textField.setMinimumSize(new Dimension(100, 38));
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(6, 10, 6, 10)));
+    }
+
+    private void styleTable(JTable table) {
+        table.setRowHeight(28);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(233, 239, 248));
+        table.getTableHeader().setForeground(TEXT_DARK);
+        table.setGridColor(CARD_BORDER);
+        table.setSelectionBackground(new Color(221, 232, 248));
+        table.setSelectionForeground(TEXT_DARK);
+    }
+
+    private JButton createButton(String text) {
         JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(width, height));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
-        button.setBackground(BUTTON_PRIMARY_BG);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 17));
+        button.setForeground(TEXT_DARK);
+        button.setBackground(BUTTON_BG);
         button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+        button.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
+        button.setPreferredSize(new Dimension(160, 48));
         return button;
     }
 
-    private static JButton createGhostButton(String text, int width, int height) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(width, height));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
-        button.setBackground(BUTTON_GHOST_BG);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(188, 207, 233), 1));
+    private JButton createDangerButton(String text) {
+        JButton button = createButton(text);
+        button.setBackground(BUTTON_DANGER);
         return button;
     }
 
-    private static JButton createDangerButton(String text, int width, int height) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(width, height));
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setForeground(BUTTON_TEXT);
-        button.setBackground(BUTTON_DANGER_BG);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(BorderFactory.createLineBorder(new Color(235, 184, 184), 1));
-        return button;
+    public void clearForm() {
+        txtMaDV.setText("");
+        txtTenDV.setText("");
+        txtGia.setText("");
+        tblDichVu.clearSelection();
+    }
+    public void clearSearchForm() {
+        txtTimMaDV.setText("");
+        txtTimTenDV.setText("");
+        txtTimGia.setText("");
+       
     }
 
-    private static void seedData(DefaultTableModel tableModel) {
-        tableModel.addRow(new Object[] { "DV001", "Bữa sáng buffet", "Ẩm thực", "Suất", "180,000", "Đang áp dụng" });
-        tableModel.addRow(new Object[] { "DV002", "Giặt ủi nhanh", "Giặt ủi", "Lần", "85,000", "Đang áp dụng" });
-        tableModel.addRow(new Object[] { "DV003", "Đưa đón sân bay", "Đưa đón", "Lần", "350,000", "Đang áp dụng" });
-        tableModel.addRow(new Object[] { "DV004", "Karaoke phòng VIP", "Giải trí", "Giờ", "250,000", "Tạm ngưng" });
-        tableModel.addRow(new Object[] { "DV005", "Minibar", "Ẩm thực", "Phần", "120,000", "Đang áp dụng" });
+    public JTextField getTxtTimMaDV() {
+        return txtTimMaDV;
     }
 
-    private static class GradientPanel extends JPanel {
-
-        private static final long serialVersionUID = 1L;
-        private final Color start;
-        private final Color end;
-
-        GradientPanel(Color start, Color end) {
-            this.start = start;
-            this.end = end;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g2d.setPaint(new GradientPaint(0, 0, start, getWidth(), getHeight(), end));
-            g2d.fillRect(0, 0, getWidth(), getHeight());
-            g2d.dispose();
-        }
+    public JTextField getTxtTimTenDV() {
+        return txtTimTenDV;
     }
 
-    private static class RoundedPanel extends JPanel {
+    public JButton getBtnLamMoiTim() {
+        return btnLamMoiTim;
+    }
 
-        private static final long serialVersionUID = 1L;
-        private final int radius;
-        private final Color color;
+    public JTable getTblDichVu() {
+        return tblDichVu;
+    }
 
-        RoundedPanel(int radius, Color color) {
-            this.radius = radius;
-            this.color = color;
-            setOpaque(false);
-        }
+    public DefaultTableModel getTableModel() {
+        return tableModel;
+    }
 
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setColor(color);
-            g2d.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
-            g2d.setColor(new Color(214, 226, 243));
-            g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
-            g2d.dispose();
-            super.paintComponent(g);
-        }
+    public JTextField getTxtMaDV() {
+        return txtMaDV;
+    }
+
+    public JTextField getTxtTenDV() {
+        return txtTenDV;
+    }
+
+    public JTextField getTxtGia() {
+        return txtGia;
+    }
+
+    public JButton getBtnThem() {
+        return btnThem;
+    }
+
+    public JButton getBtnCapNhat() {
+        return btnCapNhat;
+    }
+
+    public JButton getBtnXoa() {
+        return btnXoa;
+    }
+
+    public JButton getBtnLamMoiForm() {
+        return btnLamMoiForm;
+    }
+    public JTextField getTxtTimGia() {
+        return txtTimGia;
+    }
+
+
+
+    public static JPanel createPanel() {
+        QLDichVu panel = new QLDichVu();
+        new QLDichVuController(panel);
+        return panel;
     }
 }

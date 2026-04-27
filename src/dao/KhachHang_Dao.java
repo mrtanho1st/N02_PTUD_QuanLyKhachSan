@@ -63,8 +63,8 @@ public class KhachHang_Dao {
         ) {
             ps.setString(1, kh.getMaKH());
             ps.setString(2, kh.getHoTen());
-            ps.setString(3, kh.getSdt());
-            ps.setString(4, kh.getCccd());
+            ps.setString(4, kh.getSdt());
+            ps.setString(3, kh.getCccd());
             ps.setString(5, kh.getLoaiKH());
             ps.setInt(6, kh.getDiem());
 
@@ -354,5 +354,38 @@ public class KhachHang_Dao {
                 rs.getString("loaiKH"),
                 rs.getInt("diemSo")
         );
+    }
+    
+    public KhachHang findBySdt(String sdt) {
+        String sql = """
+                SELECT maKH, hoTen, cccd, sdt, loaiKH, diemSo
+                FROM KhachHang
+                WHERE sdt = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, sdt);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    KhachHang kh = new KhachHang();
+                    kh.setMaKH(rs.getString("maKH"));
+                    kh.setHoTen(rs.getString("hoTen"));
+                    kh.setCccd(rs.getString("cccd"));
+                    kh.setSdt(rs.getString("sdt"));
+                    kh.setLoaiKH(rs.getString("loaiKH"));
+                    kh.setDiem(rs.getInt("diemSo"));
+                    return kh;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

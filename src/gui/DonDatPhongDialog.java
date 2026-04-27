@@ -21,6 +21,7 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -39,7 +40,13 @@ import entity.DichVu;
 import entity.NhanVien;
 import entity.Phong;
 
-public class DatPhongDialog extends JDialog {
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+import dao.KhachHang_Dao;
+import entity.KhachHang;
+
+public class DonDatPhongDialog extends JDialog {
     private static final long serialVersionUID = 1L;
 
     private static final Color APP_BG = new Color(242, 246, 252);
@@ -48,13 +55,16 @@ public class DatPhongDialog extends JDialog {
     private static final Color TITLE = new Color(36, 64, 102);
     private static final Color PRIMARY = new Color(91, 168, 217);
 
-    private final Phong phong;
+    private final List<Phong> dsPhongDaChon;
     private final NhanVien nhanVien;
     private final List<DichVu> dsDichVu;
 
     private JTextField txtTenKH;
     private JTextField txtCCCD;
     private JTextField txtSDT;
+    private JComboBox<String> cboLoaiKH;
+    private JTextField txtDiemSo;
+    
     private JTextField txtTienCoc;
     private JCheckBox chkCheckInNgay;
 
@@ -63,14 +73,18 @@ public class DatPhongDialog extends JDialog {
 
     private JTable tblDichVu;
     private DefaultTableModel modelDichVu;
+    
+    private KhachHang_Dao khachHangDao;
+    private boolean dangTuDongDienKhachHang = false;
 
     private boolean succeeded = false;
 
-    public DatPhongDialog(Frame owner, Phong phong, NhanVien nhanVien, List<DichVu> dsDichVu) {
-        super(owner, "Đặt phòng - " + phong.getMaPhong(), true);
-        this.phong = phong;
+    public DonDatPhongDialog(Frame owner, List<Phong> dsPhongDaChon, NhanVien nhanVien, List<DichVu> dsDichVu) {
+        super(owner, "Tạo đơn đặt phòng", true);
+        this.dsPhongDaChon = dsPhongDaChon;
         this.nhanVien = nhanVien;
         this.dsDichVu = dsDichVu;
+        this.khachHangDao = new KhachHang_Dao();
         initUI();
     }
 
@@ -138,16 +152,49 @@ public class DatPhongDialog extends JDialog {
     }
 
     private JPanel createThongTinPhongPanel() {
-        JPanel panel = createSectionPanel("Thông tin phòng");
+        JPanel panel = createSectionPanel("Danh sách phòng đã chọn");
+
+        String[] cols = {
+                "Mã phòng", "Loại phòng", "Sức chứa", "Giá phòng", "Trạng thái"
+        };
+
+        DefaultTableModel modelPhong = new DefaultTableModel(cols, 0) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
 
         NumberFormat nf = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-        addRow(panel, 0, "Mã phòng:", createValueLabel(phong.getMaPhong()),
-                "Loại phòng:", createValueLabel(phong.getLoaiPhong()));
-        addRow(panel, 1, "Sức chứa tối đa:", createValueLabel(String.valueOf(phong.getSoNguoiToiDa()) + " người"),
-                "Giá phòng:", createValueLabel(nf.format(phong.getGiaPhong()) + " VNĐ"));
-        addRow(panel, 2, "Trạng thái:", createValueLabel(phong.getTrangThai()),
-                "", new JLabel());
+        for (Phong p : dsPhongDaChon) {
+            modelPhong.addRow(new Object[] {
+                    p.getMaPhong(),
+                    p.getLoaiPhong(),
+                    p.getSoNguoiToiDa() + " người",
+                    nf.format(p.getGiaPhong()) + " VNĐ",
+                    p.getTrangThai()
+            });
+        }
+
+        JTable tblPhong = new JTable(modelPhong);
+        tblPhong.setRowHeight(28);
+        tblPhong.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tblPhong.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+
+        JScrollPane sp = new JScrollPane(tblPhong);
+        sp.setPreferredSize(new Dimension(760, 130));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 4;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(6, 6, 6, 6);
+        panel.add(sp, gbc);
 
         return panel;
     }
@@ -159,12 +206,78 @@ public class DatPhongDialog extends JDialog {
         txtCCCD = createTextField();
         txtSDT = createTextField();
 
+        cboLoaiKH = new JComboBox<>(new String[] {
+                "Thường", "Thành viên", "VIP"
+        });
+        
+        cboLoaiKH.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        cboLoaiKH.setPreferredSize(new Dimension(220, 34));
+        cboLoaiKH.setBackground(Color.WHITE);
+        cboLoaiKH.setBorder(BorderFactory.createLineBorder(BORDER));
+
+        txtDiemSo = createTextField();
+        txtDiemSo.setText("0");
+        
+        addGoiYKhachHangTheoSDT();
+
         addRow(panel, 0, "Tên khách hàng:", txtTenKH,
                 "CCCD:", txtCCCD);
         addRow(panel, 1, "Số điện thoại:", txtSDT,
+                "Loại KH:", cboLoaiKH);
+        addRow(panel, 2, "Điểm số:", txtDiemSo,
                 "", new JLabel());
 
         return panel;
+    }
+    private void addGoiYKhachHangTheoSDT() {
+        txtSDT.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                goiYKhachHangTheoSDT();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                goiYKhachHangTheoSDT();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                goiYKhachHangTheoSDT();
+            }
+        });
+    }
+
+    private void goiYKhachHangTheoSDT() {
+        if (dangTuDongDienKhachHang) {
+            return;
+        }
+
+        String sdt = txtSDT.getText().trim();
+
+        // Tránh query liên tục khi mới nhập vài số
+        if (sdt.length() < 8) {
+            return;
+        }
+
+        KhachHang kh = khachHangDao.findBySdt(sdt);
+
+        if (kh == null) {
+            return;
+        }
+
+        dangTuDongDienKhachHang = true;
+
+        txtTenKH.setText(kh.getHoTen());
+        txtCCCD.setText(kh.getCccd());
+
+        if (kh.getLoaiKH() != null && !kh.getLoaiKH().isBlank()) {
+            cboLoaiKH.setSelectedItem(kh.getLoaiKH());
+        }
+
+        txtDiemSo.setText(String.valueOf(kh.getDiem()));
+
+        dangTuDongDienKhachHang = false;
     }
 
     private JPanel createThoiGianPanel() {
@@ -374,6 +487,25 @@ public class DatPhongDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại.");
             return;
         }
+        
+        String diemSoText = txtDiemSo.getText().trim();
+
+        if (diemSoText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập điểm số.");
+            return;
+        }
+
+        try {
+            int diemSo = Integer.parseInt(diemSoText);
+
+            if (diemSo < 0) {
+                JOptionPane.showMessageDialog(this, "Điểm số không được âm.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Điểm số phải là số nguyên.");
+            return;
+        }
 
         Date ngayNhan = getNgayNhan();
         Date ngayTra = getNgayTra();
@@ -451,6 +583,9 @@ public class DatPhongDialog extends JDialog {
         }
         return ds;
     }
+    public List<Phong> getDsPhongDaChon() {
+        return dsPhongDaChon;
+    }
 
     public static class DichVuDatTruoc {
         private final String maDV;
@@ -466,5 +601,20 @@ public class DatPhongDialog extends JDialog {
         public String getMaDV() { return maDV; }
         public String getTenDV() { return tenDV; }
         public int getSoLuong() { return soLuong; }
+        
+    }
+    public String getLoaiKH() {
+        Object value = cboLoaiKH.getSelectedItem();
+        return value == null ? "Thường" : value.toString();
+    }
+
+    public int getDiemSo() {
+        try {
+            return Integer.parseInt(txtDiemSo.getText().trim());
+        } catch (NumberFormatException e) {
+        	
+        	
+            return 0;
+        }
     }
 }

@@ -12,91 +12,211 @@ import entity.KhuyenMai;
 
 public class KhuyenMai_Dao {
 
-    public List<KhuyenMai> findAll() {
-        return search("", "", null, null, null, "Tất cả", "Tất cả");
-    }
+	public List<KhuyenMai> findAll() {
+        List<KhuyenMai> list = new ArrayList<>();
 
-    // Hàm search cũ cho các giao diện nhiều ô.
-    // Giữ lại để không làm hư các màn quản lý khác.
-    public List<KhuyenMai> search(
-            String maKM,
-            String tenKhuyenMai,
-            Double giaTri,
-            Date ngayBatDau,
-            Date ngayKetThuc,
-            String trangThai,
-            String mucGiam
-    ) {
-        List<KhuyenMai> ds = new ArrayList<>();
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT maKM, tenKhuyenMai, giaTri, ngayBatDau, ngayKetThuc ");
-        sql.append("FROM KhuyenMai ");
-        sql.append("WHERE 1 = 1 ");
-
-        if (maKM != null && !maKM.isBlank()) {
-            sql.append("AND maKM LIKE ? ");
-        }
-
-        if (tenKhuyenMai != null && !tenKhuyenMai.isBlank()) {
-            sql.append("AND tenKhuyenMai LIKE ? ");
-        }
-
-        if (giaTri != null) {
-            sql.append("AND giaTri = ? ");
-        }
-
-        if (ngayBatDau != null) {
-            sql.append("AND ngayBatDau >= ? ");
-        }
-
-        if (ngayKetThuc != null) {
-            sql.append("AND ngayKetThuc <= ? ");
-        }
-
-        themDieuKienTrangThai(sql, trangThai);
-        themDieuKienMucGiam(sql, mucGiam);
-
-        sql.append("ORDER BY ngayBatDau DESC, maKM DESC");
+        String sql = """
+                SELECT maKM, tenKhuyenMai, giaTri, ngayBatDau, ngayKetThuc
+                FROM KhuyenMai
+                ORDER BY ngayBatDau DESC, maKM DESC
+                """;
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
         ) {
-            int index = 1;
-
-            if (maKM != null && !maKM.isBlank()) {
-                ps.setString(index++, "%" + maKM.trim() + "%");
-            }
-
-            if (tenKhuyenMai != null && !tenKhuyenMai.isBlank()) {
-                ps.setString(index++, "%" + tenKhuyenMai.trim() + "%");
-            }
-
-            if (giaTri != null) {
-                ps.setDouble(index++, giaTri);
-            }
-
-            if (ngayBatDau != null) {
-                ps.setDate(index++, ngayBatDau);
-            }
-
-            if (ngayKetThuc != null) {
-                ps.setDate(index++, ngayKetThuc);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ds.add(mapKhuyenMai(rs));
-                }
+            while (rs.next()) {
+                list.add(mapKhuyenMai(rs));
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return ds;
+        return list;
     }
+
+	public List<KhuyenMai> search(
+	        java.sql.Date tuNgay,
+	        java.sql.Date denNgay,
+	        String maKM,
+	        String tenKM,
+	        Double giaTri,
+	        String trangThai
+	) {
+	    List<KhuyenMai> list = new ArrayList<>();
+
+	    StringBuilder sql = new StringBuilder();
+
+	    sql.append("SELECT maKM, tenKhuyenMai, giaTri, ngayBatDau, ngayKetThuc ");
+	    sql.append("FROM KhuyenMai ");
+	    sql.append("WHERE 1 = 1 ");
+
+	    if (tuNgay != null) {
+	        sql.append("AND ngayBatDau >= ? ");
+	    }
+
+	    if (denNgay != null) {
+	        sql.append("AND ngayBatDau <= ? ");
+	    }
+
+	    if (maKM != null && !maKM.isBlank()) {
+	        sql.append("AND maKM LIKE ? ");
+	    }
+
+	    if (tenKM != null && !tenKM.isBlank()) {
+	        sql.append("AND tenKhuyenMai LIKE ? ");
+	    }
+
+	    if (giaTri != null) {
+	        sql.append("AND giaTri = ? ");
+	    }
+
+	    if ("Còn sử dụng".equalsIgnoreCase(trangThai)) {
+	        sql.append("AND ngayKetThuc >= CAST(GETDATE() AS DATE) ");
+	    } else if ("Hết hạn".equalsIgnoreCase(trangThai)) {
+	        sql.append("AND ngayKetThuc < CAST(GETDATE() AS DATE) ");
+	    }
+
+	    sql.append("ORDER BY ngayBatDau DESC, maKM DESC ");
+
+	    try (
+	            Connection con = ConnectDB.getConnection();
+	            PreparedStatement ps = con.prepareStatement(sql.toString())
+	    ) {
+	        int index = 1;
+
+	        if (tuNgay != null) {
+	            ps.setDate(index++, tuNgay);
+	        }
+
+	        if (denNgay != null) {
+	            ps.setDate(index++, denNgay);
+	        }
+
+	        if (maKM != null && !maKM.isBlank()) {
+	            ps.setString(index++, "%" + maKM.trim() + "%");
+	        }
+
+	        if (tenKM != null && !tenKM.isBlank()) {
+	            ps.setString(index++, "%" + tenKM.trim() + "%");
+	        }
+
+	        if (giaTri != null) {
+	            ps.setDouble(index++, giaTri);
+	        }
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                list.add(mapKhuyenMai(rs));
+	            }
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return list;
+	}
+
+    public boolean insert(KhuyenMai km) {
+        String sql = """
+                INSERT INTO KhuyenMai(maKM, tenKhuyenMai, giaTri, ngayBatDau, ngayKetThuc)
+                VALUES (?, ?, ?, ?, ?)
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, km.getMaKM());
+            ps.setString(2, km.getTenKM());
+            ps.setDouble(3, km.getGiaTri());
+            ps.setDate(4, Date.valueOf(km.getNgayBatDau()));
+            ps.setDate(5, Date.valueOf(km.getNgayKetThuc()));
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean update(KhuyenMai km) {
+        String sql = """
+                UPDATE KhuyenMai
+                SET tenKhuyenMai = ?, giaTri = ?, ngayBatDau = ?, ngayKetThuc = ?
+                WHERE maKM = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, km.getTenKM());
+            ps.setDouble(2, km.getGiaTri());
+            ps.setDate(3, Date.valueOf(km.getNgayBatDau()));
+            ps.setDate(4, Date.valueOf(km.getNgayKetThuc()));
+            ps.setString(5, km.getMaKM());
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean delete(String maKM) {
+        String sql = """
+                DELETE FROM KhuyenMai
+                WHERE maKM = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKM);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean existsByMaKM(String maKM) {
+        String sql = """
+                SELECT maKM
+                FROM KhuyenMai
+                WHERE maKM = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKM);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+
 
     // Hàm mới cho Báo biểu Khuyến mãi.
     // Báo biểu có:

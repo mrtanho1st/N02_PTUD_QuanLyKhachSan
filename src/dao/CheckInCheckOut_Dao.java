@@ -11,69 +11,63 @@ import entity.CheckInCheckOutItem;
 
 public class CheckInCheckOut_Dao {
 
-	public List<CheckInCheckOutItem> search(String maPhong, String maDDP, String cccdSdt, String trangThaiLoc) {
+	public List<CheckInCheckOutItem> search(String maDDP, String cccdSdt, String trangThaiLoc) {
 	    List<CheckInCheckOutItem> list = new ArrayList<>();
 
 	    StringBuilder sql = new StringBuilder();
 	    sql.append("SELECT ");
-	    sql.append("    p.maPhong, p.loaiPhong, p.giaPhong, p.trangThaiPhong, ");
 	    sql.append("    ddp.maDDP, ddp.tinhTrang, ddp.maKH, ");
 	    sql.append("    kh.hoTen, kh.cccd, kh.sdt, ");
 	    sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 120) AS ngayNhan, ");
 	    sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 120) AS ngayTra, ");
 	    sql.append("    ddp.tienCoc ");
 	    sql.append("FROM DonDatPhong ddp ");
-	    sql.append("INNER JOIN CTDonDatPhong ct ON ddp.maDDP = ct.maDDP ");
-	    sql.append("INNER JOIN Phong p ON ct.maPhong = p.maPhong ");
 	    sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
 	    sql.append("WHERE 1 = 1 ");
 
-	    if (maPhong != null && !maPhong.isBlank()) {
-	        sql.append("AND p.maPhong LIKE ? ");
-	    }
 	    if (maDDP != null && !maDDP.isBlank()) {
 	        sql.append("AND ddp.maDDP LIKE ? ");
 	    }
+
 	    if (cccdSdt != null && !cccdSdt.isBlank()) {
 	        sql.append("AND (kh.cccd LIKE ? OR kh.sdt LIKE ?) ");
 	    }
 
 	    if ("Chưa hoàn thành".equals(trangThaiLoc) || "Tất cả".equals(trangThaiLoc)) {
 	        sql.append("AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận') ");
-	    } else if ("Chờ check-in".equals(trangThaiLoc)) {
+	    } else if ("Đã đặt".equals(trangThaiLoc)) {
 	        sql.append("AND ddp.tinhTrang = N'Đã đặt' ");
-	    } else if ("Đang lưu trú".equals(trangThaiLoc)) {
+	    } else if ("Đã nhận".equals(trangThaiLoc)) {
 	        sql.append("AND ddp.tinhTrang = N'Đã nhận' ");
-	    } else if ("Đã hoàn thành".equals(trangThaiLoc)) {
+	    } else if ("Hoàn thành".equals(trangThaiLoc)) {
 	        sql.append("AND ddp.tinhTrang = N'Hoàn thành' ");
 	    }
 
-	    sql.append("ORDER BY ddp.ngayNhan DESC, ddp.maDDP DESC");
+	    sql.append("ORDER BY ddp.ngayNhan DESC, ddp.maDDP DESC ");
 
 	    try (
-	        Connection con = ConnectDB.getConnection();
-	        PreparedStatement ps = con.prepareStatement(sql.toString())
+	            Connection con = ConnectDB.getConnection();
+	            PreparedStatement ps = con.prepareStatement(sql.toString())
 	    ) {
 	        int index = 1;
 
-	        if (maPhong != null && !maPhong.isBlank()) {
-	            ps.setString(index++, "%" + maPhong + "%");
-	        }
 	        if (maDDP != null && !maDDP.isBlank()) {
-	            ps.setString(index++, "%" + maDDP + "%");
+	            ps.setString(index++, "%" + maDDP.trim() + "%");
 	        }
+
 	        if (cccdSdt != null && !cccdSdt.isBlank()) {
-	            ps.setString(index++, "%" + cccdSdt + "%");
-	            ps.setString(index++, "%" + cccdSdt + "%");
+	            String kw = "%" + cccdSdt.trim() + "%";
+	            ps.setString(index++, kw);
+	            ps.setString(index++, kw);
 	        }
 
 	        try (ResultSet rs = ps.executeQuery()) {
 	            while (rs.next()) {
 	                CheckInCheckOutItem item = new CheckInCheckOutItem(
-	                        rs.getString("maPhong"),
-	                        rs.getString("loaiPhong"),
-	                        rs.getDouble("giaPhong"),
-	                        rs.getString("trangThaiPhong"),
+	                        "",                 // maPhong không dùng ở danh sách đơn nữa
+	                        "",                 // loaiPhong
+	                        0,                  // giaPhong
+	                        "",                 // trangThaiPhong
 	                        rs.getString("maDDP"),
 	                        rs.getString("tinhTrang"),
 	                        rs.getString("maKH"),
@@ -84,9 +78,50 @@ public class CheckInCheckOut_Dao {
 	                        rs.getString("ngayTra"),
 	                        rs.getObject("tienCoc") == null ? null : rs.getDouble("tienCoc")
 	                );
+
 	                list.add(item);
 	            }
 	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return list;
+	}
+	
+	public List<Object[]> findPhongByMaDDP(String maDDP) {
+	    List<Object[]> list = new ArrayList<>();
+
+	    String sql = """
+	            SELECT 
+	                p.maPhong,
+	                p.loaiPhong,
+	                p.giaPhong,
+	                p.trangThaiPhong
+	            FROM CTDonDatPhong ct
+	            INNER JOIN Phong p ON ct.maPhong = p.maPhong
+	            WHERE ct.maDDP = ?
+	            ORDER BY p.maPhong
+	            """;
+
+	    try (
+	            Connection con = ConnectDB.getConnection();
+	            PreparedStatement ps = con.prepareStatement(sql)
+	    ) {
+	        ps.setString(1, maDDP);
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                list.add(new Object[] {
+	                        rs.getString("maPhong"),
+	                        rs.getString("loaiPhong"),
+	                        rs.getDouble("giaPhong"),
+	                        rs.getString("trangThaiPhong")
+	                });
+	            }
+	        }
+
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
@@ -94,117 +129,165 @@ public class CheckInCheckOut_Dao {
 	    return list;
 	}
 
-    public List<Object[]> findDichVuByMaPhong(String maPhong) {
-        List<Object[]> list = new ArrayList<>();
-        String sql = "SELECT pdv.maDV, dv.tenDichVu, pdv.soLuong, (pdv.soLuong * pdv.donGia) AS thanhTien " +
-                     "FROM PhieuDichVu pdv " +
-                     "INNER JOIN DichVu dv ON pdv.maDV = dv.maDV " +
-                     "WHERE pdv.maPhong = ?";
+	public List<Object[]> findDichVuByMaDDP(String maDDP) {
+	    List<Object[]> list = new ArrayList<>();
 
-        try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
-        ) {
-            ps.setString(1, maPhong);
+	    String sql = """
+	            SELECT 
+	                pdv.maDV,
+	                dv.tenDichVu,
+	                SUM(pdv.soLuong) AS soLuong,
+	                SUM(pdv.soLuong * pdv.donGia) AS thanhTien
+	            FROM CTDonDatPhong ct
+	            INNER JOIN PhieuDichVu pdv ON ct.maPhong = pdv.maPhong
+	            INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
+	            WHERE ct.maDDP = ?
+	            GROUP BY pdv.maDV, dv.tenDichVu
+	            ORDER BY pdv.maDV
+	            """;
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new Object[] {
-                        rs.getString("maDV"),
-                        rs.getString("tenDichVu"),
-                        rs.getInt("soLuong"),
-                        rs.getDouble("thanhTien")
-                    });
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	    try (
+	            Connection con = ConnectDB.getConnection();
+	            PreparedStatement ps = con.prepareStatement(sql)
+	    ) {
+	        ps.setString(1, maDDP);
 
-        return list;
-    }
+	        try (ResultSet rs = ps.executeQuery()) {
+	            while (rs.next()) {
+	                list.add(new Object[] {
+	                        rs.getString("maDV"),
+	                        rs.getString("tenDichVu"),
+	                        rs.getInt("soLuong"),
+	                        rs.getDouble("thanhTien")
+	                });
+	            }
+	        }
 
-    public boolean checkIn(String maDDP, String maPhong) {
-        Connection con = null;
-        PreparedStatement ps1 = null;
-        PreparedStatement ps2 = null;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 
-        try {
-            con = ConnectDB.getConnection();
-            con.setAutoCommit(false);
+	    return list;
+	}
+	public boolean checkIn(String maDDP) {
+	    Connection con = null;
 
-            ps1 = con.prepareStatement("UPDATE DonDatPhong SET tinhTrang = N'Đã nhận' WHERE maDDP = ?");
-            ps1.setString(1, maDDP);
-            ps1.executeUpdate();
+	    try {
+	        con = ConnectDB.getConnection();
+	        con.setAutoCommit(false);
 
-            ps2 = con.prepareStatement("UPDATE Phong SET trangThaiPhong = N'Đang sử dụng' WHERE maPhong = ?");
-            ps2.setString(1, maPhong);
-            ps2.executeUpdate();
+	        String sqlUpdateDon = """
+	                UPDATE DonDatPhong
+	                SET tinhTrang = N'Đã nhận'
+	                WHERE maDDP = ?
+	                """;
 
-            con.commit();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            try {
-                if (con != null) con.rollback();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } finally {
-            try {
-                if (ps1 != null) ps1.close();
-                if (ps2 != null) ps2.close();
-                if (con != null) {
-                    con.setAutoCommit(true);
-                    con.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+	        try (PreparedStatement ps = con.prepareStatement(sqlUpdateDon)) {
+	            ps.setString(1, maDDP);
+	            ps.executeUpdate();
+	        }
 
-        return false;
-    }
+	        String sqlUpdatePhong = """
+	                UPDATE Phong
+	                SET trangThaiPhong = N'Đang sử dụng'
+	                WHERE maPhong IN (
+	                    SELECT maPhong
+	                    FROM CTDonDatPhong
+	                    WHERE maDDP = ?
+	                )
+	                """;
 
-    public boolean checkOut(String maDDP, String maPhong) {
-        Connection con = null;
-        PreparedStatement ps1 = null;
-        PreparedStatement ps2 = null;
+	        try (PreparedStatement ps = con.prepareStatement(sqlUpdatePhong)) {
+	            ps.setString(1, maDDP);
+	            ps.executeUpdate();
+	        }
 
-        try {
-            con = ConnectDB.getConnection();
-            con.setAutoCommit(false);
+	        con.commit();
+	        return true;
 
-            ps1 = con.prepareStatement("UPDATE DonDatPhong SET tinhTrang = N'Hoàn thành' WHERE maDDP = ?");
-            ps1.setString(1, maDDP);
-            ps1.executeUpdate();
+	    } catch (Exception e) {
+	        e.printStackTrace();
 
-            ps2 = con.prepareStatement("UPDATE Phong SET trangThaiPhong = N'Trống' WHERE maPhong = ?");
-            ps2.setString(1, maPhong);
-            ps2.executeUpdate();
+	        try {
+	            if (con != null) {
+	                con.rollback();
+	            }
+	        } catch (Exception ex) {
+	            ex.printStackTrace();
+	        }
 
-            con.commit();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            try {
-                if (con != null) con.rollback();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } finally {
-            try {
-                if (ps1 != null) ps1.close();
-                if (ps2 != null) ps2.close();
-                if (con != null) {
-                    con.setAutoCommit(true);
-                    con.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+	    } finally {
+	        try {
+	            if (con != null) {
+	                con.setAutoCommit(true);
+	                con.close();
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
 
-        return false;
-    }
+	    return false;
+	}
+
+	public boolean checkOut(String maDDP) {
+	    Connection con = null;
+
+	    try {
+	        con = ConnectDB.getConnection();
+	        con.setAutoCommit(false);
+
+	        String sqlUpdateDon = """
+	                UPDATE DonDatPhong
+	                SET tinhTrang = N'Hoàn thành'
+	                WHERE maDDP = ?
+	                """;
+
+	        try (PreparedStatement ps = con.prepareStatement(sqlUpdateDon)) {
+	            ps.setString(1, maDDP);
+	            ps.executeUpdate();
+	        }
+
+	        String sqlUpdatePhong = """
+	                UPDATE Phong
+	                SET trangThaiPhong = N'Trống'
+	                WHERE maPhong IN (
+	                    SELECT maPhong
+	                    FROM CTDonDatPhong
+	                    WHERE maDDP = ?
+	                )
+	                """;
+
+	        try (PreparedStatement ps = con.prepareStatement(sqlUpdatePhong)) {
+	            ps.setString(1, maDDP);
+	            ps.executeUpdate();
+	        }
+
+	        con.commit();
+	        return true;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+
+	        try {
+	            if (con != null) {
+	                con.rollback();
+	            }
+	        } catch (Exception ex) {
+	            ex.printStackTrace();
+	        }
+
+	    } finally {
+	        try {
+	            if (con != null) {
+	                con.setAutoCommit(true);
+	                con.close();
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+
+	    return false;
+	}
 }

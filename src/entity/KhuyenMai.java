@@ -9,6 +9,7 @@ public class KhuyenMai {
 	private LocalDate ngayBatDau;
 	private LocalDate ngayKetThuc;
 	
+	
 	public KhuyenMai() {
 		super();
 	}

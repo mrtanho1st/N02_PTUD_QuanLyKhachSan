@@ -20,7 +20,7 @@ import entity.Phong;
 public class PhongCardPanel extends JPanel {
     private static final long serialVersionUID = 1L;
 
-    private static final int CARD_WIDTH = 300;
+    private static final int CARD_WIDTH = 280;
     private static final int CARD_HEIGHT = 180;
 
     private static final Color CARD_BORDER = new Color(210, 220, 235);
