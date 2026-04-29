@@ -102,6 +102,7 @@ public class GiaoDienChinh extends JFrame {
 
         return top;
     }
+
     private void updateAppTitle(String title) {
         lblAppTitle.setText(title.toUpperCase());
     }
@@ -160,12 +161,12 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnDanhMuc);
 
         btnXuLi = createNavButton("Xử lí", new String[] {
-                "Đặt phòng", "Hóa đơn", "Check-in/Check-out",  "Thanh toán"
+                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Thanh toán"
         });
         nav.add(btnXuLi);
 
         btnTimKiem = createNavButton("Tìm kiếm", new String[] {
-                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
+                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Đơn dặt phòng"
         });
         nav.add(btnTimKiem);
 
@@ -484,7 +485,7 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Hóa đơn")) {
                 panel = QLHoaDon.createPanel();
             } else if (subMenu.equals("Thanh toán")) {
-            	 panel = ThanhToan.createPanel();
+                panel = ThanhToan.createPanel();
             }
 
         } else if (mainMenu.equals("Tìm kiếm")) {
@@ -500,6 +501,8 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
+            } else if (subMenu.equals("Đơn dặt phòng")) {
+                panel = QLDonDatPhong.createPanel();
             }
 
         } else if (mainMenu.equals("Cập nhật")) {
@@ -513,8 +516,8 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
-            } else if(subMenu.equals("Đơn đặt phòng")) {
-            	panel = QLDonDatPhong.createPanel();
+            } else if (subMenu.equals("Đơn đặt phòng")) {
+                panel = QLDonDatPhong.createPanel();
             }
 
         } else if (mainMenu.equals("Thống kê")) {
@@ -527,15 +530,15 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("DS Nhân viên")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.NHAN_VIEN);
             } else if (subMenu.equals("DS Phòng")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.PHONG);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.PHONG);
             } else if (subMenu.equals("DS Khuyến mãi")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.KHUYEN_MAI);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.KHUYEN_MAI);
             } else if (subMenu.equals("DS Dịch vụ")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.DICH_VU);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.DICH_VU);
             } else if (subMenu.equals("DS Đơn đặt phòng")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.DON_DAT_PHONG);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.DON_DAT_PHONG);
             } else if (subMenu.equals("DS Hóa đơn")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.HOA_DON);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.HOA_DON);
             }
         }
 
@@ -549,8 +552,6 @@ public class GiaoDienChinh extends JFrame {
             JOptionPane.showMessageDialog(this, "Chức năng này chưa có class giao diện.");
         }
     }
-
-   
 
     public void setActiveNavButton(JButton activeButton) {
         for (JButton button : navButtons) {
@@ -637,7 +638,7 @@ public class GiaoDienChinh extends JFrame {
             // Keep default look and feel
         }
     }
-    
+
     public void moThanhToanTheoDon(String maDDP) {
         String panelKey = "Xử lí/Thanh toán";
 
