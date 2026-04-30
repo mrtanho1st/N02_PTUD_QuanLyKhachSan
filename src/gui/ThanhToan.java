@@ -41,7 +41,6 @@ public class ThanhToan extends JPanel {
     // Bộ lọc
     private JTextField txtMaDDP;
     private JTextField txtCccdSdt;
-    private JButton btnTimKiem;
     private JButton btnLamMoi;
 
     // Danh sách đơn chờ thanh toán
@@ -76,7 +75,7 @@ public class ThanhToan extends JPanel {
     private JTextField txtKhachDua;
     private JLabel lblTienThua;
 
-    private JButton btnTinhTien;
+
     private JButton btnThanhToan;
     private JButton btnXuatHoaDon;
     private JButton btnHuy;
@@ -115,7 +114,6 @@ public class ThanhToan extends JPanel {
         styleTextField(txtMaDDP);
         styleTextField(txtCccdSdt);
 
-        btnTimKiem = createButton("Tìm kiếm");
         btnLamMoi = createButton("Làm mới");
 
         gbc.gridx = 0;
@@ -135,32 +133,18 @@ public class ThanhToan extends JPanel {
         gbc.weightx = 1.0;
         panel.add(txtCccdSdt, gbc);
 
-        gbc.gridx = 4;
-        gbc.weightx = 0;
-        panel.add(btnTimKiem, gbc);
 
-        gbc.gridx = 5;
+
+        gbc.gridx = 4;
         panel.add(btnLamMoi, gbc);
 
         return panel;
     }
 
     private JPanel createBodyPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+    	JPanel panel = new JPanel(new BorderLayout());
         panel.setOpaque(false);
-
-        JSplitPane splitPane = new JSplitPane(
-                JSplitPane.HORIZONTAL_SPLIT,
-                createLeftPanel(),
-                createRightPanel());
-
-        splitPane.setDividerLocation(520);
-        splitPane.setResizeWeight(0.42);
-        splitPane.setBorder(null);
-        splitPane.setOpaque(false);
-        splitPane.setContinuousLayout(true);
-
-        panel.add(splitPane, BorderLayout.CENTER);
+        panel.add(createLeftPanel(), BorderLayout.CENTER);
         return panel;
     }
 
@@ -204,6 +188,17 @@ public class ThanhToan extends JPanel {
 
         panel.add(title, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
+        
+        btnThanhToan = createSuccessButton("Thanh toán");
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(new EmptyBorder(12, 0, 0, 0));
+        bottomPanel.add(btnThanhToan, BorderLayout.EAST);
+
+        panel.add(title, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
 
         return panel;
     }
@@ -360,16 +355,14 @@ public class ThanhToan extends JPanel {
     }
 
     private JPanel createActionPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 14, 14));
+        JPanel panel = new JPanel(new GridLayout(1, 3, 14, 14));
         panel.setBackground(APP_BG);
         panel.setBorder(new EmptyBorder(8, 0, 0, 0));
 
-        btnTinhTien = createButton("Tính tiền");
         btnThanhToan = createSuccessButton("Thanh toán");
         btnXuatHoaDon = createButton("Xuất hóa đơn");
         btnHuy = createDangerButton("Hủy");
 
-        panel.add(btnTinhTien);
         panel.add(btnThanhToan);
         panel.add(btnXuatHoaDon);
         panel.add(btnHuy);
@@ -516,25 +509,7 @@ public class ThanhToan extends JPanel {
     }
 
     public void clearDetail() {
-        lblMaDDP.setText("");
-        lblTenKH.setText("");
-        lblCCCD.setText("");
-        lblSDT.setText("");
-        lblNgayNhan.setText("");
-        lblNgayTra.setText("");
-        lblTienCoc.setText("");
-
-        lblTienPhong.setText("");
-        lblTienDichVu.setText("");
-        lblTongTien.setText("");
-        lblGiamGia.setText("");
-        lblCanThanhToan.setText("");
-        lblTienThua.setText("");
-
-        txtKhachDua.setText("");
-
-        modelPhong.setRowCount(0);
-        modelDichVu.setRowCount(0);
+        
     }
 
     public void clearSearch() {
@@ -566,9 +541,7 @@ public class ThanhToan extends JPanel {
         return txtCccdSdt;
     }
 
-    public JButton getBtnTimKiem() {
-        return btnTimKiem;
-    }
+
 
     public JButton getBtnLamMoi() {
         return btnLamMoi;
@@ -658,9 +631,7 @@ public class ThanhToan extends JPanel {
         return lblTienThua;
     }
 
-    public JButton getBtnTinhTien() {
-        return btnTinhTien;
-    }
+
 
     public JButton getBtnThanhToan() {
         return btnThanhToan;

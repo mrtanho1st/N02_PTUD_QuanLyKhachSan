@@ -122,7 +122,7 @@ public class QLDonDatPhong extends JPanel {
         txtTimKhachHang = new JTextField();
 
         cboLocTrangThai = new JComboBox<>(new String[] {
-                "Tất cả", "Đã đặt", "Đã nhận", "Đã trả phòng", "Đã hủy"
+                "Tất cả", "Đã đặt", "Đã nhận","Hoàn thành", "Đã hủy"
         });
 
         styleTextField(txtTimMaDon);

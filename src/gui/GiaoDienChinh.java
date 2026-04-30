@@ -164,12 +164,12 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnDanhMuc);
 
         btnXuLi = createNavButton("Xử lí", new String[] {
-                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Thanh toán"
+                "Đặt phòng", "Check-in/Check-out", "Thanh toán"
         });
         nav.add(btnXuLi);
 
         btnTimKiem = createNavButton("Tìm kiếm", new String[] {
-                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Đơn dặt phòng"
+                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Đơn đặt phòng"
         });
         nav.add(btnTimKiem);
 
@@ -224,6 +224,7 @@ public class GiaoDienChinh extends JFrame {
         btnThongTin = createLeftButton("Thông tin", 150, 44);
         btnTaiKhoan = createLeftButton("Tài khoản", 150, 44);
         btnTroGiup = createLeftButton("Trợ giúp", 150, 44);
+       
 
         centerButtons.add(btnTrangChu);
         centerButtons.add(Box.createVerticalStrut(14));
@@ -232,6 +233,8 @@ public class GiaoDienChinh extends JFrame {
         centerButtons.add(btnTaiKhoan);
         centerButtons.add(Box.createVerticalStrut(14));
         centerButtons.add(btnTroGiup);
+        
+        
 
         left.add(centerButtons, BorderLayout.CENTER);
 
@@ -486,9 +489,7 @@ public class GiaoDienChinh extends JFrame {
                 panel = DatPhong.createPanel();
             } else if (subMenu.equals("Check-in/Check-out")) {
                 panel = CheckInCheckOut.createPanel();
-            } else if (subMenu.equals("Hóa đơn")) {
-                panel = QLHoaDon.createPanel();
-            } else if (subMenu.equals("Thanh toán")) {
+            }else if (subMenu.equals("Thanh toán")) {
                 panel = ThanhToan.createPanel();
             }
 
@@ -505,7 +506,7 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
-            } else if (subMenu.equals("Đơn dặt phòng")) {
+            } else if (subMenu.equals("Đơn đặt phòng")) {
                 panel = QLDonDatPhong.createPanel();
             }
 

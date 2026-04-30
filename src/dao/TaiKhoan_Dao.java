@@ -346,4 +346,56 @@ public class TaiKhoan_Dao {
             return maNV + " - " + hoTen;
         }
     }
+    
+    
+    public boolean kiemTraMatKhau(String tenDangNhap, String matKhau) {
+        String sql = """
+                SELECT COUNT(*) AS soLuong
+                FROM TaiKhoan
+                WHERE tenDangNhap = ?
+                  AND matKhau = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, tenDangNhap);
+            ps.setString(2, matKhau);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("soLuong") > 0;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public boolean doiMatKhau(String tenDangNhap, String matKhauMoi) {
+        String sql = """
+                UPDATE TaiKhoan
+                SET matKhau = ?
+                WHERE tenDangNhap = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, matKhauMoi);
+            ps.setString(2, tenDangNhap);
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 }

@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import gui.GiaoDienChinh;
+import gui.TaiKhoanDialog;
 import gui.ThongTin;
 
 public class GiaoDienChinhController {
@@ -23,7 +24,11 @@ public class GiaoDienChinhController {
 
         view.getBtnThongTin().addActionListener(e -> moGiaoDienThongTin());
 
-        view.getBtnTaiKhoan().addActionListener(e -> view.openPage("Cập nhật", "Tài khoản"));
+        view.getBtnTaiKhoan().addActionListener(e -> {
+            TaiKhoanDialog dialog = new TaiKhoanDialog();
+            dialog.setLocationRelativeTo(view);
+            dialog.setVisible(true);
+        });
 
         view.getBtnTroGiup().addActionListener(e -> view.showInfoMessage("Liên hệ quản trị viên để được hỗ trợ."));
 

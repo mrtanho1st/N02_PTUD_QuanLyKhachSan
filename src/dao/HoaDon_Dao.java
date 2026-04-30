@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.Types;
+import java.time.LocalDate;
 
 import connection.ConnectDB;
 import entity.HoaDon;
@@ -230,6 +232,460 @@ public class HoaDon_Dao {
 
         return max;
     }
+    
+    public String findMaHDByMaDDP(String maDDP) {
+        String sql = """
+                SELECT maHD
+                FROM HoaDon
+                WHERE maDDP = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maDDP);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("maHD");
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public String taoHoaDon(
+            String maDDP,
+            String maKM,
+            String maThue,
+            String maNVLapHoaDon,
+            double tongTienThanhToan,
+            List<Object[]> dsPhong,
+            List<Object[]> dsDichVu
+    ) {
+        String maHDDaCo = findMaHDByMaDDP(maDDP);
+
+        if (maHDDaCo != null && !maHDDaCo.isBlank()) {
+            return maHDDaCo;
+        }
+
+        Connection con = null;
+
+        try {
+            con = ConnectDB.getConnection();
+            con.setAutoCommit(false);
+
+            String maHD = taoMaHDTuDong(con);
+
+            Object[] thongTin = findThongTinTaoHoaDon(con, maDDP);
+
+            if (thongTin == null) {
+                con.rollback();
+                return null;
+            }
+
+            String maKH = toText(thongTin[0]);
+
+            if (maNVLapHoaDon == null || maNVLapHoaDon.isBlank()) {
+                con.rollback();
+                return null;
+            }
+
+            insertHoaDon(con, maHD, maDDP, maKH, maNVLapHoaDon, maThue, tongTienThanhToan);
+            insertChiTietPhong(con, maHD, maKM, dsPhong);
+            insertChiTietDichVu(con, maHD, maKM, dsDichVu);
+
+            con.commit();
+            return maHD;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            try {
+                if (con != null) {
+                    con.rollback();
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return null;
+
+        } finally {
+            try {
+                if (con != null) {
+                    con.setAutoCommit(true);
+                    con.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private String taoMaHDTuDong(Connection con) throws Exception {
+        String sql = """
+                SELECT ISNULL(MAX(CAST(SUBSTRING(maHD, 3, LEN(maHD) - 2) AS INT)), 0) + 1 AS nextID
+                FROM HoaDon
+                WHERE maHD LIKE 'HD%'
+                """;
+
+        try (
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
+            if (rs.next()) {
+                int nextID = rs.getInt("nextID");
+                return String.format("HD%03d", nextID);
+            }
+        }
+
+        return "HD001";
+    }
+
+    private Object[] findThongTinTaoHoaDon(Connection con, String maDDP) throws Exception {
+        String sql = """
+                SELECT maKH
+                FROM DonDatPhong
+                WHERE maDDP = ?
+                """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maDDP);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Object[] {
+                            rs.getString("maKH")
+                    };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void insertHoaDon(
+            Connection con,
+            String maHD,
+            String maDDP,
+            String maKH,
+            String maNV,
+            String maThue,
+            double tongTien
+    ) throws Exception {
+    	String sql = """
+    	        INSERT INTO HoaDon(maHD, maDDP, maKH, maNV, maThue, ngayLapHD, tongTien)
+    	        VALUES (?, ?, ?, ?, ?, ?, ?)
+    	        """;
+
+    	try (PreparedStatement ps = con.prepareStatement(sql)) {
+    	    ps.setString(1, maHD);
+    	    ps.setString(2, maDDP);
+    	    ps.setString(3, maKH);
+    	    ps.setString(4, maNV);
+
+    	    if (maThue == null || maThue.isBlank()) {
+    	        ps.setNull(5, Types.VARCHAR);
+    	    } else {
+    	        ps.setString(5, maThue);
+    	    }
+
+    	    ps.setDate(6, Date.valueOf(LocalDate.now()));
+    	    ps.setDouble(7, tongTien);
+
+    	    ps.executeUpdate();
+    	}
+    }
+
+    private void insertChiTietPhong(
+            Connection con,
+            String maHD,
+            String maKM,
+            List<Object[]> dsPhong
+    ) throws Exception {
+        if (dsPhong == null) {
+            return;
+        }
+
+        String sql = """
+                INSERT INTO CTHoaDonPhong(maHD, maPhong, maKM, soNgay, donGia, thanhTien)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            for (Object[] row : dsPhong) {
+                String maPhong = toText(row[0]);
+                int soNgay = toInt(row[2]);
+                double donGia = toDouble(row[3]);
+
+                double thanhTien;
+                if (row.length >= 5) {
+                    thanhTien = toDouble(row[4]);
+                } else {
+                    thanhTien = soNgay * donGia;
+                }
+
+                ps.setString(1, maHD);
+                ps.setString(2, maPhong);
+
+                if (maKM == null || maKM.isBlank()) {
+                    ps.setNull(3, Types.VARCHAR);
+                } else {
+                    ps.setString(3, maKM);
+                }
+
+                ps.setInt(4, soNgay);
+                ps.setDouble(5, donGia);
+                ps.setDouble(6, thanhTien);
+
+                ps.addBatch();
+            }
+
+            ps.executeBatch();
+        }
+    }
+
+    private void insertChiTietDichVu(
+            Connection con,
+            String maHD,
+            String maKM,
+            List<Object[]> dsDichVu
+    ) throws Exception {
+        if (dsDichVu == null) {
+            return;
+        }
+
+        String sql = """
+                INSERT INTO CTHoaDonDichVu(maHD, maPDV, maKM, soLuong, donGia, thanhTien)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            for (Object[] row : dsDichVu) {
+                String maDV = toText(row[0]);
+                int soLuong = toInt(row[2]);
+
+                double donGia;
+                double thanhTien;
+
+                if (row.length >= 5) {
+                    donGia = toDouble(row[3]);
+                    thanhTien = toDouble(row[4]);
+                } else {
+                    donGia = 0;
+                    thanhTien = toDouble(row[3]);
+                }
+
+                String maPDV = findMaPDVTheoHoaDonVaDichVu(con, maHD, maDV);
+
+                if (maPDV == null || maPDV.isBlank()) {
+                    continue;
+                }
+
+                ps.setString(1, maHD);
+                ps.setString(2, maPDV);
+
+                if (maKM == null || maKM.isBlank()) {
+                    ps.setNull(3, Types.VARCHAR);
+                } else {
+                    ps.setString(3, maKM);
+                }
+
+                ps.setInt(4, soLuong);
+                ps.setDouble(5, donGia);
+
+                if (thanhTien > 0) {
+                    ps.setDouble(6, thanhTien);
+                } else {
+                    ps.setDouble(6, donGia * soLuong);
+                }
+
+                ps.addBatch();
+            }
+
+            ps.executeBatch();
+        }
+    }
+    
+    private String findMaPDVTheoHoaDonVaDichVu(Connection con, String maHD, String maDV) throws Exception {
+        String sql = """
+                SELECT TOP 1 pdv.maPDV
+                FROM HoaDon hd
+                JOIN PhieuDichVu pdv ON hd.maDDP = pdv.maDDP
+                WHERE hd.maHD = ?
+                  AND pdv.maDV = ?
+                ORDER BY pdv.maPDV
+                """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maHD);
+            ps.setString(2, maDV);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("maPDV");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Object[] findThongTinHoaDonDialog(String maHD) {
+        String sql = """
+                SELECT 
+                    hd.maHD,
+                    hd.maDDP,
+                    hd.maKH,
+                    kh.hoTen AS tenKhachHang,
+                    kh.cccd,
+                    kh.sdt AS sdtKhachHang,
+                    hd.maNV,
+                    nv.hoTen AS tenNhanVien,
+                    hd.maThue,
+                    hd.maPDV,
+                    hd.ngayLapHD,
+                    hd.tongTien,
+                    ddp.tienCoc
+                FROM HoaDon hd
+                LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH
+                LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV
+                LEFT JOIN DonDatPhong ddp ON hd.maDDP = ddp.maDDP
+                WHERE hd.maHD = ?
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maHD);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Object[] {
+                            rs.getString("maHD"),
+                            rs.getString("maDDP"),
+                            rs.getString("maKH"),
+                            rs.getString("tenKhachHang"),
+                            rs.getString("cccd"),
+                            rs.getString("sdtKhachHang"),
+                            rs.getString("maNV"),
+                            rs.getString("tenNhanVien"),
+                            rs.getString("maThue"),
+                            rs.getString("maPDV"),
+                            rs.getDate("ngayLapHD"),
+                            rs.getDouble("tongTien"),
+                            rs.getDouble("tienCoc")
+                    };
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<Object[]> findChiTietHoaDonDialog(String maHD) {
+        List<Object[]> list = new ArrayList<>();
+
+        String sql = """
+                SELECT
+                    cthd.maHD,
+                    cthd.maKM,
+                    km.tenKhuyenMai,
+                    km.giaTri,
+                    cthd.maPhong,
+                    p.loaiPhong,
+                    cthd.maDV,
+                    dv.tenDichVu,
+                    cthd.chiTiet,
+                    cthd.donGia
+                FROM CTHoaDon cthd
+                LEFT JOIN KhuyenMai km ON cthd.maKM = km.maKM
+                LEFT JOIN Phong p ON cthd.maPhong = p.maPhong
+                LEFT JOIN DichVu dv ON cthd.maDV = dv.maDV
+                WHERE cthd.maHD = ?
+                ORDER BY cthd.maPhong, cthd.maDV
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maHD);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Object[] {
+                            rs.getString("maHD"),
+                            rs.getString("maKM"),
+                            rs.getString("tenKhuyenMai"),
+                            rs.getDouble("giaTri"),
+                            rs.getString("maPhong"),
+                            rs.getString("loaiPhong"),
+                            rs.getString("maDV"),
+                            rs.getString("tenDichVu"),
+                            rs.getString("chiTiet"),
+                            rs.getDouble("donGia")
+                    });
+                }
+            }
+
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    private String toText(Object value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private double toDouble(Object value) {
+        if (value == null) {
+            return 0;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+
+        try {
+            String text = value.toString()
+                    .replace("VNĐ", "")
+                    .replace(",", "")
+                    .trim();
+
+            return Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private int toInt(Object value) {
+        if (value == null) {
+            return 0;
+        }
+
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+
+        try {
+            return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
 
     private HoaDon mapHoaDon(ResultSet rs) throws Exception {
         return new HoaDon(
@@ -241,5 +697,303 @@ public class HoaDon_Dao {
                 rs.getString("maThue"),
                 rs.getDouble("tongTien")
         );
+    }
+    //lấy để cho hóa đơn xuất ra
+    public Object[] findThongTinInHoaDon(String maHD) {
+        String sql = """
+            SELECT 
+                hd.maHD,
+                hd.ngayLapHD,
+                kh.hoTen AS tenKH,
+                kh.cccd,
+                kh.sdt,
+
+                nvLapDon.maNV AS maNVLapDon,
+                nvLapDon.hoTen AS tenNVLapDon,
+
+                nvLapHoaDon.maNV AS maNVLapHoaDon,
+                nvLapHoaDon.hoTen AS tenNVLapHoaDon,
+
+                ddp.ngayNhan,
+                ddp.ngayTra,
+                DATEDIFF(DAY, ddp.ngayNhan, ddp.ngayTra) AS soDem,
+                ddp.tienCoc,
+                hd.tongTien,
+
+                hd.maThue,
+                ISNULL(t.tyLeThue, 0) AS tyLeThue,
+
+                km.maKM,
+                km.tenKhuyenMai,
+                ISNULL(km.giaTri, 0) AS tyLeGiamGia
+            FROM HoaDon hd
+            JOIN DonDatPhong ddp ON hd.maDDP = ddp.maDDP
+            JOIN KhachHang kh ON hd.maKH = kh.maKH
+
+            LEFT JOIN NhanVien nvLapDon 
+                ON ddp.maNV = nvLapDon.maNV
+
+            LEFT JOIN NhanVien nvLapHoaDon 
+                ON hd.maNV = nvLapHoaDon.maNV
+
+            LEFT JOIN Thue t 
+                ON hd.maThue = t.maThue
+
+            OUTER APPLY (
+                SELECT TOP 1 x.maKM
+                FROM (
+                    SELECT maKM
+                    FROM CTHoaDonPhong
+                    WHERE maHD = hd.maHD 
+                      AND maKM IS NOT NULL
+
+                    UNION
+
+                    SELECT maKM
+                    FROM CTHoaDonDichVu
+                    WHERE maHD = hd.maHD 
+                      AND maKM IS NOT NULL
+                ) x
+            ) kmHD
+
+            LEFT JOIN KhuyenMai km 
+                ON kmHD.maKM = km.maKM
+
+            WHERE hd.maHD = ?
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maHD);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Object[] {
+                        rs.getString("maHD"),              // 0
+                        rs.getDate("ngayLapHD"),           // 1
+                        rs.getString("tenKH"),             // 2
+                        rs.getString("cccd"),              // 3
+                        rs.getString("sdt"),               // 4
+
+                        rs.getString("maNVLapDon"),        // 5
+                        rs.getString("tenNVLapDon"),       // 6
+
+                        rs.getString("maNVLapHoaDon"),     // 7
+                        rs.getString("tenNVLapHoaDon"),    // 8
+
+                        rs.getDate("ngayNhan"),            // 9
+                        rs.getDate("ngayTra"),             // 10
+                        rs.getInt("soDem"),                // 11
+                        rs.getDouble("tienCoc"),           // 12
+                        rs.getDouble("tongTien"),          // 13
+
+                        rs.getString("maThue"),            // 14
+                        rs.getDouble("tyLeThue"),          // 15
+
+                        rs.getString("maKM"),              // 16
+                        rs.getString("tenKhuyenMai"),      // 17
+                        rs.getDouble("tyLeGiamGia")        // 18
+                    };
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    
+    public List<Object[]> findDanhSachPhongInHoaDon(String maHD) {
+        List<Object[]> list = new ArrayList<>();
+
+        String sql = """
+                SELECT 
+                    p.maPhong,
+                    p.loaiPhong,
+                    ctp.soNgay,
+                    ctp.donGia,
+                    ctp.thanhTien
+                FROM CTHoaDonPhong ctp
+                JOIN Phong p ON ctp.maPhong = p.maPhong
+                WHERE ctp.maHD = ?
+                """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maHD);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Object[] {
+                        rs.getString("maPhong"),
+                        rs.getString("loaiPhong"),
+                        rs.getInt("soNgay"),
+                        rs.getDouble("donGia"),
+                        rs.getDouble("thanhTien")
+                    });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    
+    public List<Object[]> findDanhSachDichVuInHoaDon(String maHD) {
+        List<Object[]> list = new ArrayList<>();
+
+        String sql = """
+                SELECT 
+                    dv.maDV,
+                    dv.tenDichVu,
+                    ctdv.soLuong,
+                    ctdv.donGia,
+                    ctdv.thanhTien
+                FROM CTHoaDonDichVu ctdv
+                JOIN PhieuDichVu pdv ON ctdv.maPDV = pdv.maPDV
+                JOIN DichVu dv ON pdv.maDV = dv.maDV
+                WHERE ctdv.maHD = ?
+                """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maHD);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Object[] {
+                        rs.getString("maDV"),
+                        rs.getString("tenDichVu"),
+                        rs.getInt("soLuong"),
+                        rs.getDouble("donGia"),
+                        rs.getDouble("thanhTien")
+                    });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    
+    public List<HoaDon> searchQuanLyHoaDon(
+            Date tuNgay,
+            Date denNgay,
+            String maHD,
+            String maDDP,
+            String khachHang,
+            String nhanVien,
+            Double tongTien,
+            String thue
+    ) {
+        List<HoaDon> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("SELECT DISTINCT ");
+        sql.append("hd.maHD, ");
+        sql.append("hd.maDDP, ");
+        sql.append("kh.hoTen AS tenKH, ");
+        sql.append("nv.hoTen AS tenNV, ");
+        sql.append("hd.ngayLapHD, ");
+        sql.append("hd.maThue, ");
+        sql.append("hd.tongTien ");
+        sql.append("FROM HoaDon hd ");
+        sql.append("LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH ");
+        sql.append("LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV ");
+        sql.append("LEFT JOIN Thue t ON hd.maThue = t.maThue ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND hd.ngayLapHD >= ? ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND hd.ngayLapHD <= ? ");
+        }
+
+        if (maHD != null && !maHD.isBlank()) {
+            sql.append("AND hd.maHD LIKE ? ");
+        }
+
+        if (maDDP != null && !maDDP.isBlank()) {
+            sql.append("AND hd.maDDP LIKE ? ");
+        }
+
+        if (khachHang != null && !khachHang.isBlank()) {
+            sql.append("AND kh.hoTen LIKE ? ");
+        }
+
+        if (nhanVien != null && !nhanVien.isBlank()) {
+            sql.append("AND nv.hoTen LIKE ? ");
+        }
+
+        if (tongTien != null) {
+            sql.append("AND hd.tongTien = ? ");
+        }
+
+        if (thue != null && !thue.isBlank() && !"Tất cả".equalsIgnoreCase(thue)) {
+            sql.append("AND hd.maThue = ? ");
+        }
+
+        sql.append("ORDER BY hd.ngayLapHD DESC, hd.maHD DESC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            if (maHD != null && !maHD.isBlank()) {
+                ps.setString(index++, "%" + maHD.trim() + "%");
+            }
+
+            if (maDDP != null && !maDDP.isBlank()) {
+                ps.setString(index++, "%" + maDDP.trim() + "%");
+            }
+
+            if (khachHang != null && !khachHang.isBlank()) {
+                ps.setString(index++, "%" + khachHang.trim() + "%");
+            }
+
+            if (nhanVien != null && !nhanVien.isBlank()) {
+                ps.setString(index++, "%" + nhanVien.trim() + "%");
+            }
+
+            if (tongTien != null) {
+                ps.setDouble(index++, tongTien);
+            }
+
+            if (thue != null && !thue.isBlank() && !"Tất cả".equalsIgnoreCase(thue)) {
+                ps.setString(index++, thue.trim());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ds.add(mapHoaDon(rs));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
     }
 }

@@ -328,4 +328,32 @@ public class KhuyenMai_Dao {
                 dbNgayKetThuc == null ? null : dbNgayKetThuc.toLocalDate()
         );
     }
+    
+    //Dùng trong thanh toán
+    public List<KhuyenMai> findKhuyenMaiConHieuLuc() {
+        List<KhuyenMai> list = new ArrayList<>();
+
+        String sql = """
+                SELECT maKM, tenKhuyenMai, giaTri, ngayBatDau, ngayKetThuc
+                FROM KhuyenMai
+                WHERE (ngayBatDau IS NULL OR ngayBatDau <= CAST(GETDATE() AS DATE))
+                  AND (ngayKetThuc IS NULL OR ngayKetThuc >= CAST(GETDATE() AS DATE))
+                ORDER BY ngayBatDau DESC, maKM DESC
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                list.add(mapKhuyenMai(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }
