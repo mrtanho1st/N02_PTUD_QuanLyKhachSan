@@ -30,7 +30,7 @@ public class QLDichVuController {
 
     private void addEvents() {
         view.getBtnLamMoiTim().addActionListener(e -> lamMoiTimKiem());
-        view.getBtnLamMoiForm().addActionListener(e -> view.clearForm());
+        view.getBtnLamMoiForm().addActionListener(e -> lamMoiForm());
 
         view.getBtnThem().addActionListener(e -> themDichVu());
         view.getBtnCapNhat().addActionListener(e -> capNhatDichVu());
@@ -61,10 +61,11 @@ public class QLDichVuController {
 
         view.getTxtTimMaDV().getDocument().addDocumentListener(searchListener);
         view.getTxtTimTenDV().getDocument().addDocumentListener(searchListener);
+        view.getTxtTimGia().getDocument().addDocumentListener(searchListener);
     }
 
     private void loadDichVu() {
-        List<DichVu> list = dichVuDao.findAll();
+        List<DichVu> list = dichVuDao.findAllForQuanLy();
         fillTableDichVu(list);
     }
 
@@ -122,6 +123,7 @@ public class QLDichVuController {
         view.getTxtMaDV().setText(getTableValue(row, 0));
         view.getTxtTenDV().setText(getTableValue(row, 1));
         view.getTxtGia().setText(getTableValue(row, 2));
+        view.getTxtMaDV().setEditable(false);
     }
 
     private String getTableValue(int row, int col) {
@@ -152,9 +154,7 @@ public class QLDichVuController {
     }
 
     private void capNhatDichVu() {
-        String maDV = view.getTxtMaDV().getText().trim();
-
-        if (maDV.isEmpty()) {
+        if (view.getTblDichVu().getSelectedRow() < 0) {
             JOptionPane.showMessageDialog(view, "Vui lòng chọn dịch vụ cần cập nhật.");
             return;
         }
@@ -176,12 +176,12 @@ public class QLDichVuController {
     }
 
     private void xoaDichVu() {
-        String maDV = view.getTxtMaDV().getText().trim();
-
-        if (maDV.isEmpty()) {
+        if (view.getTblDichVu().getSelectedRow() < 0) {
             JOptionPane.showMessageDialog(view, "Vui lòng chọn dịch vụ cần xóa.");
             return;
         }
+
+        String maDV = view.getTxtMaDV().getText().trim();
 
         if (dichVuDao.dangDuocSuDung(maDV)) {
             JOptionPane.showMessageDialog(
@@ -253,5 +253,10 @@ public class QLDichVuController {
     private void refreshAfterAction() {
         timKiemTuDong();
         view.clearForm();
+    }
+
+    private void lamMoiForm() {
+        view.clearForm();
+        view.getTxtMaDV().requestFocus();
     }
 }

@@ -63,8 +63,8 @@ public class KhachHang_Dao {
         ) {
             ps.setString(1, kh.getMaKH());
             ps.setString(2, kh.getHoTen());
-            ps.setString(4, kh.getSdt());
-            ps.setString(3, kh.getCccd());
+            ps.setString(3, kh.getSdt());
+            ps.setString(4, kh.getCccd());
             ps.setString(5, kh.getLoaiKH());
             ps.setInt(6, kh.getDiem());
 
@@ -349,8 +349,8 @@ public class KhachHang_Dao {
         return new KhachHang(
                 rs.getString("maKH"),
                 rs.getString("hoTen"),
-                rs.getString("sdt"),
                 rs.getString("cccd"),
+                rs.getString("sdt"),
                 rs.getString("loaiKH"),
                 rs.getInt("diemSo")
         );
@@ -387,5 +387,82 @@ public class KhachHang_Dao {
         }
 
         return null;
+    }
+
+    public boolean existsBySdt(String sdt) {
+        return existsByField("sdt", sdt, null);
+    }
+
+    public boolean existsBySdtExceptMaKH(String sdt, String maKH) {
+        return existsByField("sdt", sdt, maKH);
+    }
+
+    public boolean existsByCccd(String cccd) {
+        return existsByField("cccd", cccd, null);
+    }
+
+    public boolean existsByCccdExceptMaKH(String cccd, String maKH) {
+        return existsByField("cccd", cccd, maKH);
+    }
+
+    public boolean coDuLieuLienQuan(String maKH) {
+        String sql = """
+                SELECT TOP 1 1
+                FROM (
+                    SELECT maKH FROM DonDatPhong WHERE maKH = ?
+                    UNION
+                    SELECT maKH FROM HoaDon WHERE maKH = ?
+                ) AS dl
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setString(1, maKH);
+            ps.setString(2, maKH);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private boolean existsByField(String fieldName, String value, String maKH) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT TOP 1 maKH ");
+        sql.append("FROM KhachHang ");
+        sql.append("WHERE ").append(fieldName).append(" = ? ");
+
+        if (maKH != null && !maKH.isBlank()) {
+            sql.append("AND maKH <> ? ");
+        }
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            ps.setString(1, value.trim());
+
+            if (maKH != null && !maKH.isBlank()) {
+                ps.setString(2, maKH.trim());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 }

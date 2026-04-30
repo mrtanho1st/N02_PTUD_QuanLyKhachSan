@@ -12,6 +12,8 @@ import entity.KhachHang;
 import gui.QLKhachHang;
 
 public class QLKhachHangController {
+    private static final String REGEX_CCCD = "\\d{12}";
+    private static final String REGEX_SDT = "\\d{10,15}";
 
     private QLKhachHang view;
     private KhachHang_Dao khachHangDao;
@@ -77,8 +79,8 @@ public class QLKhachHangController {
             model.addRow(new Object[] {
                 kh.getMaKH(),
                 kh.getHoTen(),
-                kh.getSdt(),
                 kh.getCccd(),
+                kh.getSdt(),
                 kh.getLoaiKH(),
                 kh.getDiem()
             });
@@ -108,19 +110,9 @@ public class QLKhachHangController {
             String loaiKH = view.getCboLoaiKH().getSelectedItem().toString();
             String diemSoText = view.getTxtDiemSo().getText().trim();
 
-            if (maKH.isEmpty() || hoTen.isEmpty()) {
-                JOptionPane.showMessageDialog(view, "Mã KH và họ tên không được rỗng");
+            Integer diemSo = parseDiemSo(diemSoText);
+            if (diemSo == null || !validateThongTinKhachHang(maKH, hoTen, sdt, cccd, diemSo)) {
                 return;
-            }
-
-            int diemSo = 0;
-            if (!diemSoText.isEmpty()) {
-                try {
-                    diemSo = Integer.parseInt(diemSoText);
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(view, "Điểm số phải là số nguyên");
-                    return;
-                }
             }
 
             if (khachHangDao.findById(maKH) != null) {
@@ -128,7 +120,17 @@ public class QLKhachHangController {
                 return;
             }
 
-            KhachHang kh = new KhachHang(maKH, hoTen, sdt, cccd, loaiKH, diemSo);
+            if (khachHangDao.existsBySdt(sdt)) {
+                JOptionPane.showMessageDialog(view, "Số điện thoại đã tồn tại");
+                return;
+            }
+
+            if (khachHangDao.existsByCccd(cccd)) {
+                JOptionPane.showMessageDialog(view, "CCCD đã tồn tại");
+                return;
+            }
+
+            KhachHang kh = new KhachHang(maKH, hoTen, cccd, sdt, loaiKH, diemSo);
 
             if (khachHangDao.insert(kh)) {
                 JOptionPane.showMessageDialog(view, "Thêm thành công");
@@ -159,22 +161,22 @@ public class QLKhachHangController {
             String loaiKH = view.getCboLoaiKH().getSelectedItem().toString();
             String diemSoText = view.getTxtDiemSo().getText().trim();
 
-            if (maKH.isEmpty() || hoTen.isEmpty()) {
-                JOptionPane.showMessageDialog(view, "Mã KH và họ tên không được rỗng");
+            Integer diem = parseDiemSo(diemSoText);
+            if (diem == null || !validateThongTinKhachHang(maKH, hoTen, sdt, cccd, diem)) {
                 return;
             }
 
-            int diem = 0;
-            if (!diemSoText.isEmpty()) {
-                try {
-                    diem = Integer.parseInt(diemSoText);
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(view, "Điểm số phải là số nguyên");
-                    return;
-                }
+            if (khachHangDao.existsBySdtExceptMaKH(sdt, maKH)) {
+                JOptionPane.showMessageDialog(view, "Số điện thoại đã tồn tại");
+                return;
             }
 
-            KhachHang kh = new KhachHang(maKH, hoTen, sdt, cccd, loaiKH, diem);
+            if (khachHangDao.existsByCccdExceptMaKH(cccd, maKH)) {
+                JOptionPane.showMessageDialog(view, "CCCD đã tồn tại");
+                return;
+            }
+
+            KhachHang kh = new KhachHang(maKH, hoTen, cccd, sdt, loaiKH, diem);
 
             if (khachHangDao.update(kh)) {
                 JOptionPane.showMessageDialog(view, "Cập nhật thành công");
@@ -198,6 +200,14 @@ public class QLKhachHangController {
         }
 
         String maKH = view.getTblKhachHang().getValueAt(row, 0).toString();
+
+        if (khachHangDao.coDuLieuLienQuan(maKH)) {
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Khách hàng này đã phát sinh đặt phòng hoặc hóa đơn, không thể xóa."
+            );
+            return;
+        }
 
         int confirm = JOptionPane.showConfirmDialog(
                 view,
@@ -252,5 +262,55 @@ public class QLKhachHangController {
         }
 
         view.getTxtMaKH().requestFocus();
+    }
+
+    private Integer parseDiemSo(String diemSoText) {
+        if (diemSoText.isEmpty()) {
+            return 0;
+        }
+
+        try {
+            int diemSo = Integer.parseInt(diemSoText);
+
+            if (diemSo < 0) {
+                JOptionPane.showMessageDialog(view, "Điểm số không được âm");
+                return null;
+            }
+
+            return diemSo;
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(view, "Điểm số phải là số nguyên");
+            return null;
+        }
+    }
+
+    private boolean validateThongTinKhachHang(
+            String maKH,
+            String hoTen,
+            String sdt,
+            String cccd,
+            int diemSo
+    ) {
+        if (maKH.isEmpty() || hoTen.isEmpty()) {
+            JOptionPane.showMessageDialog(view, "Mã KH và họ tên không được rỗng");
+            return false;
+        }
+
+        if (!sdt.isEmpty() && !sdt.matches(REGEX_SDT)) {
+            JOptionPane.showMessageDialog(view, "Số điện thoại phải gồm 10 đến 15 chữ số");
+            return false;
+        }
+
+        if (!cccd.isEmpty() && !cccd.matches(REGEX_CCCD)) {
+            JOptionPane.showMessageDialog(view, "CCCD phải gồm đúng 12 chữ số");
+            return false;
+        }
+
+        if (diemSo < 0) {
+            JOptionPane.showMessageDialog(view, "Điểm số không được âm");
+            return false;
+        }
+
+        return true;
     }
 }

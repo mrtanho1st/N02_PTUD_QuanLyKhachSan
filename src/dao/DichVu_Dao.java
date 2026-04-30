@@ -36,6 +36,10 @@ public class DichVu_Dao {
         return list;
     }
 
+    public List<DichVu> findAllForQuanLy() {
+        return search(null, null, "", "", null);
+    }
+
     // Hàm search cũ cho các giao diện nhiều ô.
     // Giữ lại để không làm hư màn khác.
     public List<DichVu> search(

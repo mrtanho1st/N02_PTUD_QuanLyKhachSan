@@ -12,18 +12,22 @@ import java.awt.Insets;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import controller.QLDichVuController;
+import controller.QLThueController;
 
-public class QLDichVu extends JPanel {
+public class QLThue extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -34,29 +38,27 @@ public class QLDichVu extends JPanel {
     private static final Color BUTTON_BG = new Color(233, 239, 248);
     private static final Color BUTTON_DANGER = new Color(252, 230, 230);
 
-    // Bộ lọc
- // Bộ lọc
-    private JTextField txtTimMaDV;
-    private JTextField txtTimTenDV;
-    private JTextField txtTimGia;
+    private JTextField txtTimMaThue;
+    private JTextField txtTimTenThue;
+    private JComboBox<String> cboTimTrangThai;
+    private JTextField txtTimTyLe;
     private JButton btnLamMoiTim;
 
-    // Bảng dịch vụ
-    private JTable tblDichVu;
+    private JTable tblThue;
     private DefaultTableModel tableModel;
 
-    // Form chi tiết
-    private JTextField txtMaDV;
-    private JTextField txtTenDV;
-    private JTextField txtGia;
+    private JTextField txtMaThue;
+    private JTextField txtTenThue;
+    private JComboBox<String> cboTrangThai;
+    private JTextField txtTyLeThue;
+    private JTextArea txtMoTa;
 
-    // Nút thao tác
     private JButton btnThem;
     private JButton btnCapNhat;
     private JButton btnXoa;
     private JButton btnLamMoiForm;
 
-    public QLDichVu() {
+    public QLThue() {
         initUI();
     }
 
@@ -81,52 +83,51 @@ public class QLDichVu extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        JLabel lblMaDV = createLabel("Mã DV:");
-        JLabel lblTenDV = createLabel("Tên DV:");
-        JLabel lblGiaDV = createLabel("Giá DV:");
-
-        txtTimMaDV = new JTextField();
-        txtTimTenDV = new JTextField();
-        txtTimGia = new JTextField();
-
-
-        styleTextField(txtTimMaDV);
-        styleTextField(txtTimTenDV);
-        styleTextField(txtTimGia);
-
-
+        txtTimMaThue = new JTextField();
+        txtTimTenThue = new JTextField();
+        txtTimTyLe = new JTextField();
+        cboTimTrangThai = new JComboBox<>(new String[] { "Tất cả", "Áp dụng", "Ngưng áp dụng" });
         btnLamMoiTim = createButton("Làm mới");
 
-        // Dòng 1: Mã DV - Tên DV - Giá DV
+        styleTextField(txtTimMaThue);
+        styleTextField(txtTimTenThue);
+        styleTextField(txtTimTyLe);
+        styleComboBox(cboTimTrangThai);
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0;
-        panel.add(lblMaDV, gbc);
+        panel.add(createLabel("Mã thuế:"), gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 0.8;
-        panel.add(txtTimMaDV, gbc);
+        gbc.weightx = 0.7;
+        panel.add(txtTimMaThue, gbc);
 
         gbc.gridx = 2;
         gbc.weightx = 0;
-        panel.add(lblTenDV, gbc);
+        panel.add(createLabel("Tên thuế:"), gbc);
 
         gbc.gridx = 3;
         gbc.weightx = 1.0;
-        panel.add(txtTimTenDV, gbc);
+        panel.add(txtTimTenThue, gbc);
 
         gbc.gridx = 4;
         gbc.weightx = 0;
-        panel.add(lblGiaDV, gbc);
+        panel.add(createLabel("Trạng thái:"), gbc);
 
         gbc.gridx = 5;
-        gbc.weightx = 0.8;
-        panel.add(txtTimGia, gbc);
-
-        
-
+        gbc.weightx = 0.7;
+        panel.add(cboTimTrangThai, gbc);
 
         gbc.gridx = 6;
+        gbc.weightx = 0;
+        panel.add(createLabel("Tỷ lệ (%):"), gbc);
+
+        gbc.gridx = 7;
+        gbc.weightx = 0.4;
+        panel.add(txtTimTyLe, gbc);
+
+        gbc.gridx = 8;
         gbc.weightx = 0;
         panel.add(btnLamMoiTim, gbc);
 
@@ -159,15 +160,13 @@ public class QLDichVu extends JPanel {
                 BorderFactory.createLineBorder(CARD_BORDER),
                 new EmptyBorder(16, 16, 16, 16)));
 
-        JLabel lblTitle = new JLabel("Danh sách dịch vụ");
+        JLabel lblTitle = new JLabel("Danh sách thuế");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(TEXT_DARK);
 
-        String[] columns = {
-                "Mã DV", "Tên dịch vụ", "Giá dịch vụ", "Số lượt dùng", "Doanh thu"
-        };
-
-        tableModel = new DefaultTableModel(new Object[][] {}, columns) {
+        tableModel = new DefaultTableModel(
+                new Object[][] {},
+                new String[] { "Mã thuế", "Tên thuế", "Trạng thái", "Tỷ lệ (%)", "Mô tả" }) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -176,16 +175,22 @@ public class QLDichVu extends JPanel {
             }
         };
 
-        tblDichVu = new JTable(tableModel);
-        styleTable(tblDichVu);
+        tblThue = new JTable(tableModel);
+        styleTable(tblThue);
 
-        tblDichVu.getColumnModel().getColumn(0).setPreferredWidth(90);
-        tblDichVu.getColumnModel().getColumn(1).setPreferredWidth(220);
-        tblDichVu.getColumnModel().getColumn(2).setPreferredWidth(110);
-        tblDichVu.getColumnModel().getColumn(3).setPreferredWidth(110);
-        tblDichVu.getColumnModel().getColumn(4).setPreferredWidth(130);
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        tblThue.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        tblThue.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        tblThue.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
 
-        JScrollPane scrollPane = new JScrollPane(tblDichVu);
+        tblThue.getColumnModel().getColumn(0).setPreferredWidth(90);
+        tblThue.getColumnModel().getColumn(1).setPreferredWidth(180);
+        tblThue.getColumnModel().getColumn(2).setPreferredWidth(120);
+        tblThue.getColumnModel().getColumn(3).setPreferredWidth(90);
+        tblThue.getColumnModel().getColumn(4).setPreferredWidth(260);
+
+        JScrollPane scrollPane = new JScrollPane(tblThue);
         scrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
 
         panel.add(lblTitle, BorderLayout.NORTH);
@@ -205,22 +210,26 @@ public class QLDichVu extends JPanel {
                 BorderFactory.createLineBorder(CARD_BORDER),
                 new EmptyBorder(16, 16, 16, 16)));
 
-        JLabel lblTitle = new JLabel("Thông tin dịch vụ");
+        JLabel lblTitle = new JLabel("Thông tin thuế");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTitle.setForeground(TEXT_DARK);
+
+        txtMaThue = new JTextField();
+        txtTenThue = new JTextField();
+        txtTyLeThue = new JTextField();
+        txtMoTa = new JTextArea(5, 20);
+        cboTrangThai = new JComboBox<>(new String[] { "Áp dụng", "Ngưng áp dụng" });
+
+        styleTextField(txtMaThue);
+        styleTextField(txtTenThue);
+        styleTextField(txtTyLeThue);
+        styleComboBox(cboTrangThai);
+        styleTextArea(txtMoTa);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
-
-        txtMaDV = new JTextField();
-        txtTenDV = new JTextField();
-        txtGia = new JTextField();
-
-        styleTextField(txtMaDV);
-        styleTextField(txtTenDV);
-        styleTextField(txtGia);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -230,9 +239,11 @@ public class QLDichVu extends JPanel {
         gbc.gridwidth = 1;
         gbc.gridy++;
 
-        addFormRow(formPanel, gbc, "Mã DV", txtMaDV);
-        addFormRow(formPanel, gbc, "Tên dịch vụ", txtTenDV);
-        addFormRow(formPanel, gbc, "Giá dịch vụ", txtGia);
+        addFormRow(formPanel, gbc, "Mã thuế", txtMaThue);
+        addFormRow(formPanel, gbc, "Tên thuế", txtTenThue);
+        addFormRow(formPanel, gbc, "Trạng thái", cboTrangThai);
+        addFormRow(formPanel, gbc, "Tỷ lệ (%)", txtTyLeThue);
+        addTextAreaRow(formPanel, gbc, "Mô tả", txtMoTa);
 
         JScrollPane formScrollPane = new JScrollPane(formPanel);
         formScrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
@@ -254,12 +265,6 @@ public class QLDichVu extends JPanel {
         btnCapNhat = createButton("Cập nhật");
         btnXoa = createDangerButton("Xóa");
         btnLamMoiForm = createButton("Làm mới");
-
-        Dimension btnSize = new Dimension(160, 48);
-        btnThem.setPreferredSize(btnSize);
-        btnCapNhat.setPreferredSize(btnSize);
-        btnXoa.setPreferredSize(btnSize);
-        btnLamMoiForm.setPreferredSize(btnSize);
 
         panel.add(btnThem);
         panel.add(btnCapNhat);
@@ -283,6 +288,27 @@ public class QLDichVu extends JPanel {
         gbc.gridy++;
     }
 
+    private void addTextAreaRow(JPanel panel, GridBagConstraints gbc, String label, JTextArea textArea) {
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
+        panel.add(createLabel(label), gbc);
+
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
+        scrollPane.setPreferredSize(new Dimension(220, 120));
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(scrollPane, gbc);
+
+        gbc.gridy++;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+    }
+
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Segoe UI", Font.BOLD, 15));
@@ -296,6 +322,22 @@ public class QLDichVu extends JPanel {
         textField.setMinimumSize(new Dimension(100, 38));
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(6, 10, 6, 10)));
+    }
+
+    private void styleTextArea(JTextArea textArea) {
+        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setBorder(new EmptyBorder(8, 10, 8, 10));
+    }
+
+    private void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setPreferredSize(new Dimension(220, 38));
+        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        comboBox.setBackground(Color.WHITE);
+        comboBox.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
                 new EmptyBorder(6, 10, 6, 10)));
     }
@@ -329,49 +371,68 @@ public class QLDichVu extends JPanel {
     }
 
     public void clearForm() {
-        txtMaDV.setText("");
-        txtMaDV.setEditable(true);
-        txtTenDV.setText("");
-        txtGia.setText("");
-        tblDichVu.clearSelection();
+        txtMaThue.setText("");
+        txtMaThue.setEditable(true);
+        txtTenThue.setText("");
+        txtTyLeThue.setText("");
+        txtMoTa.setText("");
+        cboTrangThai.setSelectedIndex(0);
+        tblThue.clearSelection();
     }
+
     public void clearSearchForm() {
-        txtTimMaDV.setText("");
-        txtTimTenDV.setText("");
-        txtTimGia.setText("");
-       
+        txtTimMaThue.setText("");
+        txtTimTenThue.setText("");
+        txtTimTyLe.setText("");
+        cboTimTrangThai.setSelectedIndex(0);
     }
 
-    public JTextField getTxtTimMaDV() {
-        return txtTimMaDV;
+    public JTextField getTxtTimMaThue() {
+        return txtTimMaThue;
     }
 
-    public JTextField getTxtTimTenDV() {
-        return txtTimTenDV;
+    public JTextField getTxtTimTenThue() {
+        return txtTimTenThue;
+    }
+
+    public JComboBox<String> getCboTimTrangThai() {
+        return cboTimTrangThai;
+    }
+
+    public JTextField getTxtTimTyLe() {
+        return txtTimTyLe;
     }
 
     public JButton getBtnLamMoiTim() {
         return btnLamMoiTim;
     }
 
-    public JTable getTblDichVu() {
-        return tblDichVu;
+    public JTable getTblThue() {
+        return tblThue;
     }
 
     public DefaultTableModel getTableModel() {
         return tableModel;
     }
 
-    public JTextField getTxtMaDV() {
-        return txtMaDV;
+    public JTextField getTxtMaThue() {
+        return txtMaThue;
     }
 
-    public JTextField getTxtTenDV() {
-        return txtTenDV;
+    public JTextField getTxtTenThue() {
+        return txtTenThue;
     }
 
-    public JTextField getTxtGia() {
-        return txtGia;
+    public JComboBox<String> getCboTrangThai() {
+        return cboTrangThai;
+    }
+
+    public JTextField getTxtTyLeThue() {
+        return txtTyLeThue;
+    }
+
+    public JTextArea getTxtMoTa() {
+        return txtMoTa;
     }
 
     public JButton getBtnThem() {
@@ -389,15 +450,10 @@ public class QLDichVu extends JPanel {
     public JButton getBtnLamMoiForm() {
         return btnLamMoiForm;
     }
-    public JTextField getTxtTimGia() {
-        return txtTimGia;
-    }
-
-
 
     public static JPanel createPanel() {
-        QLDichVu panel = new QLDichVu();
-        new QLDichVuController(panel);
+        QLThue panel = new QLThue();
+        new QLThueController(panel);
         return panel;
     }
 }
