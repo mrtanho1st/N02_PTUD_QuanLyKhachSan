@@ -32,6 +32,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import entity.LoaiBaoBieu;
+import entity.LoaiThongKe;
 
 public class GiaoDienChinh extends JFrame {
 
@@ -102,6 +103,7 @@ public class GiaoDienChinh extends JFrame {
 
         return top;
     }
+
     private void updateAppTitle(String title) {
         lblAppTitle.setText(title.toUpperCase());
     }
@@ -160,7 +162,7 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnDanhMuc);
 
         btnXuLi = createNavButton("Xử lí", new String[] {
-                "Đặt phòng", "Hóa đơn", "Check-in/Check-out",  "Thanh toán"
+                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Thanh toán"
         });
         nav.add(btnXuLi);
 
@@ -176,6 +178,7 @@ public class GiaoDienChinh extends JFrame {
 
         btnThongKe = createNavButton("Thống kê", new String[] {
                 "Doanh thu theo thời gian", "Doanh thu theo phòng", "Doanh thu theo khách hàng",
+                "Thống kê đơn đặt phòng", "Thống kê hóa đơn", "Thống kê dịch vụ",
                 "Phòng đặt nhiều nhất", "Khách hàng điểm cao nhất"
         });
         nav.add(btnThongKe);
@@ -450,6 +453,8 @@ public class GiaoDienChinh extends JFrame {
         openExistingPage(mainMenu, subMenu);
     }
 
+    // Hàm này sẽ kiểm tra nếu đã mở rồi thì chỉ chuyển đến đó, chưa mở thì mới tạo
+    // mới panel và lưu vào loadedPanels để lần sau mở lại không phải tạo mới nữa
     private void openExistingPage(String mainMenu, String subMenu) {
         String panelKey = mainMenu + "/" + subMenu;
 
@@ -484,7 +489,7 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Hóa đơn")) {
                 panel = QLHoaDon.createPanel();
             } else if (subMenu.equals("Thanh toán")) {
-            	 panel = ThanhToan.createPanel();
+                panel = ThanhToan.createPanel();
             }
 
         } else if (mainMenu.equals("Tìm kiếm")) {
@@ -513,29 +518,45 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
-            } else if(subMenu.equals("Đơn đặt phòng")) {
-            	panel = QLDonDatPhong.createPanel();
+            } else if (subMenu.equals("Đơn đặt phòng")) {
+                panel = QLDonDatPhong.createPanel();
             }
 
         } else if (mainMenu.equals("Thống kê")) {
-            showInfoMessage("Chức năng " + subMenu + " đang phát triển.");
-            return;
-
+            // Các loại thống kê sẽ dùng chung 1 class QLThongke nhưng truyền vào tham số
+            // loại báo biểu để hiển thị khác nhau
+            if (subMenu.equals("Doanh thu theo thời gian")) {
+                panel = QLThongke.createPanel(LoaiThongKe.DOANH_THU_THEO_THOI_GIAN);
+            } else if (subMenu.equals("Doanh thu theo phòng")) {
+                panel = QLThongke.createPanel(LoaiThongKe.DOANH_THU_THEO_PHONG);
+            } else if (subMenu.equals("Doanh thu theo khách hàng")) {
+                panel = QLThongke.createPanel(LoaiThongKe.DOANH_THU_THEO_KHACH_HANG);
+            } else if (subMenu.equals("Thống kê đơn đặt phòng")) {
+                panel = QLThongke.createPanel(LoaiThongKe.THONG_KE_DON_DAT_PHONG);
+            } else if (subMenu.equals("Thống kê hóa đơn")) {
+                panel = QLThongke.createPanel(LoaiThongKe.THONG_KE_HOA_DON);
+            } else if (subMenu.equals("Thống kê dịch vụ")) {
+                panel = QLThongke.createPanel(LoaiThongKe.THONG_KE_DICH_VU);
+            } else if (subMenu.equals("Phòng đặt nhiều nhất")) {
+                panel = QLThongke.createPanel(LoaiThongKe.PHONG_DAT_NHIEU_NHAT);
+            } else if (subMenu.equals("Khách hàng điểm cao nhất")) {
+                panel = QLThongke.createPanel(LoaiThongKe.KHACH_HANG_DIEM_CAO_NHAT);
+            }
         } else if (mainMenu.equals("Báo biểu")) {
             if (subMenu.equals("DS Khách hàng")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.KHACH_HANG);
             } else if (subMenu.equals("DS Nhân viên")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.NHAN_VIEN);
             } else if (subMenu.equals("DS Phòng")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.PHONG);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.PHONG);
             } else if (subMenu.equals("DS Khuyến mãi")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.KHUYEN_MAI);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.KHUYEN_MAI);
             } else if (subMenu.equals("DS Dịch vụ")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.DICH_VU);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.DICH_VU);
             } else if (subMenu.equals("DS Đơn đặt phòng")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.DON_DAT_PHONG);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.DON_DAT_PHONG);
             } else if (subMenu.equals("DS Hóa đơn")) {
-                panel =  BaoBieu.createPanel(LoaiBaoBieu.HOA_DON);
+                panel = BaoBieu.createPanel(LoaiBaoBieu.HOA_DON);
             }
         }
 
@@ -549,8 +570,6 @@ public class GiaoDienChinh extends JFrame {
             JOptionPane.showMessageDialog(this, "Chức năng này chưa có class giao diện.");
         }
     }
-
-   
 
     public void setActiveNavButton(JButton activeButton) {
         for (JButton button : navButtons) {
@@ -637,7 +656,7 @@ public class GiaoDienChinh extends JFrame {
             // Keep default look and feel
         }
     }
-    
+
     public void moThanhToanTheoDon(String maDDP) {
         String panelKey = "Xử lí/Thanh toán";
 

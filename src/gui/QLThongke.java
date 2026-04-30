@@ -9,26 +9,28 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.util.Properties;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import org.jdatepicker.JDatePicker;
 import org.jdatepicker.UtilDateModel;
 
-import controller.BaoBieuController;
-import entity.LoaiBaoBieu;
+import controller.QLThongKeController;
+import entity.LoaiThongKe;
 
-public class BaoBieu extends JPanel {
+public class QLThongke extends JPanel {
     private static final long serialVersionUID = 1L;
 
     private static final Color APP_BG = new Color(237, 242, 247);
@@ -36,8 +38,6 @@ public class BaoBieu extends JPanel {
     private static final Color CARD_BORDER = new Color(210, 220, 235);
     private static final Color TEXT_DARK = new Color(24, 39, 75);
     private static final Color BUTTON_BG = new Color(233, 239, 248);
-
-    private final LoaiBaoBieu loaiBaoBieu;
 
     private JLabel lblTuNgay;
     private JLabel lblDenNgay;
@@ -72,8 +72,10 @@ public class BaoBieu extends JPanel {
     private JPanel pnlFilter;
     private JPanel pnlThongKe;
 
-    public BaoBieu(LoaiBaoBieu loaiBaoBieu) {
-        this.loaiBaoBieu = loaiBaoBieu;
+    private LoaiThongKe loaiThongKe;
+
+    public QLThongke(LoaiThongKe loaiThongKe) {
+        this.loaiThongKe = loaiThongKe;
         initUI();
         cauHinhMacDinhTheoLoai();
     }
@@ -87,6 +89,7 @@ public class BaoBieu extends JPanel {
         add(createCenterPanel(), BorderLayout.CENTER);
     }
 
+    // top
     private JPanel createTopPanel() {
         JPanel wrapper = new JPanel(new BorderLayout(0, 16));
         wrapper.setOpaque(false);
@@ -250,7 +253,39 @@ public class BaoBieu extends JPanel {
         }
     }
 
+    // center
     private JPanel createCenterPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+
+        JSplitPane splitPane = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                createBodyWestPanel(),
+                createBodyEastPanel());
+        splitPane.setDividerLocation(760);
+        splitPane.setBorder(null);
+        splitPane.setOpaque(false);
+
+        panel.add(splitPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createBodyEastPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(false);
+
+        JLabel lblChartPlaceholder = new JLabel("Biểu đồ sẽ hiển thị ở đây");
+        lblChartPlaceholder.setFont(new Font("Segoe UI", Font.ITALIC, 16));
+        lblChartPlaceholder.setForeground(TEXT_DARK);
+        lblChartPlaceholder.setHorizontalAlignment(JLabel.CENTER);
+        panel.add(lblChartPlaceholder, BorderLayout.CENTER);
+
+        // gánkích thước cố định cho panel
+        panel.setPreferredSize(new Dimension(500, 0));
+        return panel;
+    }
+
+    private JPanel createBodyWestPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 16));
         panel.setOpaque(false);
 
@@ -310,6 +345,7 @@ public class BaoBieu extends JPanel {
         return scrollPane;
     }
 
+    // Các phương thức hỗ trợ tạo giao diện
     private JPanel createStatCard(JLabel title, JLabel value) {
         JPanel panel = new JPanel(new BorderLayout(0, 8));
         panel.setBackground(PANEL_BG);
@@ -373,9 +409,11 @@ public class BaoBieu extends JPanel {
         return button;
     }
 
+    // Cấu hình mặc định theo loại báo biểu
+
     private void cauHinhMacDinhTheoLoai() {
-        switch (loaiBaoBieu) {
-            case HOA_DON:
+        switch (loaiThongKe) {
+            case DOANH_THU_THEO_THOI_GIAN:
                 setTableColumns(new String[] {
                         "Mã HD", "Mã ĐĐP", "Khách hàng", "Nhân viên", "Ngày lập", "Thuế", "Tổng tiền"
                 });
@@ -392,7 +430,7 @@ public class BaoBieu extends JPanel {
                 showLoc3(false);
                 break;
 
-            case DON_DAT_PHONG:
+            case DOANH_THU_THEO_KHACH_HANG:
                 setTableColumns(new String[] {
                         "Mã ĐĐP", "Khách hàng", "Phòng", "Ngày nhận", "Ngày trả", "Trạng thái", "Tiền cọc"
                 });
@@ -411,7 +449,7 @@ public class BaoBieu extends JPanel {
                 showLoc3(false);
                 break;
 
-            case PHONG:
+            case DOANH_THU_THEO_PHONG:
                 setTableColumns(new String[] {
                         "Mã phòng", "Loại phòng", "Số người", "Giá phòng", "Trạng thái"
                 });
@@ -433,7 +471,7 @@ public class BaoBieu extends JPanel {
                 showLoc3(false);
                 break;
 
-            case KHACH_HANG:
+            case KHACH_HANG_DIEM_CAO_NHAT:
                 setTableColumns(new String[] {
                         "Mã KH", "Họ tên", "SĐT", "CCCD", "Loại KH", "Điểm"
                 });
@@ -452,7 +490,7 @@ public class BaoBieu extends JPanel {
                 showLoc3(false);
                 break;
 
-            case NHAN_VIEN:
+            case PHONG_DAT_NHIEU_NHAT:
                 setTableColumns(new String[] {
                         "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Trạng thái"
                 });
@@ -475,7 +513,7 @@ public class BaoBieu extends JPanel {
                 showLoc3(true);
                 break;
 
-            case DICH_VU:
+            case THONG_KE_DICH_VU:
                 setTableColumns(new String[] {
                         "Mã DV", "Tên dịch vụ", "Đơn giá", "Số lượt dùng", "Doanh thu"
                 });
@@ -492,15 +530,34 @@ public class BaoBieu extends JPanel {
                 showLoc3(false);
                 break;
 
-            case KHUYEN_MAI:
+            case THONG_KE_HOA_DON:
                 setTableColumns(new String[] {
                         "Mã KM", "Tên khuyến mãi", "Giá trị", "Ngày bắt đầu", "Ngày kết thúc"
                 });
                 setCardTitles("Tổng KM", "Đang áp dụng", "Sắp hết hạn");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Khoảng giá trị:", "", "");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Khoảng giá trị:", "",
+                        "");
 
                 setComboBoxData(cboLoc1, new String[] {
                         "Tất cả", "Dưới 10%", "Từ 10% - 30%", "Trên 30%"
+                });
+                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
+                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+
+                showDateFilters(true);
+                showLoc1(true);
+                showLoc2(false);
+                showLoc3(false);
+                break;
+            case THONG_KE_DON_DAT_PHONG:
+                setTableColumns(new String[] {
+                        "Mã ĐĐP", "Khách hàng", "Phòng", "Ngày nhận", "Ngày trả", "Trạng thái", "Tiền cọc"
+                });
+                setCardTitles("Tổng đơn", "Đã nhận", "Đã đặt");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
+
+                setComboBoxData(cboLoc1, new String[] {
+                        "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
                 });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
                 setComboBoxData(cboLoc3, new String[] { "Tất cả" });
@@ -618,13 +675,14 @@ public class BaoBieu extends JPanel {
         return tableModel;
     }
 
-    public LoaiBaoBieu getLoaiBaoBieu() {
-        return loaiBaoBieu;
+    public LoaiThongKe getLoaiThongKe() {
+        return loaiThongKe;
     }
 
-    public static JPanel createPanel(LoaiBaoBieu loaiBaoBieu) {
-        BaoBieu panel = new BaoBieu(loaiBaoBieu);
-        new BaoBieuController(panel);
+    public static JPanel createPanel(LoaiThongKe loaiThongKe) {
+        QLThongke panel = new QLThongke(loaiThongKe);
+        new QLThongKeController(panel);
         return panel;
     }
+
 }

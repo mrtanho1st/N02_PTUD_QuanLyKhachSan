@@ -53,7 +53,8 @@ public class BaoBieuController {
     private final DichVu_Dao dichVuDao;
     private final KhuyenMai_Dao khuyenMaiDao;
 
-    private final NumberFormat moneyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+    @SuppressWarnings("deprecation")
+	private final NumberFormat moneyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
     private boolean dangKhoaSuKien = false;
 
@@ -72,7 +73,6 @@ public class BaoBieuController {
         dangKhoaSuKien = true;
         initController();
         dangKhoaSuKien = false;
-
         loadMacDinh();
     }
 
