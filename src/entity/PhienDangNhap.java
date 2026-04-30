@@ -1,7 +1,5 @@
 package entity;
 
-
-
 import entity.NhanVien;
 import entity.TaiKhoan;
 
@@ -14,7 +12,7 @@ public class PhienDangNhap {
     }
 
     public static void setTaiKhoanDangNhap(TaiKhoan taiKhoan) {
-    	PhienDangNhap.taiKhoanDangNhap = taiKhoan;
+        PhienDangNhap.taiKhoanDangNhap = taiKhoan;
     }
 
     public static NhanVien getNhanVienDangNhap() {
@@ -22,7 +20,7 @@ public class PhienDangNhap {
     }
 
     public static void setNhanVienDangNhap(NhanVien nhanVien) {
-    	PhienDangNhap.nhanVienDangNhap = nhanVien;
+        PhienDangNhap.nhanVienDangNhap = nhanVien;
     }
 
     public static void clear() {
@@ -32,5 +30,18 @@ public class PhienDangNhap {
 
     public static boolean isLoggedIn() {
         return taiKhoanDangNhap != null;
+    }
+
+    public static String getTenDangNhap() { // Tân - hàm lấy tên nhân viên đang đăng nhập
+        NhanVien nhanVien = PhienDangNhap.getNhanVienDangNhap();
+        if (nhanVien == null) {
+            return "User";
+        }
+        String hoTen = nhanVien.getHoTen();
+        if (hoTen == null || hoTen.trim().isEmpty()) {
+            return "User";
+        }
+        String[] parts = hoTen.trim().split("\\s+");
+        return parts[parts.length - 1];
     }
 }

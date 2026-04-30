@@ -228,6 +228,9 @@ public class QLPhanQuyen extends JPanel {
 
         txtTenDangNhap = createInputField("");
         txtMatKhau = new JPasswordField();
+        txtMatKhau.setEditable(false);
+        txtMatKhau.setEnabled(false);
+        txtMatKhau.setFocusable(false);
         cbNhanVien = new JComboBox<>();
         cbVaiTro = new JComboBox<>(new String[] {
                 "Nhân viên quản lý",

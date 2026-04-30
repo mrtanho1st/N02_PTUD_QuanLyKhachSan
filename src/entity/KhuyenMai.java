@@ -64,4 +64,13 @@ public class KhuyenMai {
 	}
 	
 	
+	@Override
+	public String toString() {
+	    if (maKM == null || maKM.isBlank()) {
+	        return "Không áp dụng";
+	    }
+
+	    return maKM + " - " + tenKM + " (" + giaTri + "%)";
+	}
+	
 }
