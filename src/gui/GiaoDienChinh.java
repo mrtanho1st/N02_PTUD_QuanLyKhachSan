@@ -32,6 +32,9 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import entity.LoaiBaoBieu;
+import entity.PhienDangNhap;
+import javax.swing.JScrollPane;
+import gui.ThongTin;
 
 public class GiaoDienChinh extends JFrame {
 
@@ -202,7 +205,8 @@ public class GiaoDienChinh extends JFrame {
                 new EmptyBorder(12, 12, 12, 12)));
         left.setBackground(SIDEBAR_BG);
 
-        JLabel lblUsername = new JLabel("Hi, Tân", SwingConstants.CENTER);
+        String tenNV = "Hi, " + PhienDangNhap.getTenDangNhap();
+        JLabel lblUsername = new JLabel(tenNV, SwingConstants.CENTER);
         lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblUsername.setForeground(new Color(226, 232, 240));
         lblUsername.setPreferredSize(new Dimension(190, 56));
@@ -524,7 +528,9 @@ public class GiaoDienChinh extends JFrame {
             showInfoMessage("Chức năng " + subMenu + " đang phát triển.");
             return;
 
-        } else if (mainMenu.equals("Báo biểu")) {
+        } else if (mainMenu.equals("Báo biểu"))
+
+        {
             if (subMenu.equals("DS Khách hàng")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.KHACH_HANG);
             } else if (subMenu.equals("DS Nhân viên")) {
