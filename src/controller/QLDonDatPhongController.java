@@ -524,8 +524,12 @@ public class QLDonDatPhongController {
                 JOptionPane.showMessageDialog(view, "Vui lòng chọn phòng trong đơn để thêm dịch vụ.");
                 return false;
             }
+            if (maDon.isEmpty()) {
+                JOptionPane.showMessageDialog(view, "Không tìm thấy mã đơn đặt phòng hiện tại.");
+                return false;
+            }
 
-            boolean ok = donDatPhongDao.themDichVuChoPhong(maPhong, maDV, soLuong);
+            boolean ok = donDatPhongDao.themDichVuChoPhong(maDon,maPhong, maDV, soLuong);
 
             if (!ok) {
                 JOptionPane.showMessageDialog(view, "Thêm dịch vụ " + maDV + " thất bại.");
@@ -534,8 +538,7 @@ public class QLDonDatPhongController {
         }
 
         if (!coChonDichVu) {
-            JOptionPane.showMessageDialog(view, "Vui lòng chọn ít nhất một dịch vụ.");
-            return false;
+            return true; // không chọn thì bỏ qua, KHÔNG báo lỗi
         }
 
         view.resetDichVuSelection();

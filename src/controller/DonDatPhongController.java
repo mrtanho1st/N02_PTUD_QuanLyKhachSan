@@ -23,9 +23,9 @@ import gui.ThongTinDatPhongDialog;
 
 public class DonDatPhongController {
 
-    private DatPhong view;
+    private static DatPhong view;
     private DonDatPhong_Dao datPhongDao;
-    private Phong_Dao phongDao;
+    private static Phong_Dao phongDao;
     private DichVu_Dao dichVuDao;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -74,8 +74,11 @@ public class DonDatPhongController {
         view.getCboLoaiPhong().addActionListener(e -> timPhongKhongThongBao());
         view.getCboTrangThai().addActionListener(e -> timPhongKhongThongBao());
     }
+    public static  void reloadData() {
+        loadDanhSachPhong();
+    }
 
-    private void loadDanhSachPhong() {
+    private static void loadDanhSachPhong() {
         List<Phong> rooms = phongDao.findAll();
         view.renderRooms(rooms);
     }

@@ -126,6 +126,15 @@ public class HoaDon_Dao {
         sql.append("LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH ");
         sql.append("LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV ");
         sql.append("LEFT JOIN Thue t ON hd.maThue = t.maThue ");
+
+        // ✅ join dịch vụ
+        sql.append("LEFT JOIN CTHoaDonDichVu ctdv ON hd.maHD = ctdv.maHD ");
+        sql.append("LEFT JOIN PhieuDichVu pdv ON ctdv.maPDV = pdv.maPDV ");
+        sql.append("LEFT JOIN DichVu dv ON pdv.maDV = dv.maDV ");
+
+        // ✅ join phòng (nếu cần tìm theo phòng)
+        sql.append("LEFT JOIN CTHoaDonPhong ctp ON hd.maHD = ctp.maHD ");
+
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
@@ -137,15 +146,17 @@ public class HoaDon_Dao {
         }
 
         if (tuKhoa != null && !tuKhoa.isBlank()) {
-            sql.append("AND (");
-            sql.append("hd.maHD LIKE ? ");
-            sql.append("OR hd.maDDP LIKE ? ");
-            sql.append("OR kh.hoTen LIKE ? ");
-            sql.append("OR nv.hoTen LIKE ? ");
-            sql.append("OR hd.maThue LIKE ? ");
-            sql.append("OR t.tenThue LIKE ? ");
-            sql.append("OR CAST(hd.tongTien AS NVARCHAR(50)) LIKE ? ");
-            sql.append(") ");
+        	sql.append("AND (");
+        	sql.append("hd.maHD LIKE ? ");
+        	sql.append("OR hd.maDDP LIKE ? ");
+        	sql.append("OR kh.hoTen LIKE ? ");
+        	sql.append("OR nv.hoTen LIKE ? ");
+        	sql.append("OR hd.maThue LIKE ? ");
+        	sql.append("OR t.tenThue LIKE ? ");
+        	sql.append("OR dv.maDV LIKE ? ");
+        	sql.append("OR dv.tenDichVu LIKE ? ");
+        	sql.append("OR CAST(hd.tongTien AS NVARCHAR(50)) LIKE ? ");
+        	sql.append(") ");
         }
 
         sql.append("ORDER BY hd.ngayLapHD DESC, hd.maHD DESC");

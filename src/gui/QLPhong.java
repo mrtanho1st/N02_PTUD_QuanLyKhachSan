@@ -22,7 +22,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import controller.QLPhongController;
-import entity.LoaiPhong;
+
 
 public class QLPhong extends JPanel {
 
@@ -44,7 +44,7 @@ public class QLPhong extends JPanel {
     private DefaultTableModel tableModel;
 
     private JTextField txtMaPhong;
-    private JComboBox<LoaiPhong> cboLoaiPhong;
+    private JComboBox<String> cboLoaiPhong;
     private JTextField txtSoNguoiToiDa;
     private JTextField txtGiaPhong;
     private JComboBox<String> cboTrangThaiPhong;
@@ -67,9 +67,13 @@ public class QLPhong extends JPanel {
 
         add(createFilterPanel(), BorderLayout.NORTH);
         add(createBodyPanel(), BorderLayout.CENTER);
+        
+        
     }
 
-    private JPanel createFilterPanel() {
+    
+
+	private JPanel createFilterPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -89,9 +93,8 @@ public class QLPhong extends JPanel {
         txtTimMaPhong = new JTextField();
         txtTimSoNguoiToiDa = new JTextField();
 
-        cboLocLoaiPhong = new JComboBox<>(new String[] {
-                "Tất cả", "Standard", "Superior", "Deluxe", "Suite"
-        });
+        cboLocLoaiPhong = new JComboBox<>();
+        
 
         cboLocTrangThai = new JComboBox<>(new String[] {
                 "Tất cả", "Trống", "Đang sử dụng", "Bảo trì"
@@ -228,9 +231,8 @@ public class QLPhong extends JPanel {
         txtMaPhong = new JTextField();
 
         cboLoaiPhong = new JComboBox<>();
-        for (LoaiPhong lp : LoaiPhong.values()) {
-            cboLoaiPhong.addItem(lp);
-        }
+        
+
 
         txtSoNguoiToiDa = new JTextField();
         txtGiaPhong = new JTextField();
@@ -364,7 +366,7 @@ public class QLPhong extends JPanel {
         return txtMaPhong;
     }
 
-    public JComboBox<LoaiPhong> getCboLoaiPhong() {
+    public JComboBox<String> getCboLoaiPhong() {
         return cboLoaiPhong;
     }
 

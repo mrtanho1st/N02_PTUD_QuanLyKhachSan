@@ -12,27 +12,31 @@ import java.util.List;
 public class DichVu_Dao {
 
     public List<DichVu> findAll() {
-        List<DichVu> list = new ArrayList<>();
-
-        String sql = "SELECT maDV, tenDichVu, giaDichVu FROM DichVu";
-
-        try (
-                Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
-            while (rs.next()) {
-                list.add(new DichVu(
-                        rs.getString("maDV"),
-                        rs.getString("tenDichVu"),
-                        rs.getDouble("giaDichVu")
-                ));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
+//        List<DichVu> list = new ArrayList<>();
+//
+//        String sql = "SELECT maDV, tenDichVu, giaDichVu FROM DichVu";
+//
+//        try (
+//                Connection con = ConnectDB.getConnection();
+//                PreparedStatement ps = con.prepareStatement(sql);
+//                ResultSet rs = ps.executeQuery()
+//        ) {
+//            while (rs.next()) {
+//                list.add(new DichVu(
+//                        rs.getString("maDV"),
+//                        rs.getString("tenDichVu"),
+//                        rs.getDouble("giaDichVu")
+//                ));
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return list;
+    	
+    	
+    	  return searchBaoBieu(null, null, null);
+   
     }
 
     // Hàm search cũ cho các giao diện nhiều ô.
@@ -54,8 +58,10 @@ public class DichVu_Dao {
         sql.append("    ISNULL(SUM(pdv.soLuong), 0) AS soLuotDung, ");
         sql.append("    ISNULL(SUM(pdv.soLuong * pdv.donGia), 0) AS doanhThu ");
         sql.append("FROM DichVu dv ");
+
         sql.append("LEFT JOIN PhieuDichVu pdv ON dv.maDV = pdv.maDV ");
-        sql.append("LEFT JOIN HoaDon hd ON pdv.maPDV = hd.maPDV ");
+        sql.append("LEFT JOIN CTHoaDonDichVu ctdv ON pdv.maPDV = ctdv.maPDV ");
+        sql.append("LEFT JOIN HoaDon hd ON ctdv.maHD = hd.maHD ");
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
@@ -249,8 +255,11 @@ public class DichVu_Dao {
         sql.append("    ISNULL(SUM(pdv.soLuong), 0) AS soLuotDung, ");
         sql.append("    ISNULL(SUM(pdv.soLuong * pdv.donGia), 0) AS doanhThu ");
         sql.append("FROM DichVu dv ");
+
         sql.append("LEFT JOIN PhieuDichVu pdv ON dv.maDV = pdv.maDV ");
-        sql.append("LEFT JOIN HoaDon hd ON pdv.maPDV = hd.maPDV ");
+        sql.append("LEFT JOIN CTHoaDonDichVu ctdv ON pdv.maPDV = ctdv.maPDV ");
+        sql.append("LEFT JOIN HoaDon hd ON ctdv.maHD = hd.maHD ");
+
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
@@ -270,7 +279,7 @@ public class DichVu_Dao {
         }
 
         sql.append("GROUP BY dv.maDV, dv.tenDichVu, dv.giaDichVu ");
-        sql.append("ORDER BY doanhThu DESC, dv.maDV");
+        sql.append("ORDER BY doanhThu DESC, dv.maDV ");
 
         try (
                 Connection con = ConnectDB.getConnection();

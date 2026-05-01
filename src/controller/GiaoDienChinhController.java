@@ -20,7 +20,10 @@ public class GiaoDienChinhController {
     }
 
     private void registerEvents() {
-        view.getBtnTrangChu().addActionListener(e -> view.showHomePage());
+    	view.getBtnTrangChu().addActionListener(e -> {
+    	    view.showHomePage();
+    	    DonDatPhongController.reloadData();
+    	});
 
         view.getBtnThongTin().addActionListener(e -> moGiaoDienThongTin());
 
