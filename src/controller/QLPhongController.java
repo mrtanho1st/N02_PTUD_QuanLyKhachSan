@@ -22,9 +22,28 @@ public class QLPhongController {
 
         initController();
         loadDataToTable();
+        loadLoaiPhongFromDB();
     }
 
-    private void initController() {
+    private void loadLoaiPhongFromDB() {
+        List<String> dsLoai = phongDao.getAllLoaiPhongFromPhong();
+
+        view.getCboLocLoaiPhong().removeAllItems();
+        view.getCboLocLoaiPhong().addItem("Tất cả");
+
+        for (String loai : dsLoai) {
+            view.getCboLocLoaiPhong().addItem(loai);
+            view.getCboLoaiPhong().addItem(loai);
+        }
+        
+//        view.getCboLoaiPhong().removeAllItems();
+//
+//        for (String loai : dsLoai) {
+//        	
+//        }
+    }
+
+	private void initController() {
         view.getBtnLamMoiTim().addActionListener(e -> lamMoiTimKiem());
 
         ganSuKienTimKiemTuDong();

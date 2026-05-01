@@ -31,6 +31,7 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
+import controller.DangNhapController;
 import entity.LoaiBaoBieu;
 import entity.PhienDangNhap;
 import javax.swing.JScrollPane;
@@ -437,8 +438,17 @@ public class GiaoDienChinh extends JFrame {
     }
 
     public void logout() {
+    	
+    	PhienDangNhap.setTaiKhoanDangNhap(null);
+        PhienDangNhap.setNhanVienDangNhap(null);
+        
+        DangNhap dangNhap = new DangNhap();
+        new DangNhapController(dangNhap);
+        dangNhap.setVisible(true);
+//        new DangNhap().setVisible(true);
+        
         dispose();
-        new DangNhap().setVisible(true);
+        
     }
 
     public boolean confirmLogout() {

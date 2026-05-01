@@ -350,8 +350,7 @@ public class DonDatPhong_Dao {
                 ps.close();
             }
 
-            themDichVuChoNhieuPhong(con, dsPhong, dsDichVu);
-
+            themDichVuChoNhieuPhong(con, maDDP, dsPhong, dsDichVu);
             con.commit();
             return true;
 
@@ -451,6 +450,7 @@ public class DonDatPhong_Dao {
 
     private void themDichVuChoNhieuPhong(
             Connection con,
+            String maDDP,
             List<Phong> dsPhong,
             List<DonDatPhongDialog.DichVuDatTruoc> dsDichVu
     ) throws Exception {
@@ -461,9 +461,9 @@ public class DonDatPhong_Dao {
         String sqlGiaDV = "SELECT giaDichVu FROM DichVu WHERE maDV = ?";
 
         String sqlInsertPDV = """
-                INSERT INTO PhieuDichVu(maPDV, maPhong, maDV, soLuong, donGia)
-                VALUES (?, ?, ?, ?, ?)
-                """;
+        	    INSERT INTO PhieuDichVu(maPDV, maDDP, maPhong, maDV, soLuong, donGia)
+        	    VALUES (?, ?, ?, ?, ?, ?)
+        	""";
 
         for (Phong phong : dsPhong) {
             for (DonDatPhongDialog.DichVuDatTruoc dv : dsDichVu) {
@@ -481,10 +481,11 @@ public class DonDatPhong_Dao {
 
                 try (PreparedStatement psInsert = con.prepareStatement(sqlInsertPDV)) {
                     psInsert.setString(1, taoMa("PDV"));
-                    psInsert.setString(2, phong.getMaPhong());
-                    psInsert.setString(3, dv.getMaDV());
-                    psInsert.setInt(4, dv.getSoLuong());
-                    psInsert.setDouble(5, donGia);
+                    psInsert.setString(2, maDDP);
+                    psInsert.setString(3, phong.getMaPhong());
+                    psInsert.setString(4, dv.getMaDV());
+                    psInsert.setInt(5, dv.getSoLuong());
+                    psInsert.setDouble(6, donGia);
                     psInsert.executeUpdate();
                 }
             }
@@ -752,72 +753,55 @@ public class DonDatPhong_Dao {
         return false;
     }
 
-    public boolean themDichVuChoPhong(String maPhong, String maDV, int soLuong) {
-        String sqlCheck = """
-                SELECT maPDV
-                FROM PhieuDichVu
-                WHERE maPhong = ? AND maDV = ?
-                """;
-
-        String sqlUpdate = """
-                UPDATE PhieuDichVu
-                SET soLuong = soLuong + ?
-                WHERE maPhong = ? AND maDV = ?
-                """;
-
+    public boolean themDichVuChoPhong(String maDDP, String maPhong, String maDV, int soLuong) {
+        String sqlCheck = "SELECT maPDV FROM PhieuDichVu WHERE maDDP = ? AND maPhong = ? AND maDV = ?";
+        String sqlUpdate = "UPDATE PhieuDichVu SET soLuong = soLuong + ? WHERE maDDP = ? AND maPhong = ? AND maDV = ?";
         String sqlGiaDV = "SELECT giaDichVu FROM DichVu WHERE maDV = ?";
-
         String sqlInsertPDV = """
-                INSERT INTO PhieuDichVu(maPDV, maPhong, maDV, soLuong, donGia)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO PhieuDichVu(maPDV, maDDP, maPhong, maDV, soLuong, donGia)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection con = ConnectDB.getConnection()) {
+            // 1. Kiểm tra tồn tại để UPDATE
             try (PreparedStatement psCheck = con.prepareStatement(sqlCheck)) {
-                psCheck.setString(1, maPhong);
-                psCheck.setString(2, maDV);
-
+                psCheck.setString(1, maDDP);
+                psCheck.setString(2, maPhong);
+                psCheck.setString(3, maDV);
                 try (ResultSet rs = psCheck.executeQuery()) {
                     if (rs.next()) {
                         try (PreparedStatement psUpdate = con.prepareStatement(sqlUpdate)) {
                             psUpdate.setInt(1, soLuong);
-                            psUpdate.setString(2, maPhong);
-                            psUpdate.setString(3, maDV);
-
+                            psUpdate.setString(2, maDDP);
+                            psUpdate.setString(3, maPhong);
+                            psUpdate.setString(4, maDV);
                             return psUpdate.executeUpdate() > 0;
                         }
                     }
                 }
             }
 
+            // 2. Nếu chưa có thì INSERT
             double donGia = 0;
-
             try (PreparedStatement psGia = con.prepareStatement(sqlGiaDV)) {
                 psGia.setString(1, maDV);
-
                 try (ResultSet rs = psGia.executeQuery()) {
-                    if (rs.next()) {
-                        donGia = rs.getDouble("giaDichVu");
-                    } else {
-                        return false;
-                    }
+                    if (rs.next()) donGia = rs.getDouble("giaDichVu");
                 }
             }
 
             try (PreparedStatement ps = con.prepareStatement(sqlInsertPDV)) {
                 ps.setString(1, taoMa("PDV"));
-                ps.setString(2, maPhong);
-                ps.setString(3, maDV);
-                ps.setInt(4, soLuong);
-                ps.setDouble(5, donGia);
-
+                ps.setString(2, maDDP);   // Đảm bảo lấy giá trị từ Controller truyền xuống
+                ps.setString(3, maPhong);
+                ps.setString(4, maDV);
+                ps.setInt(5, soLuong);
+                ps.setDouble(6, donGia);
                 return ps.executeUpdate() > 0;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return false;
     }
     public boolean huyDonDatPhong(String maDDP) {
@@ -959,7 +943,9 @@ public class DonDatPhong_Dao {
                     pdv.soLuong,
                     pdv.soLuong * pdv.donGia AS thanhTien
                 FROM CTDonDatPhong ct
-                INNER JOIN PhieuDichVu pdv ON ct.maPhong = pdv.maPhong
+                INNER JOIN PhieuDichVu pdv 
+					ON ct.maPhong = pdv.maPhong 
+					AND ct.maDDP = pdv.maDDP
                 INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
                 WHERE ct.maDDP = ?
                 ORDER BY pdv.maPhong, pdv.maPDV DESC
@@ -993,7 +979,7 @@ public class DonDatPhong_Dao {
     public boolean xoaDichVuChoPhong(String maPhong, String maDV) {
         String sql = """
                 DELETE FROM PhieuDichVu
-                WHERE maPhong = ? AND maDV = ?
+        			WHERE maDDP = ? AND maPhong = ? AND maDV = ?
                 """;
 
         try (

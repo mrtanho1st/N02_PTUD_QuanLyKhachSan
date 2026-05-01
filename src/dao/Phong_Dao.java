@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import connection.ConnectDB;
+//import entity.LoaiPhong;
 import entity.Phong;
 
 public class Phong_Dao {
@@ -248,6 +249,26 @@ public class Phong_Dao {
                 }
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    
+    public List<String> getAllLoaiPhongFromPhong() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT loaiPhong FROM Phong";
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                list.add(rs.getString("loaiPhong"));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

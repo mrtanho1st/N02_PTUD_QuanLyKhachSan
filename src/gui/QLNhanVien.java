@@ -224,7 +224,7 @@ public class QLNhanVien extends JPanel {
         cboTrangThaiLamViec = new JComboBox<>(new String[] { "Đang làm", "Nghỉ việc", "Tạm nghỉ" });
         txtDiaChi = new JTextField();
         cboCaLamViec = new JComboBox<>(new String[] { "Ca sáng", "Ca chiều", "Ca tối" });
-        cboViTriCongViec = new JComboBox<>(new String[] { "Lễ tân", "Bảo vệ", "Kế toán", "Quản lý" });
+        cboViTriCongViec = new JComboBox<>(new String[] { "Lễ tân", "Quản lý" });
 
         styleTextField(txtMaNV);
         styleTextField(txtHoTen);
