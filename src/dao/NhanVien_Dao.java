@@ -1,13 +1,13 @@
 package dao;
 
+import connection.ConnectDB;
+import entity.NhanVien;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-
-import connection.ConnectDB;
-import entity.NhanVien;
 
 public class NhanVien_Dao {
 
@@ -309,5 +309,100 @@ public class NhanVien_Dao {
                 rs.getString("caLamViec"),
                 rs.getString("viTriCongViec")
         );
+    }
+
+    // Thống kê theo nhân viên với các bộ lọc (Tường)
+    public List<Object[]> getThongKeTheoNhanVien(Date tuNgay, Date denNgay, String tuKhoa, String caLamViec, String trangThaiLamViec, String viTriCongViec) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY COUNT(hd.maHD) DESC) AS xepHang, ");
+        sql.append("       nv.maNV, nv.hoTen, nv.sdt, nv.email, nv.caLamViec, nv.viTriCongViec, ");
+        sql.append("       COUNT(DISTINCT hd.maHD) AS soHoaDon, SUM(hd.tongTien) AS doanhThu ");
+        sql.append("FROM NhanVien nv ");
+        sql.append("LEFT JOIN HoaDon hd ON nv.maNV = hd.maNV ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD >= ?) ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
+        }
+
+        if (tuKhoa != null && !tuKhoa.isBlank()) {
+            sql.append("AND (nv.maNV LIKE ? OR nv.hoTen LIKE ? OR nv.sdt LIKE ?) ");
+        }
+
+        if (caLamViec != null && !caLamViec.isBlank()) {
+            sql.append("AND nv.caLamViec = ? ");
+        }
+
+        if (trangThaiLamViec != null && !trangThaiLamViec.isBlank()) {
+            sql.append("AND nv.trangThaiLamViec = ? ");
+        }
+
+        if (viTriCongViec != null && !viTriCongViec.isBlank()) {
+            sql.append("AND nv.viTriCongViec = ? ");
+        }
+
+        sql.append("GROUP BY nv.maNV, nv.hoTen, nv.sdt, nv.email, nv.caLamViec, nv.viTriCongViec ");
+        sql.append("ORDER BY COUNT(hd.maHD) DESC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            if (tuKhoa != null && !tuKhoa.isBlank()) {
+                String kw = "%" + tuKhoa.trim() + "%";
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+            }
+
+            if (caLamViec != null && !caLamViec.isBlank()) {
+                ps.setString(index++, caLamViec);
+            }
+
+            if (trangThaiLamViec != null && !trangThaiLamViec.isBlank()) {
+                ps.setString(index++, trangThaiLamViec);
+            }
+
+            if (viTriCongViec != null && !viTriCongViec.isBlank()) {
+                ps.setString(index++, viTriCongViec);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[9];
+                    row[0] = rs.getInt("xepHang");
+                    row[1] = rs.getString("maNV");
+                    row[2] = rs.getString("hoTen");
+                    row[3] = rs.getString("sdt");
+                    row[4] = rs.getString("email");
+                    row[5] = rs.getString("caLamViec");
+                    row[6] = rs.getString("viTriCongViec");
+                    row[7] = rs.getInt("soHoaDon");
+                    row[8] = rs.getDouble("doanhThu");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
     }
 }

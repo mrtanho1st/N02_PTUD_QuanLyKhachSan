@@ -1,14 +1,13 @@
 package dao;
 
+import connection.ConnectDB;
+import entity.DichVu;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-
-import connection.ConnectDB;
-import entity.DichVu;
 
 public class DichVu_Dao {
 
@@ -318,5 +317,62 @@ public class DichVu_Dao {
         dv.setDoanhThu(rs.getDouble("doanhThu"));
 
         return dv;
+    }
+
+    // Thống kê dịch vụ (Tường)
+    public List<Object[]> getThongKeDichVu(Date tuNgay, Date denNgay) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT dv.maDV, dv.tenDichVu, dv.giaDichVu, ");
+        sql.append("       ISNULL(SUM(pdv.soLuong), 0) AS soLuotSuDung, ");
+        sql.append("       ISNULL(SUM(pdv.soLuong * pdv.donGia), 0) AS doanhThu ");
+        sql.append("FROM DichVu dv ");
+        sql.append("LEFT JOIN PhieuDichVu pdv ON dv.maDV = pdv.maDV ");
+        sql.append("LEFT JOIN HoaDon hd ON pdv.maHD = hd.maHD ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD >= ?) ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
+        }
+
+        sql.append("GROUP BY dv.maDV, dv.tenDichVu, dv.giaDichVu ");
+        sql.append("ORDER BY doanhThu DESC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[5];
+                    row[0] = rs.getString("maDV");
+                    row[1] = rs.getString("tenDichVu");
+                    row[2] = rs.getDouble("giaDichVu");
+                    row[3] = rs.getInt("soLuotSuDung");
+                    row[4] = rs.getDouble("doanhThu");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
     }
 }

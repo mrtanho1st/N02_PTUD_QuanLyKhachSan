@@ -26,6 +26,11 @@ import javax.swing.table.DefaultTableModel;
 
 import org.jdatepicker.JDatePicker;
 import org.jdatepicker.UtilDateModel;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 import controller.QLThongKeController;
 import entity.LoaiThongKe;
@@ -71,6 +76,7 @@ public class QLThongke extends JPanel {
 
     private JPanel pnlFilter;
     private JPanel pnlThongKe;
+    private JPanel pnlChartContainer;
 
     private LoaiThongKe loaiThongKe;
 
@@ -271,18 +277,61 @@ public class QLThongke extends JPanel {
     }
 
     private JPanel createBodyEastPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setOpaque(false);
+        // Container chứa biểu đồ, có viền đồng bộ với phần còn lại
+        pnlChartContainer = new JPanel(new BorderLayout());
+        pnlChartContainer.setBackground(Color.WHITE);
+        pnlChartContainer.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(10, 10, 10, 10)));
 
-        JLabel lblChartPlaceholder = new JLabel("Biểu đồ sẽ hiển thị ở đây");
-        lblChartPlaceholder.setFont(new Font("Segoe UI", Font.ITALIC, 16));
-        lblChartPlaceholder.setForeground(TEXT_DARK);
-        lblChartPlaceholder.setHorizontalAlignment(JLabel.CENTER);
-        panel.add(lblChartPlaceholder, BorderLayout.CENTER);
+        // Gắn biểu đồ mặc định (trống) khi mới mở màn hình
+        DefaultCategoryDataset emptyDataset = new DefaultCategoryDataset();
+        JFreeChart barChart = createBarChart(emptyDataset, "Biểu đồ thống kê", "Danh mục", "Giá trị");
+        ChartPanel chartPanel = new ChartPanel(barChart);
+        chartPanel.setOpaque(false);
+        
+        pnlChartContainer.add(chartPanel, BorderLayout.CENTER);
 
-        // gánkích thước cố định cho panel
-        panel.setPreferredSize(new Dimension(500, 0));
-        return panel;
+        // Panel bọc ngoài cùng để chỉnh kích thước và margin
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setBorder(new EmptyBorder(0, 16, 0, 0)); // Cách bảng bên trái 16px
+        wrapper.setPreferredSize(new Dimension(500, 0));
+        wrapper.add(pnlChartContainer, BorderLayout.CENTER);
+
+        return wrapper;
+    }
+
+    // Hàm hỗ trợ cấu hình giao diện cho biểu đồ cột
+    private JFreeChart createBarChart(DefaultCategoryDataset dataset, String title, String xLabel, String yLabel) {
+        JFreeChart chart = ChartFactory.createBarChart(
+                title, xLabel, yLabel, dataset,
+                PlotOrientation.VERTICAL, // Cột dọc
+                true, true, false);
+
+        // Tùy chỉnh màu sắc, font chữ cho đẹp và hợp tông với App của bạn
+        chart.setBackgroundPaint(Color.WHITE);
+        chart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 18));
+        chart.getTitle().setPaint(TEXT_DARK);
+        
+        org.jfree.chart.plot.CategoryPlot plot = chart.getCategoryPlot();
+        plot.setBackgroundPaint(PANEL_BG);
+        plot.setRangeGridlinePaint(CARD_BORDER);
+        plot.getDomainAxis().setLabelFont(new Font("Segoe UI", Font.BOLD, 14));
+        plot.getRangeAxis().setLabelFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        return chart;
+    }
+
+    // Cung cấp hàm public để Controller gọi tới mỗi khi muốn vẽ lại biểu đồ
+    public void updateChart(DefaultCategoryDataset dataset, String title, String xLabel, String yLabel) {
+        JFreeChart chart = createBarChart(dataset, title, xLabel, yLabel);
+        ChartPanel chartPanel = new ChartPanel(chart);
+        
+        pnlChartContainer.removeAll();
+        pnlChartContainer.add(chartPanel, BorderLayout.CENTER);
+        pnlChartContainer.revalidate();
+        pnlChartContainer.repaint();
     }
 
     private JPanel createBodyWestPanel() {
@@ -412,164 +461,157 @@ public class QLThongke extends JPanel {
     // Cấu hình mặc định theo loại báo biểu
 
     private void cauHinhMacDinhTheoLoai() {
-        switch (loaiThongKe) {
-            case DOANH_THU_THEO_THOI_GIAN:
-                setTableColumns(new String[] {
-                        "Mã HD", "Mã ĐĐP", "Khách hàng", "Nhân viên", "Ngày lập", "Thuế", "Tổng tiền"
-                });
-                setCardTitles("Tổng hóa đơn", "Tổng doanh thu", "Hóa đơn cao nhất");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+    switch (loaiThongKe) {
+        case DOANH_THU_THEO_THOI_GIAN:
+            setTableColumns(new String[] {
+                    "Thời gian", "Số lượng hóa đơn", "Doanh thu phòng", "Doanh thu dịch vụ", "Tổng doanh thu"
+            });
+            // Card: Thể hiện các con số tổng quan về tài chính
+            setCardTitles("Tổng số hóa đơn", "Tổng doanh thu", "Ngày doanh thu cao nhất");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
 
-                setComboBoxData(cboLoc1, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+            setComboBoxData(cboLoc1, new String[] { "Tất cả" });
+            
+            showDateFilters(true);
+            showLoc1(false); showLoc2(false); showLoc3(false);
+            break;
 
-                showDateFilters(true);
-                showLoc1(false);
-                showLoc2(false);
-                showLoc3(false);
-                break;
+        case DOANH_THU_THEO_KHACH_HANG:
+            setTableColumns(new String[] {
+                    "Mã khách hàng", "Tên khách hàng", "Hạng thành viên", "Số lần lưu trú", "Tổng chi tiêu"
+            });
+            // Card: Đánh giá khách hàng mang lại dòng tiền
+            setCardTitles("Tổng số khách hàng", "Tổng lượt lưu trú", "Chi tiêu cao nhất");
+            // Lọc theo Loại khách hàng thay vì Tình trạng đơn
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại KH:", "", "");
 
-            case DOANH_THU_THEO_KHACH_HANG:
-                setTableColumns(new String[] {
-                        "Mã ĐĐP", "Khách hàng", "Phòng", "Ngày nhận", "Ngày trả", "Trạng thái", "Tiền cọc"
-                });
-                setCardTitles("Tổng đơn", "Đã nhận", "Đã đặt");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Thường", "VIP", "Thân thiết"
+            });
 
-                setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
-                });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+            showDateFilters(true);
+            showLoc1(true); showLoc2(false); showLoc3(false);
+            break;
 
-                showDateFilters(true);
-                showLoc1(true);
-                showLoc2(false);
-                showLoc3(false);
-                break;
+        case DOANH_THU_THEO_PHONG:
+            setTableColumns(new String[] {
+                    "Mã phòng", "Loại phòng", "Số lượt thuê", "Tổng số ngày thuê", "Tổng doanh thu"
+            });
+            // Card: Hiệu suất sinh lời của phòng
+            setCardTitles("Tổng lượt thuê", "Tổng doanh thu phòng", "Phòng doanh thu cao nhất");
+            // Lọc theo Loại phòng thay vì Tình trạng đơn
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "", "");
 
-            case DOANH_THU_THEO_PHONG:
-                setTableColumns(new String[] {
-                        "Mã phòng", "Loại phòng", "Số người", "Giá phòng", "Trạng thái"
-                });
-                setCardTitles("Tổng phòng", "Phòng trống", "Đang sử dụng");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "Trạng thái:", "");
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
+            });
 
-                setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình",
-                        "Phòng Thượng hạng"
-                });
-                setComboBoxData(cboLoc2, new String[] {
-                        "Tất cả", "Trống", "Đang sử dụng", "Bảo trì"
-                });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+            showDateFilters(true);
+            showLoc1(true); showLoc2(false); showLoc3(false);
+            break;
 
-                showDateFilters(false);
-                showLoc1(true);
-                showLoc2(true);
-                showLoc3(false);
-                break;
+        case KHACH_HANG_DIEM_CAO_NHAT:
+            setTableColumns(new String[] {
+                    "Xếp hạng", "Mã KH", "Tên khách hàng", "Số điện thoại", "Loại khách hàng", "Tổng điểm số"
+            });
+            // Card: Focus vào điểm số tích lũy
+            setCardTitles("Tổng số khách", "Khách điểm cao nhất", "Điểm trung bình/Khách");
+            setFilterLabels("", "", "Từ khóa:", "Loại KH:", "", "");
 
-            case KHACH_HANG_DIEM_CAO_NHAT:
-                setTableColumns(new String[] {
-                        "Mã KH", "Họ tên", "SĐT", "CCCD", "Loại KH", "Điểm"
-                });
-                setCardTitles("Tổng khách", "Khách VIP", "Thân thiết");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại KH:", "", "");
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Thường", "VIP", "Thân thiết"
+            });
 
-                setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Thường", "VIP", "Thân thiết"
-                });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+            showDateFilters(false); // Báo cáo Top không cần Từ ngày - Đến ngày
+            showLoc1(true); showLoc2(false); showLoc3(false);
+            break;
 
-                showDateFilters(false);
-                showLoc1(true);
-                showLoc2(false);
-                showLoc3(false);
-                break;
+        case PHONG_DAT_NHIEU_NHAT:
+            setTableColumns(new String[] {
+                    "Xếp hạng", "Mã phòng", "Loại phòng", "Số lượt đặt", "Tổng số ngày sử dụng"
+            });
+            // Card: Tần suất hoạt động của vật chất
+            setCardTitles("Tổng lượt đặt phòng", "Tổng ngày sử dụng", "Phòng hot nhất");
+            // Sửa lỗi copy-paste từ nhân viên: Đổi thành lọc theo Loại phòng và Trạng thái hiện tại
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "Trạng thái:", "");
 
-            case PHONG_DAT_NHIEU_NHAT:
-                setTableColumns(new String[] {
-                        "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Trạng thái"
-                });
-                setCardTitles("Tổng NV", "Đang làm", "Nghỉ việc");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Ca làm:", "Trạng thái:", "Vị trí:");
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
+            });
+            setComboBoxData(cboLoc2, new String[] {
+                    "Tất cả", "Trống", "Đang sử dụng", "Đã đặt", "Bảo trì"
+            });
 
-                setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Ca sáng", "Ca chiều", "Ca tối"
-                });
-                setComboBoxData(cboLoc2, new String[] {
-                        "Tất cả", "Đang làm", "Nghỉ việc"
-                });
-                setComboBoxData(cboLoc3, new String[] {
-                        "Tất cả", "Lễ tân", "Lễ Tân", "Quản lý"
-                });
+            showDateFilters(true); // Nên mở Date để xem phòng nào hot trong tháng/quý
+            showLoc1(true); showLoc2(true); showLoc3(false);
+            break;
 
-                showDateFilters(false);
-                showLoc1(true);
-                showLoc2(true);
-                showLoc3(true);
-                break;
+        case THONG_KE_DICH_VU:
+            setTableColumns(new String[] {
+                    "Mã dịch vụ", "Tên dịch vụ", "Đơn giá", "Số lượng bán ra", "Tổng doanh thu"
+            });
+            // Card: Hiệu suất bán chéo dịch vụ
+            setCardTitles("Tổng lượt sử dụng", "Tổng doanh thu DV", "Dịch vụ hot nhất");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
 
-            case THONG_KE_DICH_VU:
-                setTableColumns(new String[] {
-                        "Mã DV", "Tên dịch vụ", "Đơn giá", "Số lượt dùng", "Doanh thu"
-                });
-                setCardTitles("Tổng dịch vụ", "Tổng lượt dùng", "Doanh thu DV");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+            showDateFilters(true);
+            showLoc1(false); showLoc2(false); showLoc3(false);
+            break;
 
-                setComboBoxData(cboLoc1, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+        case THONG_KE_HOA_DON:
+            setTableColumns(new String[] {
+                    "Mã hóa đơn", "Ngày lập", "Tên khách hàng", "Nhân viên lập", "Tiền phòng", "Tiền dịch vụ", "Thuế áp dụng", "Tổng thanh toán"
+            });
+            // Card: Dữ liệu sổ sách
+            setCardTitles("Tổng số hóa đơn", "Tiền phòng thu được", "Tiền dịch vụ thu được");
+            // Có thể lọc theo các mốc giá trị hóa đơn
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Giá trị HĐ:", "", "");
 
-                showDateFilters(true);
-                showLoc1(false);
-                showLoc2(false);
-                showLoc3(false);
-                break;
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Dưới 1 triệu", "Từ 1 - 3 triệu", "Trên 3 triệu"
+            });
 
-            case THONG_KE_HOA_DON:
-                setTableColumns(new String[] {
-                        "Mã KM", "Tên khuyến mãi", "Giá trị", "Ngày bắt đầu", "Ngày kết thúc"
-                });
-                setCardTitles("Tổng KM", "Đang áp dụng", "Sắp hết hạn");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Khoảng giá trị:", "",
-                        "");
+            showDateFilters(true);
+            showLoc1(true); showLoc2(false); showLoc3(false);
+            break;
 
-                setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Dưới 10%", "Từ 10% - 30%", "Trên 30%"
-                });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+        case THONG_KE_DON_DAT_PHONG:
+            setTableColumns(new String[] {
+                    "Thời gian", "Tổng số đơn", "Số đơn đã đặt", "Số đơn đã nhận", "Số đơn hoàn thành", "Tổng tiền cọc"
+            });
+            // Bạn đã làm phần này rất chuẩn rồi
+            setCardTitles("Tổng đơn đặt", "Đơn hoàn thành", "Tiền cọc thu được");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
 
-                showDateFilters(true);
-                showLoc1(true);
-                showLoc2(false);
-                showLoc3(false);
-                break;
-            case THONG_KE_DON_DAT_PHONG:
-                setTableColumns(new String[] {
-                        "Mã ĐĐP", "Khách hàng", "Phòng", "Ngày nhận", "Ngày trả", "Trạng thái", "Tiền cọc"
-                });
-                setCardTitles("Tổng đơn", "Đã nhận", "Đã đặt");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
+            });
 
-                setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
-                });
-                setComboBoxData(cboLoc2, new String[] { "Tất cả" });
-                setComboBoxData(cboLoc3, new String[] { "Tất cả" });
+            showDateFilters(true);
+            showLoc1(true); showLoc2(false); showLoc3(false);
+            break;
 
-                showDateFilters(true);
-                showLoc1(true);
-                showLoc2(false);
-                showLoc3(false);
-                break;
-        }
+        case THONG_KE_THEO_NHAN_VIEN:
+            setTableColumns(new String[] {
+                    "Xếp hạng", "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Số hóa đơn", "Tổng doanh thu","Tháng"
+            });
+            // Card: Đánh giá KPI nhân viên
+            setCardTitles("Tổng nhân sự", "Số hóa đơn đã lập", "Nhân viên xuất sắc nhất");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "Tháng:", "Vị trí:");
+
+            setComboBoxData(cboLoc2, new String[] {
+                    "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+            });
+            setComboBoxData(cboLoc3, new String[] {
+                    "Tất cả", "Lễ tân", "Quản lý"
+            });
+
+            showDateFilters(true); // Mở Date để xem KPI theo tháng
+            showLoc1(false); showLoc2(true); showLoc3(true);
+            break;
     }
-
+}
     public void setCardTitles(String c1, String c2, String c3) {
         lblCard1Title.setText(c1);
         lblCard2Title.setText(c2);
