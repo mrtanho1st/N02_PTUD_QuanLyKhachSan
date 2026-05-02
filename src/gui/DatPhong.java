@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -32,6 +33,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import org.jdatepicker.JDatePicker;
+import org.jdatepicker.UtilDateModel;
+
 import controller.DonDatPhongController;
 import entity.Phong;
 
@@ -56,6 +60,9 @@ public class DatPhong extends JPanel {
     private JComboBox<String> cboTrangThai;
     private JButton btnTaiLai;
 
+    private JDatePicker dateTuNgay;
+    private JDatePicker dateDenNgay;
+    
     private JPanel pnlDanhSachPhong;
 
     private JButton btnTaoDonDatPhong;
@@ -72,12 +79,28 @@ public class DatPhong extends JPanel {
         initUI();
     }
 
+//    private void initUI() {
+//        setLayout(new BorderLayout(0, 16));
+//        setBackground(APP_BG);
+//        setBorder(new EmptyBorder(12, 12, 12, 12));
+//
+//        add(createFilterPanel(), BorderLayout.NORTH);
+//        add(createRoomArea(), BorderLayout.CENTER);
+//        add(createActionPanel(), BorderLayout.SOUTH);
+//    }
     private void initUI() {
         setLayout(new BorderLayout(0, 16));
         setBackground(APP_BG);
         setBorder(new EmptyBorder(12, 12, 12, 12));
 
-        add(createFilterPanel(), BorderLayout.NORTH);
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.setBackground(APP_BG);
+
+        topPanel.add(createFilterPanel());
+        topPanel.add(createDatePanel()); // 👈 thêm ở đây
+
+        add(topPanel, BorderLayout.NORTH);
         add(createRoomArea(), BorderLayout.CENTER);
         add(createActionPanel(), BorderLayout.SOUTH);
     }
@@ -148,6 +171,31 @@ public class DatPhong extends JPanel {
         gbc.gridx = 6;
         gbc.weightx = 0;
         panel.add(btnTaiLai, gbc);
+
+        return panel;
+    }
+    
+    private JPanel createDatePanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        panel.setBackground(PANEL_BG);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(CARD_BORDER),
+                new EmptyBorder(10, 18, 10, 18)
+        ));
+
+        JLabel lblTuNgay = createLabel("Từ ngày:");
+        JLabel lblDenNgay = createLabel("Đến ngày:");
+
+        dateTuNgay = createDatePicker();
+        dateDenNgay = createDatePicker();
+
+        dateTuNgay.setPreferredSize(new Dimension(160, 35));
+        dateDenNgay.setPreferredSize(new Dimension(160, 35));
+
+        panel.add(lblTuNgay);
+        panel.add(dateTuNgay);
+        panel.add(lblDenNgay);
+        panel.add(dateDenNgay);
 
         return panel;
     }
@@ -295,6 +343,53 @@ public class DatPhong extends JPanel {
         addMouseListenerToChildren(card, room);
 
         return wrapper;
+    }
+    private JDatePicker createDatePicker() {
+        UtilDateModel model = new UtilDateModel();
+        JDatePicker datePicker = new JDatePicker(model);
+
+        datePicker.setPreferredSize(new Dimension(220, 38));
+        datePicker.setMinimumSize(new Dimension(100, 38));
+        datePicker.setBackground(Color.WHITE);
+        datePicker.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        styleDatePickerChildren(datePicker);
+
+        return datePicker;
+    }
+    private void styleDatePickerChildren(Container container) {
+        for (Component comp : container.getComponents()) {
+            comp.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+            if (comp instanceof JTextField) {
+                JTextField textField = (JTextField) comp;
+                textField.setBackground(Color.WHITE);
+                textField.setForeground(TEXT_DARK);
+                textField.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(CARD_BORDER),
+                        new EmptyBorder(6, 8, 6, 8)
+                ));
+                textField.setPreferredSize(new Dimension(160, 34));
+                textField.setMinimumSize(new Dimension(120, 34));
+            }
+
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                button.setText("📅");
+                button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
+                button.setFocusPainted(false);
+                button.setBackground(BUTTON_BG);
+                button.setForeground(TEXT_DARK);
+                button.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
+                button.setPreferredSize(new Dimension(36, 34));
+                button.setMinimumSize(new Dimension(36, 34));
+                button.setMargin(new Insets(0, 0, 0, 0));
+            }
+
+            if (comp instanceof Container) {
+                styleDatePickerChildren((Container) comp);
+            }
+        }
     }
 
     private void addMouseListenerToChildren(Component component, Phong room) {
@@ -524,6 +619,14 @@ public class DatPhong extends JPanel {
 
     public boolean hasSelectedRooms() {
         return !selectedRooms.isEmpty();
+    }
+    
+    public JDatePicker getDateTuNgay() {
+        return dateTuNgay;
+    }
+
+    public JDatePicker getDateDenNgay() {
+        return dateDenNgay;
     }
 
     public static JPanel createPanel() {
