@@ -2,6 +2,8 @@ package gui;
 
 import entity.LoaiBaoBieu;
 import entity.LoaiThongKe;
+import entity.PhienDangNhap;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -31,6 +33,9 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+
+import controller.DangNhapController;
+import controller.GiaoDienChinhController;
 
 public class GiaoDienChinh extends JFrame {
 
@@ -160,12 +165,12 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnDanhMuc);
 
         btnXuLi = createNavButton("Xử lí", new String[] {
-                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Thanh toán"
+                "Đặt phòng", "Check-in/Check-out", "Thanh toán"
         });
         nav.add(btnXuLi);
 
         btnTimKiem = createNavButton("Tìm kiếm", new String[] {
-                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ"
+                "Hóa đơn", "Khách hàng", "Phòng", "Nhân viên", "Khuyến mãi", "Dịch vụ", "Đơn đặt phòng"
         });
         nav.add(btnTimKiem);
 
@@ -429,9 +434,17 @@ public class GiaoDienChinh extends JFrame {
         }
     }
 
+    //chinh sua de co the logout
     public void logout() {
+    	
+    	PhienDangNhap.setNhanVienDangNhap(null);
+    	PhienDangNhap.setTaiKhoanDangNhap(null);
+    	
+    	DangNhap dangNhap = new DangNhap();
+        new DangNhapController(dangNhap);
+        dangNhap.setVisible(true);
+        
         dispose();
-        new DangNhap().setVisible(true);
     }
 
     public boolean confirmLogout() {
@@ -484,9 +497,7 @@ public class GiaoDienChinh extends JFrame {
                 panel = DatPhong.createPanel();
             } else if (subMenu.equals("Check-in/Check-out")) {
                 panel = CheckInCheckOut.createPanel();
-            } else if (subMenu.equals("Hóa đơn")) {
-                panel = QLHoaDon.createPanel();
-            } else if (subMenu.equals("Thanh toán")) {
+            }else if (subMenu.equals("Thanh toán")) {
                 panel = ThanhToan.createPanel();
             }
 
@@ -503,6 +514,8 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLKhuyenMai.createPanel();
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
+            }else if (subMenu.equals("Đơn đặt phòng")) {
+                panel = QLDonDatPhong.createPanel();
             }
 
         } else if (mainMenu.equals("Cập nhật")) {
