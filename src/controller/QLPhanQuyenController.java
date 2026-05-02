@@ -133,15 +133,21 @@ public class QLPhanQuyenController {
     private void updateTaiKhoan() {
         String tenDangNhap = view.getTxtTenDangNhap().getText().trim();
         String matKhau = new String(view.getTxtMatKhau().getPassword()).trim();
-        String vaiTro = view.getCbVaiTro().getSelectedItem().toString();
+        String vaiTroCbo = view.getCbVaiTro().getSelectedItem().toString();
         NhanVienItem nv = (NhanVienItem) view.getCbNhanVien().getSelectedItem();
 
+        String vaiTro = null;
+        if(vaiTroCbo.equals("Quản lý")) {
+        	vaiTro = "QuanLy";
+        }else {
+        	vaiTro = "LeTan";
+        }
         if (tenDangNhap.isEmpty() || nv == null) {
             JOptionPane.showMessageDialog(view, "Vui lòng chọn tài khoản cần cập nhật.");
             return;
         }
 
-        boolean result = dao.updateTaiKhoan(tenDangNhap, matKhau, vaiTro, nv.getMaNV());
+        boolean result = dao.updateTaiKhoan(tenDangNhap, vaiTro, nv.getMaNV());
 
         if (result) {
             JOptionPane.showMessageDialog(view, "Cập nhật tài khoản thành công.");

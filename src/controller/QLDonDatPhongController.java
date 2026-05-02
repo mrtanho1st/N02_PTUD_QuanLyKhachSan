@@ -7,7 +7,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
-import dao.CheckInCheckOut_Dao;
 import dao.DichVu_Dao;
 import dao.DonDatPhong_Dao;
 import dao.Phong_Dao;
@@ -65,6 +64,9 @@ public class QLDonDatPhongController {
             	loadPhongCanDoiCombo();
 
             	view.resetDichVuSelection();
+            	
+            	String trangThai = view.getCboTrangThaiDon().getSelectedItem().toString();
+                capNhatTrangThaiNut(trangThai);
             }
         });
 
@@ -103,6 +105,23 @@ public class QLDonDatPhongController {
         view.addPropertyChangeListener("xoaDichVuTrongDon", e -> {
             xoaDichVuDangChon();
         });
+    }
+    
+    private void capNhatTrangThaiNut(String trangThai) {
+    	if("Đã nhận".equalsIgnoreCase(trangThai)) {
+    		view.getBtnHuyDon().setEnabled(false);
+    	}else if(("Đã hủy".equalsIgnoreCase(trangThai) || "Hoàn thành".equalsIgnoreCase(trangThai))) {
+    		 view.getBtnLuu().setEnabled(false);
+    	     view.getBtnHuyDon().setEnabled(false);
+
+    	     view.getCboThaoTacPhong().setEnabled(false);
+    	     view.getCboPhongTrong().setEnabled(false);
+    	     view.getCboPhongCanDoi().setEnabled(false);
+
+    	     view.getTblDichVu().setEnabled(false);
+    	}
+    	
+        
     }
     
     private void xoaDichVuDangChon() {
@@ -185,6 +204,7 @@ public class QLDonDatPhongController {
         String maDon = view.getTxtTimMaDon().getText().trim();
         String khachHang = view.getTxtTimKhachHang().getText().trim();
         String trangThai = view.getCboLocTrangThai().getSelectedItem().toString();
+        
 
         List<DonDatPhong> list = donDatPhongDao.search(
                 "",
@@ -208,6 +228,7 @@ public class QLDonDatPhongController {
             model.addRow(new Object[] {
                     ddp.getMaDDP(),
                     ddp.getTenKH(),
+                   
                     ddp.getMaPhong(),
                     ddp.getNgayNhan(),
                     ddp.getNgayTra(),
@@ -266,8 +287,6 @@ public class QLDonDatPhongController {
 
         view.getTxtMaDon().setText(maDon);
         view.getTxtKhachHang().setText(khachHang);
-        view.getTxtCCCD().setText("");
-        view.getTxtSoDienThoai().setText("");
         view.getTxtNgayNhanPhong().setText(ngayNhan);
         view.getTxtNgayTraPhong().setText(ngayTra);
         view.getTxtSoLuongNguoi().setText(soNguoi);
@@ -349,6 +368,7 @@ public class QLDonDatPhongController {
     }
 
     private void luuThayDoi() {
+    	
         String maDon = view.getTxtMaDon().getText().trim();
 
         if (maDon.isEmpty()) {

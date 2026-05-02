@@ -46,14 +46,12 @@ public class QLThongke extends JPanel {
 
     private JLabel lblTuNgay;
     private JLabel lblDenNgay;
-    private JLabel lblTuKhoa;
     private JLabel lblLoc1;
     private JLabel lblLoc2;
     private JLabel lblLoc3;
 
     private JDatePicker dateTuNgay;
     private JDatePicker dateDenNgay;
-    private JTextField txtTuKhoa;
 
     private JComboBox<String> cboLoc1;
     private JComboBox<String> cboLoc2;
@@ -120,20 +118,18 @@ public class QLThongke extends JPanel {
 
         lblTuNgay = createLabel("Từ ngày:");
         lblDenNgay = createLabel("Đến ngày:");
-        lblTuKhoa = createLabel("Từ khóa:");
         lblLoc1 = createLabel("Lọc 1:");
         lblLoc2 = createLabel("Lọc 2:");
         lblLoc3 = createLabel("Lọc 3:");
 
         dateTuNgay = createDatePicker();
         dateDenNgay = createDatePicker();
-        txtTuKhoa = new JTextField();
 
         cboLoc1 = new JComboBox<>(new String[] { "Tất cả" });
         cboLoc2 = new JComboBox<>(new String[] { "Tất cả" });
         cboLoc3 = new JComboBox<>(new String[] { "Tất cả" });
 
-        styleTextField(txtTuKhoa);
+
         styleComboBox(cboLoc1);
         styleComboBox(cboLoc2);
         styleComboBox(cboLoc3);
@@ -142,35 +138,28 @@ public class QLThongke extends JPanel {
         btnXuatExcel = createButton("Xuất Excel");
         btnInPdf = createButton("In / PDF");
 
-        // Hàng 1: Từ khóa | Từ ngày | Đến ngày
+        // Hàng 2: Từ khóa | Từ ngày | Đến ngày
+
         gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-        panel.add(lblTuKhoa, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1.0;
-        panel.add(txtTuKhoa, gbc);
-
-        gbc.gridx = 2;
+        gbc.gridy = 1;
         gbc.weightx = 0;
         panel.add(lblTuNgay, gbc);
 
-        gbc.gridx = 3;
-        gbc.weightx = 0.35;
+        gbc.gridx = 1;
+        gbc.weightx = 1;
         panel.add(dateTuNgay, gbc);
 
-        gbc.gridx = 4;
+        gbc.gridx = 2;
         gbc.weightx = 0;
         panel.add(lblDenNgay, gbc);
 
-        gbc.gridx = 5;
-        gbc.weightx = 0.35;
+        gbc.gridx = 3;
+        gbc.weightx = 1;
         panel.add(dateDenNgay, gbc);
 
-        // Hàng 2: Các combobox
+        // Hàng 1: Các combobox
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = 0;
         gbc.weightx = 0;
         panel.add(lblLoc1, gbc);
 
@@ -468,12 +457,13 @@ public class QLThongke extends JPanel {
             });
             // Card: Thể hiện các con số tổng quan về tài chính
             setCardTitles("Tổng số hóa đơn", "Tổng doanh thu", "Ngày doanh thu cao nhất");
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng", "", "");
 
-            setComboBoxData(cboLoc1, new String[] { "Tất cả" });
+            setComboBoxData(cboLoc1, new String[] { "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12" });
             
             showDateFilters(true);
-            showLoc1(false); showLoc2(false); showLoc3(false);
+            showLoc1(true); showLoc2(false); showLoc3(false);
             break;
 
         case DOANH_THU_THEO_KHACH_HANG:
@@ -483,13 +473,13 @@ public class QLThongke extends JPanel {
             // Card: Đánh giá khách hàng mang lại dòng tiền
             setCardTitles("Tổng số khách hàng", "Tổng lượt lưu trú", "Chi tiêu cao nhất");
             // Lọc theo Loại khách hàng thay vì Tình trạng đơn
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại KH:", "", "");
+            setFilterLabels("", "", "Loại KH:", "", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Thường", "VIP", "Thân thiết"
             });
 
-            showDateFilters(true);
+            showDateFilters(false);
             showLoc1(true); showLoc2(false); showLoc3(false);
             break;
 
@@ -500,13 +490,13 @@ public class QLThongke extends JPanel {
             // Card: Hiệu suất sinh lời của phòng
             setCardTitles("Tổng lượt thuê", "Tổng doanh thu phòng", "Phòng doanh thu cao nhất");
             // Lọc theo Loại phòng thay vì Tình trạng đơn
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "", "");
+            setFilterLabels("", "", "Loại phòng:", "", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
             });
 
-            showDateFilters(true);
+            showDateFilters(false); // Báo cáo theo phòng thường không cần Từ ngày - Đến ngày
             showLoc1(true); showLoc2(false); showLoc3(false);
             break;
 
@@ -516,7 +506,7 @@ public class QLThongke extends JPanel {
             });
             // Card: Focus vào điểm số tích lũy
             setCardTitles("Tổng số khách", "Khách điểm cao nhất", "Điểm trung bình/Khách");
-            setFilterLabels("", "", "Từ khóa:", "Loại KH:", "", "");
+            setFilterLabels("", "", "Loại KH:", "", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Thường", "VIP", "Thân thiết"
@@ -533,7 +523,7 @@ public class QLThongke extends JPanel {
             // Card: Tần suất hoạt động của vật chất
             setCardTitles("Tổng lượt đặt phòng", "Tổng ngày sử dụng", "Phòng hot nhất");
             // Sửa lỗi copy-paste từ nhân viên: Đổi thành lọc theo Loại phòng và Trạng thái hiện tại
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "Trạng thái:", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Loại phòng:", "Trạng thái:", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
@@ -552,7 +542,7 @@ public class QLThongke extends JPanel {
             });
             // Card: Hiệu suất bán chéo dịch vụ
             setCardTitles("Tổng lượt sử dụng", "Tổng doanh thu DV", "Dịch vụ hot nhất");
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "", "", "");
 
             showDateFilters(true);
             showLoc1(false); showLoc2(false); showLoc3(false);
@@ -565,7 +555,7 @@ public class QLThongke extends JPanel {
             // Card: Dữ liệu sổ sách
             setCardTitles("Tổng số hóa đơn", "Tiền phòng thu được", "Tiền dịch vụ thu được");
             // Có thể lọc theo các mốc giá trị hóa đơn
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Giá trị HĐ:", "", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Giá trị HĐ:", "", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Dưới 1 triệu", "Từ 1 - 3 triệu", "Trên 3 triệu"
@@ -581,7 +571,7 @@ public class QLThongke extends JPanel {
             });
             // Bạn đã làm phần này rất chuẩn rồi
             setCardTitles("Tổng đơn đặt", "Đơn hoàn thành", "Tiền cọc thu được");
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tình trạng:", "", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
@@ -597,7 +587,7 @@ public class QLThongke extends JPanel {
             });
             // Card: Đánh giá KPI nhân viên
             setCardTitles("Tổng nhân sự", "Số hóa đơn đã lập", "Nhân viên xuất sắc nhất");
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "Tháng:", "Vị trí:");
+            setFilterLabels("Từ ngày:", "Đến ngày:",  "", "Tháng:", "Vị trí:");
 
             setComboBoxData(cboLoc2, new String[] {
                     "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -624,10 +614,9 @@ public class QLThongke extends JPanel {
         lblCard3Value.setText(v3);
     }
 
-    public void setFilterLabels(String tuNgay, String denNgay, String tuKhoa, String loc1, String loc2, String loc3) {
+    public void setFilterLabels(String tuNgay, String denNgay, String loc1, String loc2, String loc3) {
         lblTuNgay.setText(tuNgay);
         lblDenNgay.setText(denNgay);
-        lblTuKhoa.setText(tuKhoa);
         lblLoc1.setText(loc1);
         lblLoc2.setText(loc2);
         lblLoc3.setText(loc3);
@@ -653,10 +642,7 @@ public class QLThongke extends JPanel {
         dateDenNgay.setVisible(visible);
     }
 
-    public void showKeywordFilter(boolean visible) {
-        lblTuKhoa.setVisible(visible);
-        txtTuKhoa.setVisible(visible);
-    }
+   
 
     public void showLoc1(boolean visible) {
         lblLoc1.setVisible(visible);
@@ -673,6 +659,31 @@ public class QLThongke extends JPanel {
         cboLoc3.setVisible(visible);
     }
 
+    // Reset date picker một cách đúng đắn (clear cả model và textfield)
+    public void resetDatePicker(JDatePicker datePicker) {
+        // Reset model
+        datePicker.getModel().setValue(null);
+        
+        // Clear textfield bên trong date picker
+        for (java.awt.Component comp : datePicker.getComponents()) {
+            if (comp instanceof JTextField) {
+                ((JTextField) comp).setText("");
+            } else if (comp instanceof java.awt.Container) {
+                clearTextFieldsInContainer((java.awt.Container) comp);
+            }
+        }
+    }
+
+    private void clearTextFieldsInContainer(java.awt.Container container) {
+        for (java.awt.Component comp : container.getComponents()) {
+            if (comp instanceof JTextField) {
+                ((JTextField) comp).setText("");
+            } else if (comp instanceof java.awt.Container) {
+                clearTextFieldsInContainer((java.awt.Container) comp);
+            }
+        }
+    }
+
     public JComboBox<String> getCboLoc3() {
         return cboLoc3;
     }
@@ -683,10 +694,6 @@ public class QLThongke extends JPanel {
 
     public JDatePicker getDateDenNgay() {
         return dateDenNgay;
-    }
-
-    public JTextField getTxtTuKhoa() {
-        return txtTuKhoa;
     }
 
     public JComboBox<String> getCboLoc1() {

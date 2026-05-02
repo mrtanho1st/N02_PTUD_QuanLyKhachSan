@@ -41,9 +41,9 @@ public class ThongTinDatPhongDialog extends JDialog {
 
     public ThongTinDatPhongDialog(DonDatPhong room) {
         this.room = room;
-        setTitle("Thông tin đặt phòng - " + room.getMaPhong());
+        setTitle("Thông tin phòng - " + room.getMaPhong());
         setModal(true);
-        setSize(560, 460);
+        setSize(700, 460);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         initUI();
@@ -55,7 +55,7 @@ public class ThongTinDatPhongDialog extends JDialog {
         root.setBorder(new EmptyBorder(14, 14, 14, 14));
         setContentPane(root);
 
-        JLabel lblHeader = new JLabel("THÔNG TIN ĐẶT PHÒNG");
+        JLabel lblHeader = new JLabel("THÔNG TIN PHÒNG ĐANG SỬ DỤNG", JLabel.CENTER);
         lblHeader.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblHeader.setForeground(TITLE);
         root.add(lblHeader, BorderLayout.NORTH);
@@ -64,9 +64,13 @@ public class ThongTinDatPhongDialog extends JDialog {
         center.setOpaque(false);
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 
-        center.add(createThongTinPanel());
+        center.add(createThongTinPhongPanel());
         center.add(Box.createVerticalStrut(12));
-        center.add(createThoiGianPanel());
+        
+        center.add(createThongTinKhachHangPanel());
+        center.add(Box.createVerticalStrut(12));
+        
+        center.add(createThongTinDatPhongPanel());
 
         JScrollPane scrollPane = new JScrollPane(center);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -77,27 +81,31 @@ public class ThongTinDatPhongDialog extends JDialog {
         root.add(createButtonPanel(), BorderLayout.SOUTH);
     }
 
-    private JPanel createThongTinPanel() {
-        JPanel panel = createSectionPanel("Chi tiết đơn đặt phòng");
-
-        addRow(panel, 0, "Mã phòng:", createValueLabel(nullToEmpty(room.getMaPhong())),
-                "Loại phòng:", createValueLabel(nullToEmpty(room.getLoaiPhong())));
-
-        addRow(panel, 1, "Trạng thái:", createValueLabel(nullToEmpty(room.getTrangThaiPhong())),
-                "Mã ĐĐP:", createValueLabel(nullToEmpty(room.getMaDDP())));
-
-        addRow(panel, 2, "Mã KH:", createValueLabel(nullToEmpty(room.getMaKH())),
+    private JPanel createThongTinKhachHangPanel() {
+        JPanel panel = createSectionPanel("Chi tiết Khách hàng:");
+        addRow(panel, 0, "Mã KH:", createValueLabel(nullToEmpty(room.getMaKH())),
                 "Tên KH:", createValueLabel(nullToEmpty(room.getTenKH())));
 
-        addRow(panel, 3, "Tiền cọc:",
-                createValueLabel(room.getTienCoc() == null ? "" : String.valueOf(room.getTienCoc())),
-                "", new JLabel());
+      
 
         return panel;
     }
 
-    private JPanel createThoiGianPanel() {
-        JPanel panel = createSectionPanel("Cập nhật thời gian lưu trú");
+	private JPanel createThongTinPhongPanel() {
+        JPanel panel = createSectionPanel("Chi tiết phòng");
+
+        addRow(panel, 0, "Mã phòng:", createValueLabel(nullToEmpty(room.getMaPhong())),
+                "Loại phòng:", createValueLabel(nullToEmpty(room.getLoaiPhong())));
+
+        addRow(panel, 1, "Giá phòng:", createValueLabel(String.valueOf(room.getGiaPhong())),
+                "Số người tối đa:", createValueLabel(String.valueOf(room.getSoNguoiToiDa())));
+        
+
+        return panel;
+    }
+    
+	private JPanel createThongTinDatPhongPanel() {
+        JPanel panel = createSectionPanel("Chi tiết đơn đặt phòng");
 
         txtNgayNhan = createTextField(nullToEmpty(room.getNgayNhan()));
         txtNgayTra = createTextField(nullToEmpty(room.getNgayTra()));
@@ -108,35 +116,24 @@ public class ThongTinDatPhongDialog extends JDialog {
         addRow(panel, 1, "Ngày trả:", txtNgayTra,
                 "", new JLabel());
 
-        JLabel lblNote = new JLabel("Định dạng gợi ý: dd/MM/yyyy HH:mm");
-        lblNote.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblNote.setForeground(new Color(120, 120, 120));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 4;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(6, 6, 0, 6);
-        panel.add(lblNote, gbc);
+        addRow(panel, 3, "Tiền cọc:",
+                createValueLabel(room.getTienCoc() == null ? "" : String.valueOf(room.getTienCoc())),
+                "", new JLabel());
 
         return panel;
     }
+
 
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
 
-        JButton btnCapNhat = createButton("Cập nhật thời gian", PRIMARY, Color.WHITE);
-        JButton btnThemDV = createButton("Thêm dịch vụ", new Color(233, 239, 248), Color.BLACK);
+        
         JButton btnDong = createButton("Đóng", new Color(235, 238, 243), Color.BLACK);
 
-        btnCapNhat.addActionListener(e -> xuLyCapNhat());
-        btnThemDV.addActionListener(e -> xuLyThemDichVu());
         btnDong.addActionListener(e -> dispose());
 
-        panel.add(btnCapNhat);
-        panel.add(btnThemDV);
+
         panel.add(btnDong);
 
         return panel;

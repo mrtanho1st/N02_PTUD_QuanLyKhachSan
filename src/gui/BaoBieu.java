@@ -111,7 +111,7 @@ public class BaoBieu extends JPanel {
 
         lblTuNgay = createLabel("Từ ngày:");
         lblDenNgay = createLabel("Đến ngày:");
-        lblTuKhoa = createLabel("Từ khóa:");
+        lblTuKhoa = createLabel("Tìm kiếm:");
         lblLoc1 = createLabel("Lọc 1:");
         lblLoc2 = createLabel("Lọc 2:");
         lblLoc3 = createLabel("Lọc 3:");
@@ -133,7 +133,7 @@ public class BaoBieu extends JPanel {
         btnXuatExcel = createButton("Xuất Excel");
         btnInPdf = createButton("In / PDF");
 
-        // Hàng 1: Từ khóa | Từ ngày | Đến ngày
+        // Hàng 1: Tìm kiếm | Từ ngày | Đến ngày
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0;
@@ -148,7 +148,7 @@ public class BaoBieu extends JPanel {
         panel.add(lblTuNgay, gbc);
 
         gbc.gridx = 3;
-        gbc.weightx = 0.35;
+        gbc.weightx = 1;
         panel.add(dateTuNgay, gbc);
 
         gbc.gridx = 4;
@@ -156,7 +156,7 @@ public class BaoBieu extends JPanel {
         panel.add(lblDenNgay, gbc);
 
         gbc.gridx = 5;
-        gbc.weightx = 0.35;
+        gbc.weightx = 1;
         panel.add(dateDenNgay, gbc);
 
         // Hàng 2: Các combobox
@@ -166,7 +166,7 @@ public class BaoBieu extends JPanel {
         panel.add(lblLoc1, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.6;
         panel.add(cboLoc1, gbc);
 
         gbc.gridx = 2;
@@ -380,7 +380,7 @@ public class BaoBieu extends JPanel {
                         "Mã HD", "Mã ĐĐP", "Khách hàng", "Nhân viên", "Ngày lập", "Thuế", "Tổng tiền"
                 });
                 setCardTitles("Tổng hóa đơn", "Tổng doanh thu", "Hóa đơn cao nhất");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Tìm kiếm:", "", "", "");
 
                 setComboBoxData(cboLoc1, new String[] { "Tất cả" });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
@@ -397,7 +397,7 @@ public class BaoBieu extends JPanel {
                         "Mã ĐĐP", "Khách hàng", "Phòng", "Ngày nhận", "Ngày trả", "Trạng thái", "Tiền cọc"
                 });
                 setCardTitles("Tổng đơn", "Đã nhận", "Đã đặt");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Tình trạng:", "", "");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Tìm kiếm:", "Tình trạng:", "", "");
 
                 setComboBoxData(cboLoc1, new String[] {
                         "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
@@ -416,7 +416,7 @@ public class BaoBieu extends JPanel {
                         "Mã phòng", "Loại phòng", "Số người", "Giá phòng", "Trạng thái"
                 });
                 setCardTitles("Tổng phòng", "Phòng trống", "Đang sử dụng");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại phòng:", "Trạng thái:", "");
+                setFilterLabels("", "", "Tìm kiếm:", "Loại phòng:", "Trạng thái:", "");
 
                 setComboBoxData(cboLoc1, new String[] {
                         "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình",
@@ -438,7 +438,7 @@ public class BaoBieu extends JPanel {
                         "Mã KH", "Họ tên", "SĐT", "CCCD", "Loại KH", "Điểm"
                 });
                 setCardTitles("Tổng khách", "Khách VIP", "Thân thiết");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Loại KH:", "", "");
+                setFilterLabels("", "", "Tìm kiếm:", "Loại KH:", "", "");
 
                 setComboBoxData(cboLoc1, new String[] {
                         "Tất cả", "Thường", "VIP", "Thân thiết"
@@ -457,7 +457,7 @@ public class BaoBieu extends JPanel {
                         "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Trạng thái"
                 });
                 setCardTitles("Tổng NV", "Đang làm", "Nghỉ việc");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Ca làm:", "Trạng thái:", "Vị trí:");
+                setFilterLabels("", "", "Tìm kiếm:", "Ca làm:", "Trạng thái:", "Vị trí:");
 
                 setComboBoxData(cboLoc1, new String[] {
                         "Tất cả", "Ca sáng", "Ca chiều", "Ca tối"
@@ -480,7 +480,7 @@ public class BaoBieu extends JPanel {
                         "Mã DV", "Tên dịch vụ", "Đơn giá", "Số lượt dùng", "Doanh thu"
                 });
                 setCardTitles("Tổng dịch vụ", "Tổng lượt dùng", "Doanh thu DV");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "", "", "");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Tìm kiếm:", "", "", "");
 
                 setComboBoxData(cboLoc1, new String[] { "Tất cả" });
                 setComboBoxData(cboLoc2, new String[] { "Tất cả" });
@@ -497,7 +497,7 @@ public class BaoBieu extends JPanel {
                         "Mã KM", "Tên khuyến mãi", "Giá trị", "Ngày bắt đầu", "Ngày kết thúc"
                 });
                 setCardTitles("Tổng KM", "Đang áp dụng", "Sắp hết hạn");
-                setFilterLabels("Từ ngày:", "Đến ngày:", "Từ khóa:", "Khoảng giá trị:", "", "");
+                setFilterLabels("Từ ngày:", "Đến ngày:", "Tìm kiếm:", "Khoảng giá trị:", "", "");
 
                 setComboBoxData(cboLoc1, new String[] {
                         "Tất cả", "Dưới 10%", "Từ 10% - 30%", "Trên 30%"

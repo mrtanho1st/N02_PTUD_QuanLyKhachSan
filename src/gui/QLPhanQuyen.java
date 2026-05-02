@@ -233,8 +233,8 @@ public class QLPhanQuyen extends JPanel {
         txtMatKhau.setFocusable(false);
         cbNhanVien = new JComboBox<>();
         cbVaiTro = new JComboBox<>(new String[] {
-                "Nhân viên quản lý",
-                "Nhân viên lễ tân"
+                "Quản lý",
+                "Lễ Tân"
         });
 
         addFormRow(form, gbc, 0, "Tên đăng nhập", txtTenDangNhap);

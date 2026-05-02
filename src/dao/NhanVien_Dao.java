@@ -312,7 +312,7 @@ public class NhanVien_Dao {
     }
 
     // Thống kê theo nhân viên với các bộ lọc (Tường)
-    public List<Object[]> getThongKeTheoNhanVien(Date tuNgay, Date denNgay, String tuKhoa, String caLamViec, String trangThaiLamViec, String viTriCongViec) {
+    public List<Object[]> getThongKeTheoNhanVien(Date tuNgay, Date denNgay, String caLamViec, String trangThaiLamViec, String viTriCongViec) {
         List<Object[]> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -331,9 +331,6 @@ public class NhanVien_Dao {
             sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
         }
 
-        if (tuKhoa != null && !tuKhoa.isBlank()) {
-            sql.append("AND (nv.maNV LIKE ? OR nv.hoTen LIKE ? OR nv.sdt LIKE ?) ");
-        }
 
         if (caLamViec != null && !caLamViec.isBlank()) {
             sql.append("AND nv.caLamViec = ? ");
@@ -364,13 +361,7 @@ public class NhanVien_Dao {
                 ps.setDate(index++, denNgay);
             }
 
-            if (tuKhoa != null && !tuKhoa.isBlank()) {
-                String kw = "%" + tuKhoa.trim() + "%";
-                ps.setString(index++, kw);
-                ps.setString(index++, kw);
-                ps.setString(index++, kw);
-            }
-
+          
             if (caLamViec != null && !caLamViec.isBlank()) {
                 ps.setString(index++, caLamViec);
             }

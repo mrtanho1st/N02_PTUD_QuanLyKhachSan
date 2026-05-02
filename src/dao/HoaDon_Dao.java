@@ -1012,7 +1012,10 @@ public class HoaDon_Dao {
         sql.append("    FROM CTHoaDonDichVu GROUP BY maHD ");
         sql.append(") DV ON HD.maHD = DV.maHD ");
         
-        sql.append("WHERE HD.ngayLapHD >= ? AND HD.ngayLapHD <= ? ");
+        sql.append("WHERE 1=1 ");
+        if (tuNgay != null && denNgay != null) {
+            sql.append("AND HD.ngayLapHD >= ? AND HD.ngayLapHD <= ? ");
+        }
         sql.append("GROUP BY HD.ngayLapHD ");
         sql.append("ORDER BY HD.ngayLapHD ASC");
 
@@ -1020,8 +1023,11 @@ public class HoaDon_Dao {
             Connection con = ConnectDB.getConnection();
             PreparedStatement ps = con.prepareStatement(sql.toString())
         ) {
-            ps.setDate(1, tuNgay);
-            ps.setDate(2, denNgay);
+            int index = 1;
+            if (tuNgay != null && denNgay != null) {
+                ps.setDate(index++, tuNgay);
+                ps.setDate(index++, denNgay);
+            }
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -1100,23 +1106,23 @@ public class HoaDon_Dao {
         List<Object[]> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT p.maPhong, p.loaiPhong, COUNT(DISTINCT ct.maDDP) AS soLuotThue, ");
-        sql.append("       SUM(ct.soNgay) AS tongSoNgay, SUM(CASE WHEN ct.maPhong IS NOT NULL THEN ct.thanhTien ELSE 0 END) AS tongDoanhThu ");
+        sql.append("SELECT p.maPhong, p.loaiPhong, COUNT(DISTINCT hd.maHD) AS soLuotThue, ");
+        sql.append("       COUNT(ctp.soNgay) AS tongSoNgay, SUM(ctp.thanhTien) AS tongDoanhThu ");
         sql.append("FROM Phong p ");
-        sql.append("LEFT JOIN CTDonDatPhong ct ON p.maPhong = ct.maPhong ");
-        sql.append("LEFT JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("LEFT JOIN CTHoaDonPhong ctp ON p.maPhong = ctp.maPhong ");
+        sql.append("LEFT JOIN HoaDon hd ON ctp.maHD = hd.maHD ");
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
-            sql.append("AND (ddp.ngayNhan IS NULL OR ddp.ngayNhan >= ?) ");
+            sql.append("AND hd.ngayLapHD >= ? ");
         }
 
         if (denNgay != null) {
-            sql.append("AND (ddp.ngayTra IS NULL OR ddp.ngayTra <= ?) ");
+            sql.append("AND hd.ngayLapHD <= ? ");
         }
 
         sql.append("GROUP BY p.maPhong, p.loaiPhong ");
-        sql.append("ORDER BY SUM(CASE WHEN ct.maPhong IS NOT NULL THEN ct.thanhTien ELSE 0 END) DESC");
+        sql.append("ORDER BY SUM(ctp.thanhTien) DESC");
 
         try (
                 Connection con = ConnectDB.getConnection();
@@ -1126,13 +1132,18 @@ public class HoaDon_Dao {
 
             if (tuNgay != null) {
                 ps.setDate(index++, tuNgay);
+                System.out.println("🔍 DAO: Lọc từ ngày = " + tuNgay);
             }
 
             if (denNgay != null) {
                 ps.setDate(index++, denNgay);
+                System.out.println("🔍 DAO: Lọc đến ngày = " + denNgay);
             }
 
+            System.out.println("🔍 DAO SQL: " + sql.toString());
+
             try (ResultSet rs = ps.executeQuery()) {
+                int rowCount = 0;
                 while (rs.next()) {
                     Object[] row = new Object[5];
                     row[0] = rs.getString("maPhong");
@@ -1141,10 +1152,14 @@ public class HoaDon_Dao {
                     row[3] = rs.getInt("tongSoNgay");
                     row[4] = rs.getDouble("tongDoanhThu");
                     ds.add(row);
+                    rowCount++;
+                    System.out.println("🔍 DAO Row " + rowCount + ": " + row[0] + " | " + row[1] + " | DoanhThu=" + row[4]);
                 }
+                System.out.println("🔍 DAO: Tổng cộng " + rowCount + " phòng");
             }
 
         } catch (Exception e) {
+            System.err.println("❌ DAO Error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -1243,7 +1258,7 @@ public class HoaDon_Dao {
     }
 
     // Thống kê hóa đơn ( Tường )
-    public List<Object[]> getThongKeHoaDon(Date tuNgay, Date denNgay, String tuKhoa) {
+    public List<Object[]> getThongKeHoaDon(Date tuNgay, Date denNgay) {
         List<Object[]> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -1266,9 +1281,7 @@ public class HoaDon_Dao {
             sql.append("AND hd.ngayLapHD <= ? ");
         }
 
-        if (tuKhoa != null && !tuKhoa.isBlank()) {
-            sql.append("AND (hd.maHD LIKE ? OR kh.hoTen LIKE ? OR nv.hoTen LIKE ?) ");
-        }
+       
 
         sql.append("GROUP BY hd.maHD, hd.ngayLapHD, kh.hoTen, nv.hoTen, t.tenThue, hd.tongTien ");
         sql.append("ORDER BY hd.ngayLapHD DESC");
@@ -1287,12 +1300,6 @@ public class HoaDon_Dao {
                 ps.setDate(index++, denNgay);
             }
 
-            if (tuKhoa != null && !tuKhoa.isBlank()) {
-                String kw = "%" + tuKhoa.trim() + "%";
-                ps.setString(index++, kw);
-                ps.setString(index++, kw);
-                ps.setString(index++, kw);
-            }
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {

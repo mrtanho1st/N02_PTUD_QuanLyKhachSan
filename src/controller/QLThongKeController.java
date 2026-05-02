@@ -8,16 +8,19 @@ import entity.LoaiThongKe;
 
 import java.sql.Date;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.xml.crypto.Data;
 
 public class QLThongKeController {
     private QLThongke view;
@@ -27,11 +30,13 @@ public class QLThongKeController {
     private DichVu_Dao dichVuDao;
     private NhanVien_Dao nhanVienDao;
     private DonDatPhong_Dao donDatPhongDao;
+    private LoaiThongKe loaiThongKe;
     
     private NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     public QLThongKeController(QLThongke view) {
         this.view = view;
+        this.loaiThongKe = view.getLoaiThongKe();
         this.hoaDonDao = new HoaDon_Dao();
         this.khachHangDao = new KhachHang_Dao();
         this.phongDao = new Phong_Dao();
@@ -44,22 +49,9 @@ public class QLThongKeController {
     }
 
     private void initEventListeners() {
-        view.getBtnLamMoi().addActionListener(e -> {
-            view.getTxtTuKhoa().setText("");
-            if(view.getCboLoc1().getItemCount() > 0) view.getCboLoc1().setSelectedIndex(0);
-            if(view.getCboLoc2().getItemCount() > 0) view.getCboLoc2().setSelectedIndex(0);
-            if(view.getCboLoc3().getItemCount() > 0) view.getCboLoc3().setSelectedIndex(0);
-            view.getDateTuNgay().getModel().setValue(null);
-            view.getDateDenNgay().getModel().setValue(null);
-            loadData();
-        });
+        view.getBtnLamMoi().addActionListener(e -> handleRefreshButtonClick());
 
-        view.getTxtTuKhoa().getDocument().addDocumentListener(new DocumentListener() {
-            @Override public void insertUpdate(DocumentEvent e) { loadData(); }
-            @Override public void removeUpdate(DocumentEvent e) { loadData(); }
-            @Override public void changedUpdate(DocumentEvent e) { loadData(); }
-        });
-
+        
         ActionListener comboListener = e -> loadData();
         view.getCboLoc1().addActionListener(comboListener);
         view.getCboLoc2().addActionListener(comboListener);
@@ -75,10 +67,15 @@ public class QLThongKeController {
     }
 
     public void loadData() {
-        if (view.getLoaiThongKe() == null) return;
+//        if (loaiThongKe == null) return;
         
-        switch (view.getLoaiThongKe()) {
-            case DOANH_THU_THEO_THOI_GIAN: loadDoanhThuTheoThoiGian(); break;
+        switch (loaiThongKe) {
+            case DOANH_THU_THEO_THOI_GIAN: 
+            {
+            	loadDoanhThuTheoThoiGian();
+            	
+                break;
+            }
             case DOANH_THU_THEO_KHACH_HANG: loadDoanhThuTheoKhachHang(); break;
             case DOANH_THU_THEO_PHONG: loadDoanhThuTheoPhong(); break;
             case KHACH_HANG_DIEM_CAO_NHAT: loadKhachHangDiemCaoNhat(); break;
@@ -89,67 +86,115 @@ public class QLThongKeController {
             case THONG_KE_THEO_NHAN_VIEN: loadThongKeTheoNhanVien(); break;
         }
     }
+    // Reset các giá trị trên card về mặc định theo loại thống kê
+    private void resetCardValues() {
+        switch (loaiThongKe) {
+            case DOANH_THU_THEO_THOI_GIAN:
+                view.setCardValues("0", "0 VNĐ", "N/A");
+                break;
+            case DOANH_THU_THEO_KHACH_HANG:
+                view.setCardValues("0", "0", "0 VNĐ");
+                break;
+            case DOANH_THU_THEO_PHONG:
+                view.setCardValues("0", "0 VNĐ", "0 VNĐ");
+                break;
+            case KHACH_HANG_DIEM_CAO_NHAT:
+                view.setCardValues("0", "0 Điểm", "0,0 Điểm/Khách");
+                break;
+            case PHONG_DAT_NHIEU_NHAT:
+                view.setCardValues("0", "0", "N/A");
+                break;
+            case THONG_KE_DICH_VU:
+                view.setCardValues("0", "0 VNĐ", "0 VNĐ");
+                break;
+            case THONG_KE_HOA_DON:
+                view.setCardValues("0", "0 VNĐ", "0 VNĐ");
+                break;
+            case THONG_KE_DON_DAT_PHONG:
+                view.setCardValues("0", "0", "0 VNĐ");
+                break;
+            case THONG_KE_THEO_NHAN_VIEN:
+                view.setCardValues("0", "0", "0 VNĐ");
+                break;
+        }
+    }
 
     // =======================================================
     // CÁC HÀM XỬ LÝ LOAD DỮ LIỆU
     // =======================================================
+    // Doanh Thu Theo Thời Gian
+    private void updateDoanhThuUI(List<Object[]> listData) {
+        System.out.println("Dữ liệu doanh thu theo thời gian chi tiết: " + listData.size() + " bản ghi");
+        int totalHoaDon = 0;
+        double totalDoanhThu = 0, doanhThuCaoNhat = 0;
+        String ngayMax = "";
 
-    private void loadDoanhThuTheoThoiGian() {
-        try {
-            Date tuNgay = getDateFromView(view.getDateTuNgay());
-            Date denNgay = getDateFromView(view.getDateDenNgay());
+        view.getTableModel().setRowCount(0); // Xóa dữ liệu cũ trong bảng
 
-            if (tuNgay == null || denNgay == null) {
-                denNgay = new Date(System.currentTimeMillis());
-                tuNgay = new Date(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000));
-            }
-
-            System.out.println("Load doanh thu từ: " + tuNgay + " đến: " + denNgay);
-            
-            List<Object[]> listData = hoaDonDao.getDoanhThuTheoThoiGianChiTiet(tuNgay, denNgay);
-            System.out.println("Dữ liệu nhận được: " + (listData != null ? listData.size() : "null") + " hàng");
-            
-            int totalHoaDon = 0; 
-            double totalDoanhThu = 0, doanhThuCaoNhat = 0; 
-            String ngayMax = "";
-
-            view.getTableModel().setRowCount(0);
-            if (listData != null && !listData.isEmpty()) {
-                for (Object[] row : listData) {
-                    try {
-                        double tongTien = row[4] != null ? ((Number) row[4]).doubleValue() : 0;
-                        int soHoaDon = row[1] != null ? ((Number) row[1]).intValue() : 0;
-                        double tienPhong = row[2] != null ? ((Number) row[2]).doubleValue() : 0;
-                        double tienDichVu = row[3] != null ? ((Number) row[3]).doubleValue() : 0;
-                        
-                        totalHoaDon += soHoaDon;
-                        totalDoanhThu += tongTien;
-                        
-                        if (tongTien > doanhThuCaoNhat) { 
-                            doanhThuCaoNhat = tongTien; 
-                            ngayMax = row[0] != null ? row[0].toString() : ""; 
-                        }
-                        
-                        view.getTableModel().addRow(new Object[] {
-                            row[0].toString(), soHoaDon, formatCurrency(tienPhong), 
-                            formatCurrency(tienDichVu), formatCurrency(tongTien)
-                        });
-                    } catch (Exception rowEx) {
-                        System.err.println("Lỗi xử lý hàng dữ liệu: " + rowEx.getMessage());
-                        rowEx.printStackTrace();
+        if (listData != null && !listData.isEmpty()) {
+            for (Object[] row : listData) {
+                try {
+                    double tongTien = row[4] != null ? ((Number) row[4]).doubleValue() : 0;
+                    int soHoaDon = row[1] != null ? ((Number) row[1]).intValue() : 0;
+                    double tienPhong = row[2] != null ? ((Number) row[2]).doubleValue() : 0;
+                    double tienDichVu = row[3] != null ? ((Number) row[3]).doubleValue() : 0;
+                    
+                    totalHoaDon += soHoaDon;
+                    totalDoanhThu += tongTien;
+                    
+                    if (tongTien > doanhThuCaoNhat) { 
+                        doanhThuCaoNhat = tongTien; 
+                        ngayMax = row[0] != null ? row[0].toString() : ""; 
                     }
+                    
+                    view.getTableModel().addRow(new Object[] {
+                        row[0].toString(), soHoaDon, formatCurrency(tienPhong), 
+                        formatCurrency(tienDichVu), formatCurrency(tongTien)
+                    });
+                } catch (Exception rowEx) {
+                    System.err.println("Lỗi xử lý hàng dữ liệu: " + rowEx.getMessage());
+                    rowEx.printStackTrace();
                 }
-                view.setCardValues(String.valueOf(totalHoaDon), formatCurrency(totalDoanhThu), ngayMax.isEmpty() ? "N/A" : ngayMax);
-                updateChartByTime(listData);
-                System.out.println("Load doanh thu thành công!");
-            } else {
-                String msg = "Không có dữ liệu từ " + tuNgay + " đến " + denNgay;
-                System.out.println(msg);
-                view.setCardValues("0", "0 VNĐ", "N/A");
-                view.getTableModel().setRowCount(0);
-                updateChartByTime(null);
-                JOptionPane.showMessageDialog(null, msg, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             }
+        }
+
+        // Cập nhật các Card và Chart
+        view.setCardValues(String.valueOf(totalHoaDon), formatCurrency(totalDoanhThu), ngayMax.isEmpty() ? "N/A" : ngayMax);
+        updateChartByTime(listData);
+        System.out.println("Load doanh thu thành công!");
+    }
+    private void loadDoanhThuTheoThoiGian() {
+        try { 
+        	Date tuNgay = getDateFromView(view.getDateTuNgay());
+            Date denNgay = getDateFromView(view.getDateDenNgay());
+            String thang = (String) view.getCboLoc1().getSelectedItem();
+            List<Object[]> listData = null;
+
+            // Ưu tiên 1: Nếu người dùng có chọn ngày cụ thể
+            if (tuNgay != null && denNgay != null) {
+                if (tuNgay.after(denNgay)) {
+                    JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return; // Dừng lại không load nữa
+                }
+                listData = hoaDonDao.getDoanhThuTheoThoiGianChiTiet(tuNgay, denNgay);
+            } 
+            // Ưu tiên 2: Nếu người dùng chọn lọc theo Tháng trong ComboBox
+            else if (thang != null && !"Tất cả".equals(thang)) {
+                int month = Integer.parseInt(thang.replace("Tháng ", ""));
+                LocalDate now = LocalDate.now(); // Sử dụng năm hiện tại
+                LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
+                LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
+                
+                listData = hoaDonDao.getDoanhThuTheoThoiGianChiTiet(Date.valueOf(firstDay), Date.valueOf(lastDay));
+            } 
+            // Cuối cùng: Mặc định lấy tất cả dữ liệu (hoặc 30 ngày qua tùy logic của bạn)
+            else {
+                listData = hoaDonDao.getDoanhThuTheoThoiGianChiTiet(null, null);
+            }
+
+            // Gọi hàm để update UI 1 lần duy nhất
+            updateDoanhThuUI(listData);
+
         } catch (Exception e) { 
             String errorMsg = "Lỗi load doanh thu: " + e.getMessage();
             System.err.println(errorMsg);
@@ -183,26 +228,112 @@ public class QLThongKeController {
 
     private void loadDoanhThuTheoPhong() {
         try {
-            List<Object[]> listData = hoaDonDao.getDoanhThuTheoPhong(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()));
-            int totalLuotThue = 0; double totalDoanhThu = 0, doanhThuMax = 0;
-
-            view.getTableModel().setRowCount(0);
-            if (listData != null) {
-                for (Object[] row : listData) {
-                    double doanhThu = ((Number) row[4]).doubleValue();
-                    totalLuotThue += ((Number) row[2]).intValue();
-                    totalDoanhThu += doanhThu;
-                    if (doanhThu > doanhThuMax) doanhThuMax = doanhThu;
-
-                    Object[] displayRow = row.clone();
-                    displayRow[4] = formatCurrency(doanhThu);
-                    view.getTableModel().addRow(displayRow);
+            Date tuNgay = getDateFromView(view.getDateTuNgay());
+            Date denNgay = getDateFromView(view.getDateDenNgay());
+            
+            // Debug log
+            System.out.println("=== LOAD DOANH THU THEO PHÒNG ===");
+            System.out.println("Từ ngày: " + tuNgay);
+            System.out.println("Đến ngày: " + denNgay);
+            
+            // Kiểm tra ngày hợp lệ
+            if (tuNgay != null && denNgay != null && tuNgay.after(denNgay)) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Fetch dữ liệu từ DAO
+            System.out.println("Đang fetch dữ liệu từ DAO...");
+            List<Object[]> listData = hoaDonDao.getDoanhThuTheoPhong(tuNgay, denNgay);
+            
+            // Debug log
+            if (listData == null) {
+                System.out.println("❌ listData = NULL");
+            } else {
+                System.out.println("✅ Dữ liệu doanh thu theo phòng: " + listData.size() + " bản ghi");
+                
+                // In chi tiết dữ liệu
+                for (int i = 0; i < listData.size(); i++) {
+                    Object[] row = listData.get(i);
+                    System.out.println("  Row " + i + ": MaPhong=" + row[0] + ", LoaiPhong=" + row[1] + 
+                                     ", SoLuotThue=" + row[2] + ", DoanhThu=" + row[4]);
                 }
             }
+            
+            // Update UI
+            updateDoanhThuTheoPhongUI(listData);
+            
+            System.out.println("Load doanh thu theo phòng thành công!");
+            System.out.println("=================================\n");
+            
+        } catch (Exception e) {
+            String errorMsg = "Lỗi load doanh thu theo phòng: " + e.getMessage();
+            System.err.println(errorMsg);
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, errorMsg, "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-            view.setCardValues(String.valueOf(totalLuotThue), formatCurrency(totalDoanhThu), formatCurrency(doanhThuMax));
-            updateChartByRoom(listData);
-        } catch (Exception e) { e.printStackTrace(); }
+    // Hàm hỗ trợ update UI cho doanh thu theo phòng
+    private void updateDoanhThuTheoPhongUI(List<Object[]> listData) {
+        int totalLuotThue = 0;
+        double totalDoanhThu = 0, doanhThuMax = 0;
+        String phongMax = "";
+
+        view.getTableModel().setRowCount(0); // Xóa dữ liệu cũ
+
+        if (listData == null) {
+            System.out.println("⚠️ listData NULL - không có dữ liệu để hiển thị");
+            view.setCardValues("0", "0 VNĐ", "N/A");
+            updateChartByRoom(null);
+            return;
+        }
+
+        if (listData.isEmpty()) {
+            System.out.println("⚠️ listData trống - không có bản ghi nào");
+            view.setCardValues("0", "0 VNĐ", "N/A");
+            JOptionPane.showMessageDialog(null, "Không có dữ liệu doanh thu phòng trong khoảng thời gian được chọn", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            updateChartByRoom(null);
+            return;
+        }
+
+        for (Object[] row : listData) {
+            try {
+                double doanhThu = row[4] != null ? ((Number) row[4]).doubleValue() : 0;
+                int luotThue = row[2] != null ? ((Number) row[2]).intValue() : 0;
+                
+                totalLuotThue += luotThue;
+                totalDoanhThu += doanhThu;
+                
+                if (doanhThu > doanhThuMax) {
+                    doanhThuMax = doanhThu;
+                    phongMax = row[0] != null ? row[0].toString() : "";
+                }
+
+                // Tạo hàng hiển thị với định dạng tiền tệ
+                Object[] displayRow = row.clone();
+                displayRow[4] = formatCurrency(doanhThu);
+                view.getTableModel().addRow(displayRow);
+                
+            } catch (Exception rowEx) {
+                System.err.println("Lỗi xử lý hàng dữ liệu: " + rowEx.getMessage());
+                rowEx.printStackTrace();
+            }
+        }
+
+        // Cập nhật các Card: Tổng lượt thuê | Tổng doanh thu | Phòng doanh thu cao nhất
+        view.setCardValues(
+            String.valueOf(totalLuotThue), 
+            formatCurrency(totalDoanhThu), 
+            phongMax.isEmpty() ? "N/A" : phongMax
+        );
+        
+        System.out.println("📊 Tổng lượt thuê: " + totalLuotThue);
+        System.out.println("💰 Tổng doanh thu: " + formatCurrency(totalDoanhThu));
+        System.out.println("🏆 Phòng doanh thu cao nhất: " + (phongMax.isEmpty() ? "N/A" : phongMax));
+        
+        // Cập nhật biểu đồ
+        updateChartByRoom(listData);
     }
 
     private void loadKhachHangDiemCaoNhat() {
@@ -273,7 +404,7 @@ public class QLThongKeController {
 
     private void loadThongKeHoaDon() {
         try {
-            List<Object[]> listData = hoaDonDao.getThongKeHoaDon(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()), view.getTxtTuKhoa().getText());
+            List<Object[]> listData = hoaDonDao.getThongKeHoaDon(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()));
             double totalTienPhong = 0, totalTienDichVu = 0;
 
             view.getTableModel().setRowCount(0);
@@ -327,14 +458,14 @@ public class QLThongKeController {
             String caLamViec = (String) view.getCboLoc1().getSelectedItem();
             String thang = (String) view.getCboLoc2().getSelectedItem();
             String viTriCongViec = (String) view.getCboLoc3().getSelectedItem();
-            String tuKhoa = view.getTxtTuKhoa().getText().trim();
+          
 
             if ("Tất cả".equals(caLamViec)) caLamViec = null;
             if ("Tất cả".equals(thang)) thang = null;
             if ("Tất cả".equals(viTriCongViec)) viTriCongViec = null;
-            if (tuKhoa.isEmpty()) tuKhoa = null;
+          
 
-            List<Object[]> listData = nhanVienDao.getThongKeTheoNhanVien(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()), tuKhoa, caLamViec, thang, viTriCongViec);
+            List<Object[]> listData = nhanVienDao.getThongKeTheoNhanVien(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()), caLamViec, thang, viTriCongViec);
             int totalHoaDon = 0; double totalDoanhThu = 0;
 
             view.getTableModel().setRowCount(0);
@@ -383,12 +514,18 @@ public class QLThongKeController {
 
     private void updateChartByRoom(List<Object[]> listData) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        if (listData != null) {
+        
+        if (listData != null && !listData.isEmpty()) {
             for (int i = 0; i < Math.min(10, listData.size()); i++) {
                 Object[] row = listData.get(i);
-                dataset.addValue(((Number) row[4]).doubleValue(), "Doanh thu", (String) row[0]); // Cột 0 là Mã Phòng
+                try {
+                    dataset.addValue(((Number) row[4]).doubleValue(), "Doanh thu", (String) row[0]); // Cột 0 là Mã Phòng
+                } catch (Exception e) {
+                    System.err.println("Lỗi xử lý biểu đồ: " + e.getMessage());
+                }
             }
         }
+        
         view.updateChart(dataset, "Top 10 Phòng doanh thu cao nhất", "Phòng", "Doanh thu (VNĐ)");
     }
 
@@ -474,4 +611,52 @@ public class QLThongKeController {
     private String formatCurrency(double amount) {
         return String.format("%,.0f VNĐ", amount);
     }
+    
+    // xử lý sự kiện khi nhấn nút làm mới
+    private void handleRefreshButtonClick() {
+        try {
+            // Reset tất cả các điều kiện lọc về mặc định
+            resetFilterConditions();
+            
+            // Load lại dữ liệu với các điều kiện mặc định
+            loadData();
+            
+            // Thông báo thành công
+            System.out.println("Làm mới dữ liệu thành công!");
+        } catch (Exception e) {
+            String errorMsg = "Lỗi khi làm mới: " + e.getMessage();
+            System.err.println(errorMsg);
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, errorMsg, "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Reset các điều kiện lọc về mặc định
+    private void resetFilterConditions() {
+        // Reset các combo box về item đầu tiên (thường là "Tất cả" hoặc mặc định)
+        if (view.getCboLoc1().getItemCount() > 0) {
+            view.getCboLoc1().setSelectedIndex(0);
+        }
+        if (view.getCboLoc2().getItemCount() > 0) {
+            view.getCboLoc2().setSelectedIndex(0);
+        }
+        if (view.getCboLoc3().getItemCount() > 0) {
+            view.getCboLoc3().setSelectedIndex(0);
+        }
+        
+        // Reset date picker về null (bao gồm cả textfield bên trong)
+        view.resetDatePicker(view.getDateTuNgay());
+        view.resetDatePicker(view.getDateDenNgay());
+        
+        // Reset bảng dữ liệu
+        view.getTableModel().setRowCount(0);
+        
+        // Reset các card values về mặc định
+        resetCardValues();
+        
+        System.out.println("Đã reset các điều kiện lọc");
+    }
+    
+    
+
 }

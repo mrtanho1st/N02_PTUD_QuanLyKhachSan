@@ -1,6 +1,8 @@
 package controller;
 
 import javax.swing.JOptionPane;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import dao.DangNhap_Dao;
 import dao.NhanVien_Dao;
@@ -25,6 +27,24 @@ public class DangNhapController {
         view.getBtnDangNhap().addActionListener(e -> xuLyDangNhap());
         view.getBtnThoat().addActionListener(e -> System.exit(0));
         view.getChkHienMatKhau().addActionListener(e -> view.toggleHienMatKhau());
+
+        registerEnterEvent();
+    }
+
+    // Tân - Tự động đăng nhập khi nhấn Enter
+    private void registerEnterEvent() {
+
+        KeyAdapter enterKey = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    xuLyDangNhap();
+                }
+            }
+        };
+
+        view.getTxtTenDangNhap().addKeyListener(enterKey);
+        view.getTxtMatKhau().addKeyListener(enterKey);
     }
 
     private void xuLyDangNhap() {
