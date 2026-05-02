@@ -430,6 +430,21 @@ public class GiaoDienChinh extends JFrame {
     }
 
     public void logout() {
+<<<<<<< Updated upstream
+=======
+    	
+    	
+    	//Dieu chinh dang nhap
+    	
+    	PhienDangNhap.setTaiKhoanDangNhap(null);
+        PhienDangNhap.setNhanVienDangNhap(null);
+        
+        DangNhap dangNhap = new DangNhap();
+        new DangNhapController(dangNhap);
+        dangNhap.setVisible(true);
+//        new DangNhap().setVisible(true);
+        
+>>>>>>> Stashed changes
         dispose();
         new DangNhap().setVisible(true);
     }
