@@ -269,8 +269,6 @@ public class QLKhuyenMai extends JPanel {
         styleTextField(txtTenKhuyenMai);
         styleTextField(txtGiaTri);
 
-        txtMaKM.setEditable(false);
-
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -483,11 +481,13 @@ public class QLKhuyenMai extends JPanel {
         txtMaKM.setText("");
         txtTenKhuyenMai.setText("");
         txtGiaTri.setText("");
+        txtMaKM.setEditable(true);
 
         setDatePickerValue(dateNgayBatDau, null);
         setDatePickerValue(dateNgayKetThuc, null);
 
         tblKhuyenMai.clearSelection();
+        txtMaKM.requestFocusInWindow();
     }
 
     public void clearSearchForm() {

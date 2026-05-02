@@ -396,8 +396,8 @@ public class QLDonDatPhong extends JPanel {
         btnThemDichVu = createPrimaryButton("Thêm dịch vụ");
         btnXoaDichVu = createDangerButton("Xóa dịch vụ");
 
-        btnThemDichVu.setVisible(false);
-        btnXoaDichVu.setVisible(false);
+        btnThemDichVu.setEnabled(false);
+        btnXoaDichVu.setEnabled(false);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         buttonPanel.setOpaque(false);
@@ -413,26 +413,12 @@ public class QLDonDatPhong extends JPanel {
         gbc.gridy++;
         gbc.gridwidth = 1;
 
-        tblPhongTrongDon.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                boolean daChonPhong = tblPhongTrongDon.getSelectedRow() != -1;
-                btnThemDichVu.setVisible(daChonPhong);
-            }
-        });
-
-        tblDichVuTrongDon.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                boolean daChonDichVu = tblDichVuTrongDon.getSelectedRow() != -1;
-                btnXoaDichVu.setVisible(daChonDichVu);
-            }
-        });
-
         btnThemDichVu.addActionListener(e -> {
-            if (tblPhongTrongDon.getSelectedRow() == -1) {
+            if (tblPhongTrongDon.getRowCount() == 0) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Vui lòng chọn một phòng trước khi thêm dịch vụ.",
-                        "Chưa chọn phòng",
+                        "Đơn hiện tại chưa có phòng để thêm dịch vụ.",
+                        "Chưa có phòng",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -742,10 +728,10 @@ public class QLDonDatPhong extends JPanel {
         }
 
         if (btnThemDichVu != null) {
-            btnThemDichVu.setVisible(false);
+            btnThemDichVu.setEnabled(false);
         }
         if (btnXoaDichVu != null) {
-            btnXoaDichVu.setVisible(false);
+            btnXoaDichVu.setEnabled(false);
         }
 
         modelPhongTrongDon.setRowCount(0);
@@ -755,8 +741,16 @@ public class QLDonDatPhong extends JPanel {
         tblDichVu.clearSelection();
         tblPhongTrongDon.clearSelection();
 
+        setDichVuButtonState(false, false);
+    }
+
+    public void setDichVuButtonState(boolean enableThem, boolean enableXoa) {
         if (btnThemDichVu != null) {
-            btnThemDichVu.setVisible(false);
+            btnThemDichVu.setEnabled(enableThem);
+        }
+
+        if (btnXoaDichVu != null) {
+            btnXoaDichVu.setEnabled(enableXoa);
         }
     }
     public void dongDialogDichVu() {

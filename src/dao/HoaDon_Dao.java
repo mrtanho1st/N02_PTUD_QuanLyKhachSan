@@ -1003,4 +1003,335 @@ public class HoaDon_Dao {
 
         return ds;
     }
+
+    public List<Object[]> getDoanhThuTheoThoiGianChiTiet(Date tuNgay, Date denNgay) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT HD.ngayLapHD, ");
+        sql.append("       COUNT(HD.maHD) AS soHoaDon, ");
+        sql.append("       ISNULL(SUM(tp.tienPhong), 0) AS tienPhong, ");
+        sql.append("       ISNULL(SUM(td.tienDichVu), 0) AS tienDichVu, ");
+        sql.append("       SUM(HD.tongTien) AS tongTien ");
+        sql.append("FROM HoaDon HD ");
+        sql.append("LEFT JOIN (");
+        sql.append("    SELECT maHD, SUM(thanhTien) AS tienPhong ");
+        sql.append("    FROM CTHoaDonPhong ");
+        sql.append("    GROUP BY maHD");
+        sql.append(") tp ON HD.maHD = tp.maHD ");
+        sql.append("LEFT JOIN (");
+        sql.append("    SELECT maHD, SUM(thanhTien) AS tienDichVu ");
+        sql.append("    FROM CTHoaDonDichVu ");
+        sql.append("    GROUP BY maHD");
+        sql.append(") td ON HD.maHD = td.maHD ");
+        sql.append("WHERE HD.ngayLapHD >= ? AND HD.ngayLapHD <= ? ");
+        sql.append("GROUP BY HD.ngayLapHD ");
+        sql.append("ORDER BY HD.ngayLapHD ASC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            ps.setDate(1, tuNgay);
+            ps.setDate(2, denNgay);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[5];
+                    row[0] = rs.getDate("ngayLapHD");
+                    row[1] = rs.getInt("soHoaDon");
+                    row[2] = rs.getDouble("tienPhong");
+                    row[3] = rs.getDouble("tienDichVu");
+                    row[4] = rs.getDouble("tongTien");
+                    ds.add(row);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+    public List<Object[]> getDoanhThuTheoKhachHang(Date tuNgay, Date denNgay) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT kh.maKH, kh.hoTen, kh.loaiKH, COUNT(DISTINCT hd.maHD) AS soLanLuuTru, ");
+        sql.append("       ISNULL(SUM(hd.tongTien), 0) AS tongChiTieu ");
+        sql.append("FROM KhachHang kh ");
+        sql.append("LEFT JOIN HoaDon hd ON kh.maKH = hd.maKH ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD >= ?) ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
+        }
+
+        sql.append("GROUP BY kh.maKH, kh.hoTen, kh.loaiKH ");
+        sql.append("ORDER BY tongChiTieu DESC, kh.maKH");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[5];
+                    row[0] = rs.getString("maKH");
+                    row[1] = rs.getString("hoTen");
+                    row[2] = rs.getString("loaiKH");
+                    row[3] = rs.getInt("soLanLuuTru");
+                    row[4] = rs.getDouble("tongChiTieu");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+    public List<Object[]> getDoanhThuTheoPhong(Date tuNgay, Date denNgay) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT p.maPhong, p.loaiPhong, COUNT(DISTINCT ct.maDDP) AS soLuotThue, ");
+        sql.append("       ISNULL(SUM(ct.soNgay), 0) AS tongSoNgay, ");
+        sql.append("       ISNULL(SUM(CASE WHEN ct.maPhong IS NOT NULL THEN ct.soNgay * ct.donGia ELSE 0 END), 0) AS tongDoanhThu ");
+        sql.append("FROM Phong p ");
+        sql.append("LEFT JOIN CTDonDatPhong ct ON p.maPhong = ct.maPhong ");
+        sql.append("LEFT JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND (ddp.ngayNhan IS NULL OR ddp.ngayNhan >= ?) ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND (ddp.ngayTra IS NULL OR ddp.ngayTra <= ?) ");
+        }
+
+        sql.append("GROUP BY p.maPhong, p.loaiPhong ");
+        sql.append("ORDER BY tongDoanhThu DESC, p.maPhong");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[5];
+                    row[0] = rs.getString("maPhong");
+                    row[1] = rs.getString("loaiPhong");
+                    row[2] = rs.getInt("soLuotThue");
+                    row[3] = rs.getInt("tongSoNgay");
+                    row[4] = rs.getDouble("tongDoanhThu");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+    public List<Object[]> getKhachHangDiemCaoNhat() {
+        List<Object[]> ds = new ArrayList<>();
+
+        String sql = """
+                SELECT ROW_NUMBER() OVER (ORDER BY kh.diemSo DESC, kh.maKH) AS xepHang,
+                       kh.maKH, kh.hoTen, kh.sdt, kh.loaiKH, kh.diemSo
+                FROM KhachHang kh
+                ORDER BY kh.diemSo DESC, kh.maKH
+                """;
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                Object[] row = new Object[6];
+                row[0] = rs.getInt("xepHang");
+                row[1] = rs.getString("maKH");
+                row[2] = rs.getString("hoTen");
+                row[3] = rs.getString("sdt");
+                row[4] = rs.getString("loaiKH");
+                row[5] = rs.getDouble("diemSo");
+                ds.add(row);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+    public List<Object[]> getPhongDatNhieuNhat(Date tuNgay, Date denNgay) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY COUNT(ct.maDDP) DESC, p.maPhong) AS xepHang, ");
+        sql.append("       p.maPhong, p.loaiPhong, COUNT(DISTINCT ct.maDDP) AS soLuotDat, ");
+        sql.append("       p.trangThaiPhong, ");
+        sql.append("       ISNULL(SUM(ct.soNgay), 0) AS tongSoNgay ");
+        sql.append("FROM Phong p ");
+        sql.append("LEFT JOIN CTDonDatPhong ct ON p.maPhong = ct.maPhong ");
+        sql.append("LEFT JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND (ddp.ngayNhan IS NULL OR ddp.ngayNhan >= ?) ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND (ddp.ngayTra IS NULL OR ddp.ngayTra <= ?) ");
+        }
+
+        sql.append("GROUP BY p.maPhong, p.loaiPhong, p.trangThaiPhong ");
+        sql.append("ORDER BY COUNT(ct.maDDP) DESC, p.maPhong");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[6];
+                    row[0] = rs.getInt("xepHang");
+                    row[1] = rs.getString("maPhong");
+                    row[2] = rs.getString("loaiPhong");
+                    row[3] = rs.getInt("soLuotDat");
+                    row[4] = rs.getInt("tongSoNgay");
+                    row[5] = rs.getString("trangThaiPhong");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+    public List<Object[]> getThongKeHoaDon(Date tuNgay, Date denNgay, String tuKhoa) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT hd.maHD, hd.ngayLapHD, kh.hoTen, nv.hoTen AS tenNV, ");
+        sql.append("       ISNULL(tp.tienPhong, 0) AS tienPhong, ");
+        sql.append("       ISNULL(td.tienDichVu, 0) AS tienDichVu, ");
+        sql.append("       ISNULL(t.tenThue, N'') AS tenThue, hd.tongTien ");
+        sql.append("FROM HoaDon hd ");
+        sql.append("LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH ");
+        sql.append("LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV ");
+        sql.append("LEFT JOIN Thue t ON hd.maThue = t.maThue ");
+        sql.append("LEFT JOIN (");
+        sql.append("    SELECT maHD, SUM(thanhTien) AS tienPhong ");
+        sql.append("    FROM CTHoaDonPhong ");
+        sql.append("    GROUP BY maHD");
+        sql.append(") tp ON hd.maHD = tp.maHD ");
+        sql.append("LEFT JOIN (");
+        sql.append("    SELECT maHD, SUM(thanhTien) AS tienDichVu ");
+        sql.append("    FROM CTHoaDonDichVu ");
+        sql.append("    GROUP BY maHD");
+        sql.append(") td ON hd.maHD = td.maHD ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND hd.ngayLapHD >= ? ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND hd.ngayLapHD <= ? ");
+        }
+
+        if (tuKhoa != null && !tuKhoa.isBlank()) {
+            sql.append("AND (hd.maHD LIKE ? OR kh.hoTen LIKE ? OR nv.hoTen LIKE ?) ");
+        }
+
+        sql.append("ORDER BY hd.ngayLapHD DESC, hd.maHD DESC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            if (tuKhoa != null && !tuKhoa.isBlank()) {
+                String kw = "%" + tuKhoa.trim() + "%";
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+                ps.setString(index++, kw);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[8];
+                    row[0] = rs.getString("maHD");
+                    row[1] = rs.getDate("ngayLapHD");
+                    row[2] = rs.getString("hoTen");
+                    row[3] = rs.getString("tenNV");
+                    row[4] = rs.getDouble("tienPhong");
+                    row[5] = rs.getDouble("tienDichVu");
+                    row[6] = rs.getString("tenThue");
+                    row[7] = rs.getDouble("tongTien");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
 }

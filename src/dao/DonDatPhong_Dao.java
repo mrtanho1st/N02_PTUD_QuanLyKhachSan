@@ -976,7 +976,7 @@ public class DonDatPhong_Dao {
 
         return list;
     }
-    public boolean xoaDichVuChoPhong(String maPhong, String maDV) {
+    public boolean xoaDichVuChoPhong(String maDDP, String maPhong, String maDV) {
         String sql = """
                 DELETE FROM PhieuDichVu
         			WHERE maDDP = ? AND maPhong = ? AND maDV = ?
@@ -986,8 +986,9 @@ public class DonDatPhong_Dao {
                 Connection con = ConnectDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)
         ) {
-            ps.setString(1, maPhong);
-            ps.setString(2, maDV);
+            ps.setString(1, maDDP);
+            ps.setString(2, maPhong);
+            ps.setString(3, maDV);
 
             return ps.executeUpdate() > 0;
 
@@ -996,5 +997,71 @@ public class DonDatPhong_Dao {
         }
 
         return false;
+    }
+
+    public List<Object[]> getThongKeDonDatPhong(java.sql.Date tuNgay, java.sql.Date denNgay, String tinhTrang) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT CAST(ngayNhan AS DATE) AS theoNgay, ");
+        sql.append("       COUNT(DISTINCT maDDP) AS tongDon, ");
+        sql.append("       SUM(CASE WHEN tinhTrang = N'Đã đặt' THEN 1 ELSE 0 END) AS daDat, ");
+        sql.append("       SUM(CASE WHEN tinhTrang = N'Đã nhận' THEN 1 ELSE 0 END) AS daNhan, ");
+        sql.append("       SUM(CASE WHEN tinhTrang = N'Hoàn thành' THEN 1 ELSE 0 END) AS hoanThanh, ");
+        sql.append("       ISNULL(SUM(tienCoc), 0) AS tongTienCoc ");
+        sql.append("FROM DonDatPhong ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (tuNgay != null) {
+            sql.append("AND ngayNhan >= ? ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND ngayTra <= ? ");
+        }
+
+        if (tinhTrang != null && !tinhTrang.isBlank()) {
+            sql.append("AND tinhTrang = ? ");
+        }
+
+        sql.append("GROUP BY CAST(ngayNhan AS DATE) ");
+        sql.append("ORDER BY theoNgay ASC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            if (tinhTrang != null && !tinhTrang.isBlank()) {
+                ps.setString(index++, tinhTrang);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[6];
+                    row[0] = rs.getDate("theoNgay").toString();
+                    row[1] = rs.getInt("tongDon");
+                    row[2] = rs.getInt("daDat");
+                    row[3] = rs.getInt("daNhan");
+                    row[4] = rs.getInt("hoanThanh");
+                    row[5] = rs.getDouble("tongTienCoc");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
     }
 }

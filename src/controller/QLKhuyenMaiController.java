@@ -142,6 +142,7 @@ public class QLKhuyenMaiController {
         }
 
         view.getTxtMaKM().setText(getTableValue(row, 0));
+        view.getTxtMaKM().setEditable(false);
         view.getTxtTenKhuyenMai().setText(getTableValue(row, 1));
         view.getTxtGiaTri().setText(getTableValue(row, 2));
         view.setNgayBatDauValue(LocalDate.parse(getTableValue(row, 3)));

@@ -48,6 +48,7 @@ public class QLDonDatPhongController {
             view.clearForm();
             loadPhongTrongLenCombo();
             view.resetDichVuSelection();
+            capNhatTrangThaiNutDichVu();
         });
 
         view.getBtnLuu().addActionListener(e -> luuThayDoi());
@@ -66,15 +67,30 @@ public class QLDonDatPhongController {
 
             	view.resetDichVuSelection();
             }
+
+            if (!e.getValueIsAdjusting()) {
+                capNhatTrangThaiNutDichVu();
+            }
         });
 
         view.getTblPhongTrongDon().getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && view.getTblPhongTrongDon().getSelectedRow() >= 0) {
                 fillPhongDangChonVaoCombo();
             }
+
+            if (!e.getValueIsAdjusting()) {
+                capNhatTrangThaiNutDichVu();
+            }
+        });
+
+        view.getTblDichVuTrongDon().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                capNhatTrangThaiNutDichVu();
+            }
         });
 
         view.getCboThaoTacPhong().addActionListener(e -> capNhatTrangThaiComboPhong());
+        view.getCboTrangThaiDon().addActionListener(e -> capNhatTrangThaiNutDichVu());
 
         DocumentListener searchListener = new DocumentListener() {
             @Override
@@ -137,7 +153,7 @@ public class QLDonDatPhongController {
             return;
         }
 
-        boolean ok = donDatPhongDao.xoaDichVuChoPhong(maPhong, maDV);
+        boolean ok = donDatPhongDao.xoaDichVuChoPhong(maDDP, maPhong, maDV);
 
         if (!ok) {
             JOptionPane.showMessageDialog(view, "Xóa dịch vụ thất bại.");
@@ -145,6 +161,7 @@ public class QLDonDatPhongController {
         }
 
         loadDichVuTrongDon(maDDP);
+        capNhatTrangThaiNutDichVu();
 
         JOptionPane.showMessageDialog(view, "Xóa dịch vụ thành công.");
     }
@@ -179,6 +196,7 @@ public class QLDonDatPhongController {
     private void loadDonDatPhong() {
         List<DonDatPhong> list =  donDatPhongDao.findDonDangXuLy();
         fillTableDonDatPhong(list);
+        capNhatTrangThaiNutDichVu();
     }
 
     private void timKiemTuDong() {
@@ -386,6 +404,7 @@ public class QLDonDatPhongController {
             loadTatCaDichVuLenBang();
             loadPhongTrongLenCombo();
             view.resetDichVuSelection();
+            capNhatTrangThaiNutDichVu();
         }
     }
 
@@ -545,12 +564,18 @@ public class QLDonDatPhongController {
 
         String maDDP = view.getTxtMaDon().getText().trim();
         loadDichVuTrongDon(maDDP);
+        capNhatTrangThaiNutDichVu();
 
         return true;
     }
 
     private String layMaPhongDangChonTrongBang() {
         int row = view.getTblPhongTrongDon().getSelectedRow();
+
+        if (row < 0 && view.getTblPhongTrongDon().getRowCount() > 0) {
+            row = 0;
+            view.getTblPhongTrongDon().setRowSelectionInterval(0, 0);
+        }
 
         if (row < 0) {
             return "";
@@ -611,6 +636,8 @@ public class QLDonDatPhongController {
         for (Object[] row : dsDichVu) {
             model.addRow(row);
         }
+
+        capNhatTrangThaiNutDichVu();
     }
     
     private void refreshAfterAction() {
@@ -618,6 +645,27 @@ public class QLDonDatPhongController {
         loadTatCaDichVuLenBang();
         loadPhongTrongLenCombo();
         view.clearForm();
+        capNhatTrangThaiNutDichVu();
+    }
+
+    private void capNhatTrangThaiNutDichVu() {
+        boolean choPhepSuaDichVu = laDonChoPhepSuaDichVu();
+        boolean coPhongTrongDon = view.getTblPhongTrongDon().getRowCount() > 0;
+        boolean daChonDichVu = view.getTblDichVuTrongDon().getSelectedRow() >= 0;
+
+        view.setDichVuButtonState(
+                choPhepSuaDichVu && coPhongTrongDon,
+                choPhepSuaDichVu && daChonDichVu
+        );
+    }
+
+    private boolean laDonChoPhepSuaDichVu() {
+        Object trangThaiObj = view.getCboTrangThaiDon().getSelectedItem();
+        String trangThai = trangThaiObj == null ? "" : trangThaiObj.toString();
+
+        return "Đã đặt".equalsIgnoreCase(trangThai)
+                || "Đã nhận".equalsIgnoreCase(trangThai)
+                || "Đã nhận phòng".equalsIgnoreCase(trangThai);
     }
 
     private void selectComboByMa(javax.swing.JComboBox<String> combo, String ma) {

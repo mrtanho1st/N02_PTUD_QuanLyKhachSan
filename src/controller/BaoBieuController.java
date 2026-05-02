@@ -571,95 +571,19 @@ public class BaoBieuController {
     }
 
     private void xuatExcel() {
-        DefaultTableModel model = view.getTableModel();
-
-        if (model.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(view, "Không có dữ liệu để xuất.");
-            return;
-        }
-
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Lưu file Excel");
-        fileChooser.setSelectedFile(new File("bao_bieu_" + loaiBaoBieu.name().toLowerCase() + ".csv"));
-
-        int userSelection = fileChooser.showSaveDialog(view);
-
-        if (userSelection != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
-
-        File file = fileChooser.getSelectedFile();
-
-        if (!file.getName().toLowerCase().endsWith(".csv")) {
-            file = new File(file.getAbsolutePath() + ".csv");
-        }
-
-        try (
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)
-                )
-        ) {
-            writer.write('\ufeff');
-
-            for (int i = 0; i < model.getColumnCount(); i++) {
-                writer.write(csvValue(model.getColumnName(i)));
-
-                if (i < model.getColumnCount() - 1) {
-                    writer.write(",");
-                }
-            }
-
-            writer.newLine();
-
-            for (int row = 0; row < model.getRowCount(); row++) {
-                for (int col = 0; col < model.getColumnCount(); col++) {
-                    Object value = model.getValueAt(row, col);
-                    writer.write(csvValue(value == null ? "" : value.toString()));
-
-                    if (col < model.getColumnCount() - 1) {
-                        writer.write(",");
-                    }
-                }
-
-                writer.newLine();
-            }
-
-            JOptionPane.showMessageDialog(view, "Xuất Excel thành công!");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(view, "Lỗi khi xuất Excel.");
-        }
-    }
-
-    private String csvValue(String value) {
-        String safe = value.replace("\"", "\"\"");
-        return "\"" + safe + "\"";
+        TableExportHelper.exportCsv(
+                view,
+                view.getTableModel(),
+                "bao_bieu_" + loaiBaoBieu.name().toLowerCase() + ".csv",
+                "Xuất báo biểu thành công!");
     }
 
     private void inPdf() {
-        try {
-            if (view.getTableModel().getRowCount() == 0) {
-                JOptionPane.showMessageDialog(view, "Không có dữ liệu để in.");
-                return;
-            }
-
-            boolean complete = view.getTblBaoBieu().print(
-                    JTable.PrintMode.FIT_WIDTH,
-                    new MessageFormat("Báo biểu " + loaiBaoBieu.getTenHienThi()),
-                    new MessageFormat("Trang {0}")
-            );
-
-            if (complete) {
-                JOptionPane.showMessageDialog(view, "In báo biểu thành công.");
-            } else {
-                JOptionPane.showMessageDialog(view, "Đã hủy in báo biểu.");
-            }
-
-        } catch (PrinterException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(view, "Lỗi khi in báo biểu.");
-        }
+        TableExportHelper.printTable(
+                view,
+                view.getTblBaoBieu(),
+                "Báo biểu " + loaiBaoBieu.getTenHienThi(),
+                "báo biểu");
     }
 
     private Date getDateFromPicker(JDatePicker datePicker) {
