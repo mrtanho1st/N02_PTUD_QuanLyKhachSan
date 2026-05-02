@@ -275,6 +275,67 @@ public class Phong_Dao {
 
         return list;
     }
+    
+    public List<Phong> findPhongTheoNgay(java.sql.Date tuNgay, java.sql.Date denNgay) {
+        List<Phong> list = new ArrayList<>();
+
+        String sql = """
+            SELECT 
+                p.*,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM CTDonDatPhong ct
+                        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
+                        WHERE ct.maPhong = p.maPhong
+                        AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?)
+                        AND ddp.tinhTrang = N'Đã nhận'
+                    ) THEN N'Đang sử dụng'
+
+                    WHEN EXISTS (
+                        SELECT 1 
+                        FROM CTDonDatPhong ct
+                        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
+                        WHERE ct.maPhong = p.maPhong
+                        AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?)
+                        AND ddp.tinhTrang = N'Đã đặt'
+                    ) THEN N'Đã đặt'
+
+                    ELSE N'Trống'
+                END AS trangThaiTheoNgay
+
+            FROM Phong p
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+            ps.setDate(1, tuNgay);
+            ps.setDate(2, denNgay);
+            ps.setDate(3, tuNgay);
+            ps.setDate(4, denNgay);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Phong p = new Phong(
+                    rs.getString("maPhong"),
+                    rs.getString("loaiPhong"),
+                    rs.getInt("soNguoiToiDa"),
+                    rs.getDouble("giaPhong"),
+                    rs.getString("trangThaiTheoNgay") // 🔥 QUAN TRỌNG
+                );
+
+                list.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 
     private Phong mapPhong(ResultSet rs) throws Exception {
         return new Phong(

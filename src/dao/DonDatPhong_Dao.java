@@ -267,6 +267,8 @@ public class DonDatPhong_Dao {
         return list;
     }
 
+    
+    
     public DonDatPhong findRoomDetailByMaPhong(String maPhong) {
         List<DonDatPhong> list = search(maPhong, "", "Tất cả", "", "Tất cả", null, null, null);
         return list.isEmpty() ? null : list.get(0);

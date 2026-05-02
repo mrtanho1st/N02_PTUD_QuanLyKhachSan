@@ -3,6 +3,7 @@ package controller;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -73,6 +74,8 @@ public class DonDatPhongController {
         view.getTxtTimMaPhong().getDocument().addDocumentListener(docListener);
         view.getCboLoaiPhong().addActionListener(e -> timPhongKhongThongBao());
         view.getCboTrangThai().addActionListener(e -> timPhongKhongThongBao());
+        view.getDateTuNgay().addActionListener(e -> timPhongKhongThongBao());
+        view.getDateDenNgay().addActionListener(e -> timPhongKhongThongBao());
     }
     public static  void reloadData() {
         loadDanhSachPhong();
@@ -86,12 +89,37 @@ public class DonDatPhongController {
     private void timPhongKhongThongBao() {
         String tuKhoa = view.getTxtTimMaPhong().getText().trim();
         String loaiPhong = view.getCboLoaiPhong().getSelectedItem().toString();
-        String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
-        List<Phong> rooms = phongDao.searchBaoBieu(tuKhoa, loaiPhong, trangThai);
+        Date tuNgayUtil = (Date) view.getDateTuNgay().getModel().getValue();
+        
+        Date denNgayUtil = (Date) view.getDateDenNgay().getModel().getValue();
+
+        List<Phong> rooms;
+        
+        java.sql.Date tuNgay = null;
+        java.sql.Date denNgay = null;
+
+        if (tuNgayUtil != null) {
+            tuNgay = new java.sql.Date(tuNgayUtil.getTime());
+        }
+
+        if (denNgayUtil != null) {
+            denNgay = new java.sql.Date(denNgayUtil.getTime());
+        }
+
+        if (tuNgay != null && denNgay != null) {
+            if (denNgay.before(tuNgay)) {
+                JOptionPane.showMessageDialog(view, "Ngày kết thúc phải sau ngày bắt đầu");
+                return;
+            }
+
+            rooms = phongDao.findPhongTheoNgay(tuNgay, denNgay); // ✅ đổi hàm
+        } else {
+            rooms = phongDao.findAll();
+        }
+
         view.renderRooms(rooms);
     }
-
     private void lamMoiLoc() {
         view.getTxtTimMaPhong().setText("");
         view.getCboLoaiPhong().setSelectedIndex(0);
