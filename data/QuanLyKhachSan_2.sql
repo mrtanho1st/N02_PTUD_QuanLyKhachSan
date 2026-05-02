@@ -272,7 +272,7 @@ GO
 INSERT INTO NhanVien(maNV, hoTen, ngaySinh, sdt, email, gioiTinh, ngayBatDauVaoLam, trangThaiLamViec, diaChi, caLamViec, viTriCongViec) VALUES
 ('NV01', N'Đỗ Thanh Tường',        '1996-01-10', '0911222333', 'tuong@hotel.com', N'Nữ',  '2023-01-01', N'Đang làm', N'Hà Nội',    N'Ca sáng',  N'Lễ tân'),
 ('NV02', N'Lê Minh Tân',           '1998-04-12', '0911222334', 'tan@hotel.com',   N'Nam', '2024-01-10', N'Đang làm', N'Hà Nội',    N'Ca sáng',  N'Lễ tân'),
-('NV03', N'Nguyễn Thị Thanh Thư',  '1995-08-20', '0911222335', 'thu@hotel.com',   N'Nữ',  '2023-11-01', N'Đang làm', N'Hải Phòng', N'Ca chiều', N'Lễ tân'),
+('NV03', N'Nguyễn Thị Thanh Thư',  '1995-08-20', '0911222335', 'thu@hotel.com',   N'Nữ',  '2023-11-01', N'Đang làm', N'Hải Phòng', N'Ca chiều', N'Quản lý'),
 ('NV04', N'Nguyễn Gia Quân',       '1997-02-15', '0911222336', 'quan@hotel.com',  N'Nam', '2024-03-05', N'Đang làm', N'Đà Nẵng',   N'Ca sáng',  N'Lễ tân'),
 ('NV05', N'Phạm Quốc Đạt',         '1994-12-09', '0911222337', 'dat@hotel.com',   N'Nam', '2022-09-18', N'Đang làm', N'TP.HCM',    N'Ca tối',   N'Quản lý'),
 ('NV06', N'Trần Hoài Nam',        '1996-03-25', '0911222338', 'nam@hotel.com',    N'Nam', '2023-06-15', N'Đang làm', N'Hà Nội',    N'Ca tối',   N'Lễ tân'),
@@ -285,7 +285,7 @@ GO
 INSERT INTO TaiKhoan(tenDangNhap, matKhau, vaiTro, maNV) VALUES
 ('DoThanhTuong', '123456', N'LeTan',  'NV01'),
 ('LeMinhTan', '123456', N'LeTan',  'NV02'),
-('NguyenThiThanhThu', '123456', N'LeTan',  'NV03'),
+('NguyenThiThanhThu', '123456', N'QuanLy',  'NV03'),
 ('NguyenGiaQuan', '123456', N'LeTan', 'NV04'),
 ('nv05', '123456', N'QuanLy', 'NV05');
 GO

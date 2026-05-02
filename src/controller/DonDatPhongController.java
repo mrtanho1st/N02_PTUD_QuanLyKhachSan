@@ -87,8 +87,9 @@ public class DonDatPhongController {
     }
 
     private void timPhongKhongThongBao() {
-        String tuKhoa = view.getTxtTimMaPhong().getText().trim();
+        String maPhong = view.getTxtTimMaPhong().getText().trim();
         String loaiPhong = view.getCboLoaiPhong().getSelectedItem().toString();
+        String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
         Date tuNgayUtil = (Date) view.getDateTuNgay().getModel().getValue();
         
@@ -113,7 +114,7 @@ public class DonDatPhongController {
                 return;
             }
 
-            rooms = phongDao.findPhongTheoNgay(tuNgay, denNgay); // ✅ đổi hàm
+            rooms = phongDao.search(maPhong,null, null,  loaiPhong, trangThai, tuNgay , denNgay); // ✅ đổi hàm
         } else {
             rooms = phongDao.findAll();
         }

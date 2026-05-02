@@ -113,84 +113,6 @@ public class Phong_Dao {
 
         return false;
     }
-
-    // Hàm search cũ cho các giao diện nhiều ô.
-    // Giữ lại để không làm hư màn Quản lý phòng.
-    public List<Phong> search(
-            String maPhong,
-            Integer soNguoiCanTim,
-            Double giaPhongCanTim,
-            String loaiPhong,
-            String trangThai
-    ) {
-        List<Phong> list = new ArrayList<>();
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong ");
-        sql.append("FROM Phong ");
-        sql.append("WHERE 1 = 1 ");
-
-        if (maPhong != null && !maPhong.isBlank()) {
-            sql.append("AND maPhong LIKE ? ");
-        }
-
-        if (soNguoiCanTim != null) {
-            sql.append("AND soNguoiToiDa = ? ");
-        }
-
-        if (giaPhongCanTim != null) {
-            sql.append("AND giaPhong = ? ");
-        }
-
-        if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
-            sql.append("AND loaiPhong = ? ");
-        }
-
-        if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
-            sql.append("AND trangThaiPhong = ? ");
-        }
-
-        sql.append("ORDER BY maPhong");
-
-        try (
-                Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
-            int index = 1;
-
-            if (maPhong != null && !maPhong.isBlank()) {
-                ps.setString(index++, "%" + maPhong.trim() + "%");
-            }
-
-            if (soNguoiCanTim != null) {
-                ps.setInt(index++, soNguoiCanTim);
-            }
-
-            if (giaPhongCanTim != null) {
-                ps.setDouble(index++, giaPhongCanTim);
-            }
-
-            if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
-                ps.setString(index++, loaiPhong.trim());
-            }
-
-            if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
-                ps.setString(index++, trangThai.trim());
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapPhong(rs));
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
     // Hàm mới cho Báo biểu Phòng.
     // Giao diện báo biểu chỉ có 1 ô từ khóa:
     // tìm theo mã phòng, loại phòng, giá phòng, số người tối đa.
@@ -276,12 +198,25 @@ public class Phong_Dao {
         return list;
     }
     
-    public List<Phong> findPhongTheoNgay(java.sql.Date tuNgay, java.sql.Date denNgay) {
+
+    
+    public List<Phong> search(
+            String maPhong,
+            Integer soNguoiCanTim,
+            Double giaPhongCanTim,
+            String loaiPhong,
+            String trangThai,
+            java.sql.Date tuNgay,
+            java.sql.Date denNgay
+    ) {
         List<Phong> list = new ArrayList<>();
 
-        String sql = """
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("""
             SELECT 
-                p.*,
+                p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong,
+
                 CASE 
                     WHEN EXISTS (
                         SELECT 1 
@@ -302,32 +237,164 @@ public class Phong_Dao {
                     ) THEN N'Đã đặt'
 
                     ELSE N'Trống'
-                END AS trangThaiTheoNgay
+                END AS trangThaiPhong
 
             FROM Phong p
-        """;
+            WHERE 1=1
+        """);
+
+        // 🔎 FILTER
+        if (maPhong != null && !maPhong.isBlank()) {
+            sql.append(" AND p.maPhong LIKE ? ");
+        }
+
+        if (soNguoiCanTim != null) {
+            sql.append(" AND p.soNguoiToiDa = ? ");
+        }
+
+        if (giaPhongCanTim != null) {
+            sql.append(" AND p.giaPhong = ? ");
+        }
+
+        if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+            sql.append(" AND p.loaiPhong = ? ");
+        }
+
+        // ⚠️ filter theo trạng thái tính theo ngày
+        if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+            sql.append(" AND (");
+            sql.append(" CASE ");
+            sql.append(" WHEN EXISTS (SELECT 1 FROM CTDonDatPhong ct JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+            sql.append(" WHERE ct.maPhong = p.maPhong AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?) AND ddp.tinhTrang = N'Đã nhận') THEN N'Đang sử dụng' ");
+            sql.append(" WHEN EXISTS (SELECT 1 FROM CTDonDatPhong ct JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+            sql.append(" WHERE ct.maPhong = p.maPhong AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?) AND ddp.tinhTrang = N'Đã đặt') THEN N'Đã đặt' ");
+            sql.append(" ELSE N'Trống' END = ? ) ");
+        }
+
+        sql.append(" ORDER BY p.maPhong ");
 
         try (
             Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
+            PreparedStatement ps = con.prepareStatement(sql.toString())
         ) {
-            ps.setDate(1, tuNgay);
-            ps.setDate(2, denNgay);
-            ps.setDate(3, tuNgay);
-            ps.setDate(4, denNgay);
+            int i = 1;
+
+            // CASE chính
+            ps.setDate(i++, tuNgay);
+            ps.setDate(i++, denNgay);
+            ps.setDate(i++, tuNgay);
+            ps.setDate(i++, denNgay);
+
+            // FILTER
+            if (maPhong != null && !maPhong.isBlank()) {
+                ps.setString(i++, "%" + maPhong + "%");
+            }
+
+            if (soNguoiCanTim != null) {
+                ps.setInt(i++, soNguoiCanTim);
+            }
+
+            if (giaPhongCanTim != null) {
+                ps.setDouble(i++, giaPhongCanTim);
+            }
+
+            if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+                ps.setString(i++, loaiPhong);
+            }
+
+            if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+                // CASE filter cần thêm 4 date nữa
+                ps.setDate(i++, tuNgay);
+                ps.setDate(i++, denNgay);
+                ps.setDate(i++, tuNgay);
+                ps.setDate(i++, denNgay);
+
+                ps.setString(i++, trangThai);
+            }
 
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 Phong p = new Phong(
-                    rs.getString("maPhong"),
-                    rs.getString("loaiPhong"),
-                    rs.getInt("soNguoiToiDa"),
-                    rs.getDouble("giaPhong"),
-                    rs.getString("trangThaiTheoNgay") // 🔥 QUAN TRỌNG
+                        rs.getString("maPhong"),
+                        rs.getString("loaiPhong"),
+                        rs.getInt("soNguoiToiDa"),
+                        rs.getDouble("giaPhong"),
+                        rs.getString("trangThaiPhong") // 🔥 dùng trạng thái theo ngày
                 );
 
                 list.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    //Dùng trong tìm kiếm của quản lý phòng
+    public List<Phong> searchKhongTheoNgay(
+            String maPhong,
+            Integer soNguoiCanTim,
+            Double giaPhongCanTim,
+            String loaiPhong,
+            String trangThai
+    ) {
+        List<Phong> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong FROM Phong WHERE 1=1 ");
+
+        if (maPhong != null && !maPhong.isBlank()) {
+            sql.append("AND maPhong LIKE ? ");
+        }
+
+        if (soNguoiCanTim != null) {
+            sql.append("AND soNguoiToiDa = ? ");
+        }
+
+        if (giaPhongCanTim != null) {
+            sql.append("AND giaPhong = ? ");
+        }
+
+        if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+            sql.append("AND loaiPhong = ? ");
+        }
+
+        if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+            sql.append("AND trangThaiPhong = ? ");
+        }
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int i = 1;
+
+            if (maPhong != null && !maPhong.isBlank()) {
+                ps.setString(i++, "%" + maPhong + "%");
+            }
+
+            if (soNguoiCanTim != null) {
+                ps.setInt(i++, soNguoiCanTim);
+            }
+
+            if (giaPhongCanTim != null) {
+                ps.setDouble(i++, giaPhongCanTim);
+            }
+
+            if (loaiPhong != null && !loaiPhong.isBlank() && !"Tất cả".equalsIgnoreCase(loaiPhong)) {
+                ps.setString(i++, loaiPhong);
+            }
+
+            if (trangThai != null && !trangThai.isBlank() && !"Tất cả".equalsIgnoreCase(trangThai)) {
+                ps.setString(i++, trangThai);
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapPhong(rs));
             }
 
         } catch (Exception e) {

@@ -148,6 +148,7 @@ public class DonDatPhong_Dao {
         sql.append("    p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, p.trangThaiPhong, ");
         sql.append("    ddp.maDDP, ddp.tinhTrang, ");
         sql.append("    kh.maKH, kh.hoTen AS tenKH, ");
+//        sql.append("    kh.soDienThoai, kh.cccd, ");
         sql.append("    nv.maNV, nv.hoTen AS tenNV, ");
         sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
         sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
@@ -157,7 +158,7 @@ public class DonDatPhong_Dao {
         sql.append("LEFT JOIN NhanVien nv ON ddp.maNV = nv.maNV ");
         sql.append("LEFT JOIN CTDonDatPhong ct ON ddp.maDDP = ct.maDDP ");
         sql.append("LEFT JOIN Phong p ON ct.maPhong = p.maPhong ");
-        sql.append("WHERE ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận') ");
+        sql.append("WHERE ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận', N'Đã hủy', N'Hoàn thành') ");
         sql.append("ORDER BY ddp.ngayNhan DESC, ddp.maDDP DESC, p.maPhong ");
 
         try (

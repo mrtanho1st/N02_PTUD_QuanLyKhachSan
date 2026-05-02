@@ -213,17 +213,17 @@ public class QLPhongController {
                 soNguoiCanTim = Integer.parseInt(soNguoiText);
 
                 if (soNguoiCanTim <= 0) {
-                    fillTable(phongDao.search(maPhong, null, giaPhongCanTim, loaiPhong, trangThai));
+                    fillTable(phongDao.searchKhongTheoNgay(maPhong, null, giaPhongCanTim, loaiPhong, trangThai));
                     return;
                 }
 
             } catch (NumberFormatException e) {
-                fillTable(phongDao.search(maPhong, null, giaPhongCanTim, loaiPhong, trangThai));
+                fillTable(phongDao.searchKhongTheoNgay(maPhong, null, giaPhongCanTim, loaiPhong, trangThai));
                 return;
             }
         }
 
-        List<Phong> ds = phongDao.search(maPhong, soNguoiCanTim, giaPhongCanTim, loaiPhong, trangThai);
+        List<Phong> ds = phongDao.searchKhongTheoNgay(maPhong, null, giaPhongCanTim, loaiPhong, trangThai);
         fillTable(ds);
     }
 

@@ -58,8 +58,7 @@ public class QLDonDatPhong extends JPanel {
     // Form chi tiết đơn
     private JTextField txtMaDon;
     private JTextField txtKhachHang;
-    private JTextField txtCCCD;
-    private JTextField txtSoDienThoai;
+
     private JTextField txtNgayNhanPhong;
     private JTextField txtNgayTraPhong;
     private JTextField txtSoLuongNguoi;
@@ -122,7 +121,7 @@ public class QLDonDatPhong extends JPanel {
         txtTimKhachHang = new JTextField();
 
         cboLocTrangThai = new JComboBox<>(new String[] {
-                "Tất cả", "Đã đặt", "Đã nhận","Hoàn thành", "Đã hủy"
+                "Tất cả", "Đã đặt", "Đã nhận", "Đã hủy", "Hoàn thành"
         });
 
         styleTextField(txtTimMaDon);
@@ -322,20 +321,16 @@ public class QLDonDatPhong extends JPanel {
 
         txtMaDon = new JTextField();
         txtKhachHang = new JTextField();
-        txtCCCD = new JTextField();
-        txtSoDienThoai = new JTextField();
         txtNgayNhanPhong = new JTextField();
         txtNgayTraPhong = new JTextField();
         txtSoLuongNguoi = new JTextField();
 
         cboTrangThaiDon = new JComboBox<>(new String[] {
-                "Đã đặt", "Đã nhận", "Đã hủy"
+                "Đã đặt", "Đã nhận", "Đã hủy", "Hoàn thành"
         });
 
         styleTextField(txtMaDon);
         styleTextField(txtKhachHang);
-        styleTextField(txtCCCD);
-        styleTextField(txtSoDienThoai);
         styleTextField(txtNgayNhanPhong);
         styleTextField(txtNgayTraPhong);
         styleTextField(txtSoLuongNguoi);
@@ -353,8 +348,6 @@ public class QLDonDatPhong extends JPanel {
 
         addFormRow(formPanel, gbc, "Mã ĐĐP", txtMaDon);
         addFormRow(formPanel, gbc, "Khách hàng", txtKhachHang);
-        addFormRow(formPanel, gbc, "CCCD", txtCCCD);
-        addFormRow(formPanel, gbc, "Số điện thoại", txtSoDienThoai);
         addFormRow(formPanel, gbc, "Ngày nhận", txtNgayNhanPhong);
         addFormRow(formPanel, gbc, "Ngày trả", txtNgayTraPhong);
         addFormRow(formPanel, gbc, "Số lượng người", txtSoLuongNguoi);
@@ -715,8 +708,6 @@ public class QLDonDatPhong extends JPanel {
     public void clearForm() {
         txtMaDon.setText("");
         txtKhachHang.setText("");
-        txtCCCD.setText("");
-        txtSoDienThoai.setText("");
         txtNgayNhanPhong.setText("");
         txtNgayTraPhong.setText("");
         txtSoLuongNguoi.setText("");
@@ -824,13 +815,6 @@ public class QLDonDatPhong extends JPanel {
         return txtKhachHang;
     }
 
-    public JTextField getTxtCCCD() {
-        return txtCCCD;
-    }
-
-    public JTextField getTxtSoDienThoai() {
-        return txtSoDienThoai;
-    }
 
     public JTextField getTxtNgayNhanPhong() {
         return txtNgayNhanPhong;

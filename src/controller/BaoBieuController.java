@@ -21,6 +21,17 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
 import org.jdatepicker.JDatePicker;
 
 import dao.DichVu_Dao;
@@ -639,26 +650,69 @@ public class BaoBieuController {
 
     private void inPdf() {
         try {
-            if (view.getTableModel().getRowCount() == 0) {
-                JOptionPane.showMessageDialog(view, "Không có dữ liệu để in.");
+            DefaultTableModel model = view.getTableModel();
+
+            if (model.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(view, "Không có dữ liệu để xuất.");
                 return;
             }
 
-            boolean complete = view.getTblBaoBieu().print(
-                    JTable.PrintMode.FIT_WIDTH,
-                    new MessageFormat("Báo biểu " + loaiBaoBieu.getTenHienThi()),
-                    new MessageFormat("Trang {0}")
-            );
+            String folderPath = "export";
+            File folder = new File(folderPath);
 
-            if (complete) {
-                JOptionPane.showMessageDialog(view, "In báo biểu thành công.");
-            } else {
-                JOptionPane.showMessageDialog(view, "Đã hủy in báo biểu.");
+            if (!folder.exists()) {
+                folder.mkdirs();
             }
 
-        } catch (PrinterException e) {
+            String filePath = folderPath + "/baobieu_" 
+                    + loaiBaoBieu.name().toLowerCase() + ".pdf";
+
+            // ✅ iText 5 đúng chuẩn
+            Document document = new Document(PageSize.A4);
+
+            PdfWriter.getInstance(document, new FileOutputStream(filePath));
+
+            document.open();
+
+            // Title
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+            Paragraph title = new Paragraph(
+                    "BÁO BIỂU - " + loaiBaoBieu.getTenHienThi(),
+                    titleFont
+            );
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+
+            document.add(new Paragraph(" ")); // dòng trống
+
+            int columnCount = model.getColumnCount();
+
+            PdfPTable table = new PdfPTable(columnCount);
+            table.setWidthPercentage(100);
+
+            // Header
+            for (int i = 0; i < columnCount; i++) {
+                PdfPCell cell = new PdfPCell(new Phrase(model.getColumnName(i)));
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(cell);
+            }
+
+            // Data
+            for (int row = 0; row < model.getRowCount(); row++) {
+                for (int col = 0; col < columnCount; col++) {
+                    Object value = model.getValueAt(row, col);
+                    table.addCell(value == null ? "" : value.toString());
+                }
+            }
+
+            document.add(table);
+            document.close();
+
+            JOptionPane.showMessageDialog(view, "Xuất PDF thành công!\nFile: " + filePath);
+
+        } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(view, "Lỗi khi in báo biểu.");
+            JOptionPane.showMessageDialog(view, "Lỗi khi xuất PDF.");
         }
     }
 

@@ -289,9 +289,9 @@ public class DonDatPhongDialog extends JDialog {
         addRow(panel, 0, "Check-in dự kiến:", spnNgayNhan,
                 "Check-out dự kiến:", spnNgayTra);
 
-        JLabel note = new JLabel("Lưu ý: DB hiện tại của bạn đang dùng kiểu DATE cho ngày nhận/ngày trả.");
-        note.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        note.setForeground(new Color(160, 80, 40));
+//        JLabel note = new JLabel("Lưu ý: DB hiện tại của bạn đang dùng kiểu DATE cho ngày nhận/ngày trả.");
+//        note.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+//        note.setForeground(new Color(160, 80, 40));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -299,7 +299,7 @@ public class DonDatPhongDialog extends JDialog {
         gbc.gridwidth = 4;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(6, 6, 0, 6);
-        panel.add(note, gbc);
+//        panel.add(note, gbc);
 
         return panel;
     }

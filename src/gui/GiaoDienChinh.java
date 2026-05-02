@@ -187,8 +187,8 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnThongKe);
 
         btnBaoBieu = createNavButton("Báo biểu", new String[] {
-                "DS Khách hàng", "DS Nhân viên", "DS Phòng", "DS Khuyến mãi",
-                "DS Dịch vụ", "DS Đơn đặt phòng", "DS Hóa đơn"
+                "Danh sách Khách hàng", "Danh sách Nhân viên", "Danh sách Phòng", "Danh sách Khuyến mãi",
+                "Danh sách Dịch vụ", "Danh sách Đơn đặt phòng", "Danh sách Hóa đơn"
         });
         nav.add(btnBaoBieu);
 
@@ -389,6 +389,15 @@ public class GiaoDienChinh extends JFrame {
             JMenuItem item = new JMenuItem(sub);
             item.setFont(new Font("Segoe UI", Font.PLAIN, 15));
             item.addActionListener(e -> {
+            	if (!GiaoDienChinhController.coQuyen(text, sub)) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Bạn không có quyền sử dụng chức năng này!",
+                            "Từ chối truy cập",
+                            JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
+                }
                 setActiveNavButton(button);
                 openExistingPage(text, sub);
             });
@@ -556,19 +565,19 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLThongke.createPanel(LoaiThongKe.THONG_KE_THEO_NHAN_VIEN);
             }
         } else if (mainMenu.equals("Báo biểu")) {
-            if (subMenu.equals("DS Khách hàng")) {
+            if (subMenu.equals("Danh sách Khách hàng")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.KHACH_HANG);
-            } else if (subMenu.equals("DS Nhân viên")) {
+            } else if (subMenu.equals("Danh sách Nhân viên")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.NHAN_VIEN);
-            } else if (subMenu.equals("DS Phòng")) {
+            } else if (subMenu.equals("Danh sách Phòng")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.PHONG);
-            } else if (subMenu.equals("DS Khuyến mãi")) {
+            } else if (subMenu.equals("Danh sách Khuyến mãi")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.KHUYEN_MAI);
-            } else if (subMenu.equals("DS Dịch vụ")) {
+            } else if (subMenu.equals("Danh sách Dịch vụ")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.DICH_VU);
-            } else if (subMenu.equals("DS Đơn đặt phòng")) {
+            } else if (subMenu.equals("Danh sách Đơn đặt phòng")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.DON_DAT_PHONG);
-            } else if (subMenu.equals("DS Hóa đơn")) {
+            } else if (subMenu.equals("Danh sách Hóa đơn")) {
                 panel = BaoBieu.createPanel(LoaiBaoBieu.HOA_DON);
             }
         }
