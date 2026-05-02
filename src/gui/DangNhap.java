@@ -34,7 +34,7 @@ import javax.swing.JOptionPane;
 import entity.NhanVien;
 
 public class DangNhap extends JFrame {
-	private static NhanVien nhanVienDangNhap;
+    private static NhanVien nhanVienDangNhap;
 
     private static final long serialVersionUID = 1L;
 
@@ -310,12 +310,21 @@ public class DangNhap extends JFrame {
     public JCheckBox getChkGhiNho() {
         return chkGhiNho;
     }
+
     public static NhanVien getNhanVienDangNhap() {
         return nhanVienDangNhap;
     }
 
     public static void setNhanVienDangNhap(NhanVien nhanVien) {
         nhanVienDangNhap = nhanVien;
+    }
+
+    public JTextField getTxtTenDangNhap() { // Tân - Thêm getter để đăng ký sự kiện nhấn Enter cho field tên đăng nhập
+        return txtTenDangNhap;
+    }
+
+    public JPasswordField getTxtMatKhau() { // Tân - Thêm getter để đăng ký sự kiện nhấn Enter cho field mật khẩu
+        return txtMatKhau;
     }
 
     public static void applySystemLookAndFeel() {
