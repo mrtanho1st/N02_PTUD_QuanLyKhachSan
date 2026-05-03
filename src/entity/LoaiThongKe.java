@@ -7,7 +7,6 @@ public enum LoaiThongKe {
     THONG_KE_DON_DAT_PHONG("Thống kê đơn đặt phòng"),
     THONG_KE_HOA_DON("Thống kê hóa đơn"),
     THONG_KE_DICH_VU("Thống kê dịch vụ"),
-    PHONG_DAT_NHIEU_NHAT("Phòng đặt nhiều nhất"),
     KHACH_HANG_DIEM_CAO_NHAT("Khách hàng điểm cao nhất"),
     THONG_KE_THEO_NHAN_VIEN("Thống kê theo nhân viên");
 

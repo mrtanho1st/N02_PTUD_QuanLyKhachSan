@@ -300,6 +300,8 @@ public class QLThongke extends JPanel {
 
         // Tùy chỉnh màu sắc, font chữ cho đẹp và hợp tông với App của bạn
         chart.setBackgroundPaint(Color.WHITE);
+        // chỉnh màu cột thành màu xanh dương nhạt
+        chart.getCategoryPlot().getRenderer().setSeriesPaint(0, new Color(70, 130, 180));
         chart.getTitle().setFont(new Font("Segoe UI", Font.BOLD, 18));
         chart.getTitle().setPaint(TEXT_DARK);
         
@@ -516,26 +518,6 @@ public class QLThongke extends JPanel {
             showLoc1(true); showLoc2(false); showLoc3(false);
             break;
 
-        case PHONG_DAT_NHIEU_NHAT:
-            setTableColumns(new String[] {
-                    "Xếp hạng", "Mã phòng", "Loại phòng", "Số lượt đặt", "Tổng số ngày sử dụng"
-            });
-            // Card: Tần suất hoạt động của vật chất
-            setCardTitles("Tổng lượt đặt phòng", "Tổng ngày sử dụng", "Phòng hot nhất");
-            // Sửa lỗi copy-paste từ nhân viên: Đổi thành lọc theo Loại phòng và Trạng thái hiện tại
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Loại phòng:", "Trạng thái:", "");
-
-            setComboBoxData(cboLoc1, new String[] {
-                    "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
-            });
-            setComboBoxData(cboLoc2, new String[] {
-                    "Tất cả", "Trống", "Đang sử dụng", "Đã đặt", "Bảo trì"
-            });
-
-            showDateFilters(true); // Nên mở Date để xem phòng nào hot trong tháng/quý
-            showLoc1(true); showLoc2(true); showLoc3(false);
-            break;
-
         case THONG_KE_DICH_VU:
             setTableColumns(new String[] {
                     "Mã dịch vụ", "Tên dịch vụ", "Đơn giá", "Số lượng bán ra", "Tổng doanh thu"
@@ -571,10 +553,11 @@ public class QLThongke extends JPanel {
             });
             // Bạn đã làm phần này rất chuẩn rồi
             setCardTitles("Tổng đơn đặt", "Đơn hoàn thành", "Tiền cọc thu được");
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Tình trạng:", "", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng:", "", "");
 
             setComboBoxData(cboLoc1, new String[] {
-                    "Tất cả", "Hoàn thành", "Đã nhận", "Đã đặt"
+                    "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
             });
 
             showDateFilters(true);

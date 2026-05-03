@@ -334,11 +334,12 @@ public class DichVu_Dao {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT dv.maDV, dv.tenDichVu, dv.giaDichVu, ");
-        sql.append("       ISNULL(SUM(pdv.soLuong), 0) AS soLuotSuDung, ");
-        sql.append("       ISNULL(SUM(pdv.soLuong * pdv.donGia), 0) AS doanhThu ");
+        sql.append("       ISNULL(SUM(ctdv.soLuong), 0) AS soLuotSuDung, ");
+        sql.append("       ISNULL(SUM(ctdv.thanhTien), 0) AS doanhThu ");
         sql.append("FROM DichVu dv ");
         sql.append("LEFT JOIN PhieuDichVu pdv ON dv.maDV = pdv.maDV ");
-        sql.append("LEFT JOIN HoaDon hd ON pdv.maHD = hd.maHD ");
+        sql.append("LEFT JOIN CTHoaDonDichVu ctdv ON pdv.maPDV = ctdv.maPDV ");
+        sql.append("LEFT JOIN HoaDon hd ON ctdv.maHD = hd.maHD ");
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {

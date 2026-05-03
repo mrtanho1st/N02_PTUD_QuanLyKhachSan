@@ -1101,6 +1101,69 @@ public class HoaDon_Dao {
         return ds;
     }
 
+    // Doanh thu theo khách hàng với lọc theo loại khách hàng
+    public List<Object[]> getDoanhThuTheoKhachHang(Date tuNgay, Date denNgay, String loaiKH) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT kh.maKH, kh.hoTen, kh.loaiKH, COUNT(DISTINCT hd.maHD) AS soLanLuuTru, ");
+        sql.append("       SUM(hd.tongTien) AS tongChiTieu ");
+        sql.append("FROM KhachHang kh ");
+        sql.append("LEFT JOIN HoaDon hd ON kh.maKH = hd.maKH ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (loaiKH != null && !"Tất cả".equals(loaiKH)) {
+            sql.append("AND kh.loaiKH = ? ");
+        }
+
+        if (tuNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD >= ?) ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
+        }
+
+        sql.append("GROUP BY kh.maKH, kh.hoTen, kh.loaiKH ");
+        sql.append("ORDER BY SUM(hd.tongTien) DESC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (loaiKH != null && !"Tất cả".equals(loaiKH)) {
+                ps.setString(index++, loaiKH);
+            }
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Object[] row = new Object[5];
+                    row[0] = rs.getString("maKH");
+                    row[1] = rs.getString("hoTen");
+                    row[2] = rs.getString("loaiKH");
+                    row[3] = rs.getInt("soLanLuuTru");
+                    row[4] = rs.getDouble("tongChiTieu");
+                    ds.add(row);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
     // Doanh thu theo phòng ( Tường )
     public List<Object[]> getDoanhThuTheoPhong(Date tuNgay, Date denNgay) {
         List<Object[]> ds = new ArrayList<>();
@@ -1166,6 +1229,73 @@ public class HoaDon_Dao {
         return ds;
     }
 
+    // Doanh thu theo phòng với lọc theo loại phòng
+    public List<Object[]> getDoanhThuTheoPhong(Date tuNgay, Date denNgay, String loaiPhong) {
+        List<Object[]> ds = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT p.maPhong, p.loaiPhong, COUNT(DISTINCT hd.maHD) AS soLuotThue, ");
+        sql.append("       COUNT(ctp.soNgay) AS tongSoNgay, SUM(ctp.thanhTien) AS tongDoanhThu ");
+        sql.append("FROM Phong p ");
+        sql.append("LEFT JOIN CTHoaDonPhong ctp ON p.maPhong = ctp.maPhong ");
+        sql.append("LEFT JOIN HoaDon hd ON ctp.maHD = hd.maHD ");
+        sql.append("WHERE 1 = 1 ");
+
+        if (loaiPhong != null && !"Tất cả".equals(loaiPhong)) {
+            sql.append("AND p.loaiPhong = ? ");
+        }
+
+        if (tuNgay != null) {
+            sql.append("AND hd.ngayLapHD >= ? ");
+        }
+
+        if (denNgay != null) {
+            sql.append("AND hd.ngayLapHD <= ? ");
+        }
+
+        sql.append("GROUP BY p.maPhong, p.loaiPhong ");
+        sql.append("ORDER BY SUM(ctp.thanhTien) DESC");
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())
+        ) {
+            int index = 1;
+
+            if (loaiPhong != null && !"Tất cả".equals(loaiPhong)) {
+                ps.setString(index++, loaiPhong);
+            }
+
+            if (tuNgay != null) {
+                ps.setDate(index++, tuNgay);
+            }
+
+            if (denNgay != null) {
+                ps.setDate(index++, denNgay);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                int rowCount = 0;
+                while (rs.next()) {
+                    Object[] row = new Object[5];
+                    row[0] = rs.getString("maPhong");
+                    row[1] = rs.getString("loaiPhong");
+                    row[2] = rs.getInt("soLuotThue");
+                    row[3] = rs.getInt("tongSoNgay");
+                    row[4] = rs.getDouble("tongDoanhThu");
+                    ds.add(row);
+                    rowCount++;
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ DAO Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
     // Khách hàng có điểm số cao nhất ( Tường )
     public List<Object[]> getKhachHangDiemCaoNhat() {
         List<Object[]> ds = new ArrayList<>();
@@ -1200,29 +1330,21 @@ public class HoaDon_Dao {
         return ds;
     }
 
-    // Phòng được đặt nhiều nhất ( Tường )
-    public List<Object[]> getPhongDatNhieuNhat(Date tuNgay, Date denNgay) {
+    // Khách hàng có điểm số cao nhất với lọc theo loại khách hàng
+    public List<Object[]> getKhachHangDiemCaoNhat(String loaiKH) {
         List<Object[]> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY COUNT(ct.maDDP) DESC) AS xepHang, ");
-        sql.append("       p.maPhong, p.loaiPhong, COUNT(DISTINCT ct.maDDP) AS soLuotDat, ");
-        sql.append("       SUM(ct.soNgay) AS tongSoNgay ");
-        sql.append("FROM Phong p ");
-        sql.append("LEFT JOIN CTDonDatPhong ct ON p.maPhong = ct.maPhong ");
-        sql.append("LEFT JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY kh.diemSo DESC) AS xepHang, ");
+        sql.append("       kh.maKH, kh.hoTen, kh.sdt, kh.loaiKH, kh.diemSo ");
+        sql.append("FROM KhachHang kh ");
         sql.append("WHERE 1 = 1 ");
 
-        if (tuNgay != null) {
-            sql.append("AND (ddp.ngayNhan IS NULL OR ddp.ngayNhan >= ?) ");
+        if (loaiKH != null && !"Tất cả".equals(loaiKH)) {
+            sql.append("AND kh.loaiKH = ? ");
         }
 
-        if (denNgay != null) {
-            sql.append("AND (ddp.ngayTra IS NULL OR ddp.ngayTra <= ?) ");
-        }
-
-        sql.append("GROUP BY p.maPhong, p.loaiPhong ");
-        sql.append("ORDER BY COUNT(ct.maDDP) DESC");
+        sql.append("ORDER BY kh.diemSo DESC");
 
         try (
                 Connection con = ConnectDB.getConnection();
@@ -1230,22 +1352,19 @@ public class HoaDon_Dao {
         ) {
             int index = 1;
 
-            if (tuNgay != null) {
-                ps.setDate(index++, tuNgay);
-            }
-
-            if (denNgay != null) {
-                ps.setDate(index++, denNgay);
+            if (loaiKH != null && !"Tất cả".equals(loaiKH)) {
+                ps.setString(index++, loaiKH);
             }
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Object[] row = new Object[5];
+                    Object[] row = new Object[6];
                     row[0] = rs.getInt("xepHang");
-                    row[1] = rs.getString("maPhong");
-                    row[2] = rs.getString("loaiPhong");
-                    row[3] = rs.getInt("soLuotDat");
-                    row[4] = rs.getInt("tongSoNgay");
+                    row[1] = rs.getString("maKH");
+                    row[2] = rs.getString("hoTen");
+                    row[3] = rs.getString("sdt");
+                    row[4] = rs.getString("loaiKH");
+                    row[5] = rs.getDouble("diemSo");
                     ds.add(row);
                 }
             }
@@ -1263,14 +1382,15 @@ public class HoaDon_Dao {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT hd.maHD, hd.ngayLapHD, kh.hoTen, nv.hoTen AS tenNV, ");
-        sql.append("       ISNULL(SUM(CASE WHEN ct.maPhong IS NOT NULL THEN ct.donGia ELSE 0 END), 0) AS tienPhong, ");
-        sql.append("       ISNULL(SUM(CASE WHEN ct.maDV IS NOT NULL THEN ct.donGia ELSE 0 END), 0) AS tienDichVu, ");
+        sql.append("       ISNULL(SUM(CASE WHEN ctp.maHD IS NOT NULL THEN ctp.thanhTien ELSE 0 END), 0) AS tienPhong, ");
+        sql.append("       ISNULL(SUM(CASE WHEN ctdv.maHD IS NOT NULL THEN ctdv.thanhTien ELSE 0 END), 0) AS tienDichVu, ");
         sql.append("       t.tenThue, hd.tongTien ");
         sql.append("FROM HoaDon hd ");
         sql.append("LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH ");
         sql.append("LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV ");
         sql.append("LEFT JOIN Thue t ON hd.maThue = t.maThue ");
-        sql.append("LEFT JOIN CTHoaDon ct ON hd.maHD = ct.maHD ");
+        sql.append("LEFT JOIN CTHoaDonPhong ctp ON hd.maHD = ctp.maHD ");
+        sql.append("LEFT JOIN CTHoaDonDichVu ctdv ON hd.maHD = ctdv.maHD ");
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
@@ -1280,8 +1400,6 @@ public class HoaDon_Dao {
         if (denNgay != null) {
             sql.append("AND hd.ngayLapHD <= ? ");
         }
-
-       
 
         sql.append("GROUP BY hd.maHD, hd.ngayLapHD, kh.hoTen, nv.hoTen, t.tenThue, hd.tongTien ");
         sql.append("ORDER BY hd.ngayLapHD DESC");

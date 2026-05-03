@@ -1,9 +1,10 @@
 package gui;
 
+import controller.DangNhapController;
+import controller.GiaoDienChinhController;
 import entity.LoaiBaoBieu;
 import entity.LoaiThongKe;
 import entity.PhienDangNhap;
-
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -33,9 +34,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
-
-import controller.DangNhapController;
-import controller.GiaoDienChinhController;
 
 public class GiaoDienChinh extends JFrame {
 
@@ -182,7 +180,7 @@ public class GiaoDienChinh extends JFrame {
         btnThongKe = createNavButton("Thống kê", new String[] {
                 "Doanh thu theo thời gian", "Doanh thu theo phòng", "Doanh thu theo khách hàng",
                 "Thống kê đơn đặt phòng", "Thống kê hóa đơn", "Thống kê dịch vụ",
-                "Phòng đặt nhiều nhất", "Khách hàng điểm cao nhất", "Thống kê theo nhân viên"
+                "Khách hàng điểm cao nhất", "Thống kê theo nhân viên"
         });
         nav.add(btnThongKe);
 
@@ -561,8 +559,6 @@ public class GiaoDienChinh extends JFrame {
                 panel = QLThongke.createPanel(LoaiThongKe.THONG_KE_HOA_DON);
             } else if (subMenu.equals("Thống kê dịch vụ")) {
                 panel = QLThongke.createPanel(LoaiThongKe.THONG_KE_DICH_VU);
-            } else if (subMenu.equals("Phòng đặt nhiều nhất")) {
-                panel = QLThongke.createPanel(LoaiThongKe.PHONG_DAT_NHIEU_NHAT);
             } else if (subMenu.equals("Khách hàng điểm cao nhất")) {
                 panel = QLThongke.createPanel(LoaiThongKe.KHACH_HANG_DIEM_CAO_NHAT);
             } else if (subMenu.equals("Thống kê theo nhân viên")) {
