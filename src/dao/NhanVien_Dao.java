@@ -295,6 +295,26 @@ public class NhanVien_Dao {
         return list;
     }
 
+    public List<String> getNhanVienNames() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT hoTen FROM NhanVien ORDER BY hoTen ASC";
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                list.add(rs.getString("hoTen"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     private NhanVien mapNhanVien(ResultSet rs) throws Exception {
         return new NhanVien(
                 rs.getString("maNV"),

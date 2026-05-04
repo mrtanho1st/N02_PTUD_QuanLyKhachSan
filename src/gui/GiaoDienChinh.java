@@ -163,7 +163,7 @@ public class GiaoDienChinh extends JFrame {
         nav.add(btnDanhMuc);
 
         btnXuLi = createNavButton("Xử lí", new String[] {
-                "Đặt phòng", "Hóa đơn", "Check-in/Check-out", "Thanh toán"
+                "Đặt phòng", "Check-in/Check-out", "Thanh toán"
         });
         nav.add(btnXuLi);
 
@@ -508,8 +508,6 @@ public class GiaoDienChinh extends JFrame {
                 panel = DatPhong.createPanel();
             } else if (subMenu.equals("Check-in/Check-out")) {
                 panel = CheckInCheckOut.createPanel();
-            } else if (subMenu.equals("Hóa đơn")) {
-                panel = QLHoaDon.createPanel();
             } else if (subMenu.equals("Thanh toán")) {
                 panel = ThanhToan.createPanel();
             }

@@ -100,7 +100,7 @@ public class QLThongKeController {
                 loadDoanhThuTheoThoiGian();
                 break;
             case DOANH_THU_THEO_KHACH_HANG:
-                loadDoanhThuTheoKhachHang();
+                loadDoanhThuTheoKhachHang("Tất cả");
                 break;
             case DOANH_THU_THEO_PHONG:
                 loadDoanhThuTheoPhong();
@@ -113,6 +113,7 @@ public class QLThongKeController {
                 break;
             case THONG_KE_HOA_DON:
                 loadThongKeHoaDon();
+                loadNhanVienComboBox();
                 break;
             case THONG_KE_DON_DAT_PHONG:
                 loadThongKeDonDatPhong();
@@ -197,22 +198,61 @@ public class QLThongKeController {
     private void xuLyDoanhThuTheoThoiGian() {
         Date tuNgay = getDateFromView(view.getDateTuNgay());
         Date denNgay = getDateFromView(view.getDateDenNgay());
-
-        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
-            return;
+        String thang = (String) view.getCboLoc1().getSelectedItem();
+        
+        // Nếu người dùng chọn ngày cụ thể
+        if (tuNgay != null && denNgay != null) {
+            if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
+                return;
+            }
+            loadDoanhThuTheoThoiGian(tuNgay, denNgay);
         }
-
-        loadDoanhThuTheoThoiGian();
+        // Nếu người dùng chọn tháng
+        else if (thang != null && !"Tất cả".equals(thang)) {
+            int month = Integer.parseInt(thang.replace("Tháng ", ""));
+            LocalDate now = LocalDate.now();
+            LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
+            LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
+            loadDoanhThuTheoThoiGian(Date.valueOf(firstDay), Date.valueOf(lastDay));
+        }
+        // Mặc định: lấy tất cả
+        else {
+            loadDoanhThuTheoThoiGian(null, null);
+        }
     }
 
     private void xuLyDoanhThuTheoKhachHang() {
-        String loaiKH = (String) view.getCboLoc1().getSelectedItem();
-        loadDoanhThuTheoKhachHang(loaiKH);
+        String thang = (String) view.getCboLoc1().getSelectedItem();
+        String loaiKH = (String) view.getCboLoc2().getSelectedItem();
+        
+        // Nếu tháng là "Tất cả", load tất cả
+        if (thang != null && !"Tất cả".equals(thang)) {
+            int month = Integer.parseInt(thang.replace("Tháng ", ""));
+            LocalDate now = LocalDate.now();
+            LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
+            LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
+            
+            loadDoanhThuTheoKhachHang(Date.valueOf(firstDay), Date.valueOf(lastDay), loaiKH);
+        } else {
+            loadDoanhThuTheoKhachHang(null, null, loaiKH);
+        }
     }
 
     private void xuLyDoanhThuTheoPhong() {
-        String loaiPhong = (String) view.getCboLoc1().getSelectedItem();
-        loadDoanhThuTheoPhong(loaiPhong);
+        String thang = (String) view.getCboLoc1().getSelectedItem();
+        String loaiPhong = (String) view.getCboLoc2().getSelectedItem();
+        
+        // Nếu tháng là "Tất cả", load tất cả
+        if (thang != null && !"Tất cả".equals(thang)) {
+            int month = Integer.parseInt(thang.replace("Tháng ", ""));
+            LocalDate now = LocalDate.now();
+            LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
+            LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
+            
+            loadDoanhThuTheoPhong(Date.valueOf(firstDay), Date.valueOf(lastDay), loaiPhong);
+        } else {
+            loadDoanhThuTheoPhong(null, null, loaiPhong);
+        }
     }
 
     private void xuLyKhachHangDiemCaoNhat() {
@@ -234,12 +274,30 @@ public class QLThongKeController {
     private void xuLyThongKeHoaDon() {
         Date tuNgay = getDateFromView(view.getDateTuNgay());
         Date denNgay = getDateFromView(view.getDateDenNgay());
+        String thang = (String) view.getCboLoc1().getSelectedItem();
+        String giaTriHD = (String) view.getCboLoc2().getSelectedItem();
+        String nhanVien = (String) view.getCboLoc3().getSelectedItem();
 
-        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
-            return;
+        // Nếu người dùng chọn ngày cụ thể, ưu tiên sử dụng
+        if (tuNgay != null && denNgay != null) {
+            if (tuNgay.after(denNgay)) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            loadThongKeHoaDon(tuNgay, denNgay, giaTriHD, nhanVien);
         }
-
-        loadThongKeHoaDon();
+        // Nếu chọn tháng cụ thể
+        else if (thang != null && !"Tất cả".equals(thang)) {
+            int month = Integer.parseInt(thang.replace("Tháng ", ""));
+            LocalDate now = LocalDate.now();
+            LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
+            LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
+            loadThongKeHoaDon(Date.valueOf(firstDay), Date.valueOf(lastDay), giaTriHD, nhanVien);
+        }
+        // Nếu không chọn ngày hay tháng, lấy tất cả
+        else {
+            loadThongKeHoaDon(null, null, giaTriHD, nhanVien);
+        }
     }
 
     private void xuLyThongKeDonDatPhong() {
@@ -293,6 +351,8 @@ public class QLThongKeController {
                     int soHoaDon = row[1] != null ? ((Number) row[1]).intValue() : 0;
                     double tienPhong = row[2] != null ? ((Number) row[2]).doubleValue() : 0;
                     double tienDichVu = row[3] != null ? ((Number) row[3]).doubleValue() : 0;
+                    int tongSoPhongDat = row[5] != null ? ((Number) row[5]).intValue() : 0;
+                    double tienGiam = row[6] != null ? ((Number) row[6]).doubleValue() : 0;
                     
                     totalHoaDon += soHoaDon;
                     totalDoanhThu += tongTien;
@@ -304,7 +364,8 @@ public class QLThongKeController {
                     
                     view.getTableModel().addRow(new Object[] {
                         row[0].toString(), soHoaDon, formatCurrency(tienPhong), 
-                        formatCurrency(tienDichVu), formatCurrency(tongTien)
+                        formatCurrency(tienDichVu), formatCurrency(tongTien), tongSoPhongDat,
+                        formatCurrency(tienGiam)
                     });
                 } catch (Exception rowEx) {
                     System.err.println("Lỗi xử lý hàng dữ liệu: " + rowEx.getMessage());
@@ -358,6 +419,19 @@ public class QLThongKeController {
         }
     }
 
+    private void loadDoanhThuTheoThoiGian(Date tuNgay, Date denNgay) {
+        try {
+            String giaTriHoaDon = (String) view.getCboLoc2().getSelectedItem();
+            List<Object[]> listData = hoaDonDao.getDoanhThuTheoThoiGianChiTiet(tuNgay, denNgay, giaTriHoaDon);
+            updateDoanhThuUI(listData);
+        } catch (Exception e) {
+            String errorMsg = "Lỗi load doanh thu: " + e.getMessage();
+            System.err.println(errorMsg);
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, errorMsg, "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void loadDoanhThuTheoKhachHang() {
         try {
             List<Object[]> listData = hoaDonDao.getDoanhThuTheoKhachHang(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()));
@@ -384,6 +458,29 @@ public class QLThongKeController {
     private void loadDoanhThuTheoKhachHang(String loaiKH) {
         try {
             List<Object[]> listData = hoaDonDao.getDoanhThuTheoKhachHang(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()), loaiKH);
+            int totalLuotLuuTru = 0; double chiTieuCaoNhat = 0;
+
+            view.getTableModel().setRowCount(0);
+            if (listData != null) {
+                for (Object[] row : listData) {
+                    double tongChiTieu = ((Number) row[4]).doubleValue();
+                    totalLuotLuuTru += ((Number) row[3]).intValue();
+                    if (tongChiTieu > chiTieuCaoNhat) chiTieuCaoNhat = tongChiTieu;
+
+                    Object[] displayRow = row.clone();
+                    displayRow[4] = formatCurrency(tongChiTieu);
+                    view.getTableModel().addRow(displayRow);
+                }
+            }
+
+            view.setCardValues(String.valueOf(listData != null ? listData.size() : 0), String.valueOf(totalLuotLuuTru), formatCurrency(chiTieuCaoNhat));
+            updateChartByCustomer(listData);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void loadDoanhThuTheoKhachHang(Date tuNgay, Date denNgay, String loaiKH) {
+        try {
+            List<Object[]> listData = hoaDonDao.getDoanhThuTheoKhachHang(tuNgay, denNgay, loaiKH);
             int totalLuotLuuTru = 0; double chiTieuCaoNhat = 0;
 
             view.getTableModel().setRowCount(0);
@@ -452,11 +549,8 @@ public class QLThongKeController {
         }
     }
 
-    private void loadDoanhThuTheoPhong(String loaiPhong) {
+    private void loadDoanhThuTheoPhong(Date tuNgay, Date denNgay, String loaiPhong) {
         try {
-            Date tuNgay = getDateFromView(view.getDateTuNgay());
-            Date denNgay = getDateFromView(view.getDateDenNgay());
-
             // Fetch dữ liệu từ DAO
             List<Object[]> listData = hoaDonDao.getDoanhThuTheoPhong(tuNgay, denNgay, loaiPhong);
 
@@ -604,11 +698,12 @@ public class QLThongKeController {
     }
 
     private void loadThongKeHoaDon() {
+        loadThongKeHoaDon(null, null, "Tất cả", "Tất cả");
+    }
+
+    private void loadThongKeHoaDon(Date tuNgay, Date denNgay, String giaTriHD, String nhanVien) {
         try {
-            Date tuNgay = getDateFromView(view.getDateTuNgay());
-            Date denNgay = getDateFromView(view.getDateDenNgay());
-            
-            List<Object[]> listData = hoaDonDao.getThongKeHoaDon(tuNgay, denNgay);
+            List<Object[]> listData = hoaDonDao.getThongKeHoaDon(tuNgay, denNgay, giaTriHD, nhanVien);
             double totalTienPhong = 0, totalTienDichVu = 0;
 
             view.getTableModel().setRowCount(0);
@@ -643,11 +738,11 @@ public class QLThongKeController {
                 for (Object[] row : listData) {
                     totalDon += ((Number) row[1]).intValue();
                     totalHoanThanh += ((Number) row[4]).intValue();
-                    double tienCoc = row[5] != null ? ((Number) row[5]).doubleValue() : 0;
+                    double tienCoc = row[6] != null ? ((Number) row[6]).doubleValue() : 0;
                     totalTienCoc += tienCoc;
 
                     Object[] displayRow = row.clone();
-                    displayRow[5] = formatCurrency(tienCoc);
+                    displayRow[6] = formatCurrency(tienCoc);
                     view.getTableModel().addRow(displayRow);
                 }
             }
@@ -667,11 +762,11 @@ public class QLThongKeController {
                 for (Object[] row : listData) {
                     totalDon += ((Number) row[1]).intValue();
                     totalHoanThanh += ((Number) row[4]).intValue();
-                    double tienCoc = row[5] != null ? ((Number) row[5]).doubleValue() : 0;
+                    double tienCoc = row[6] != null ? ((Number) row[6]).doubleValue() : 0;
                     totalTienCoc += tienCoc;
 
                     Object[] displayRow = row.clone();
-                    displayRow[5] = formatCurrency(tienCoc);
+                    displayRow[6] = formatCurrency(tienCoc);
                     view.getTableModel().addRow(displayRow);
                 }
             }
@@ -835,6 +930,25 @@ public class QLThongKeController {
             return new Date(javaDate.getTime());
         }
         return null;
+    }
+
+    private void loadNhanVienComboBox() {
+        try {
+            dangKhoaSuKien = true;
+            
+            List<String> nhanVienList = nhanVienDao.getNhanVienNames();
+            view.setComboBoxData(view.getCboLoc3(), new String[] {"Tất cả"});
+            
+            if (nhanVienList != null && !nhanVienList.isEmpty()) {
+                for (String tenNV : nhanVienList) {
+                    view.getCboLoc3().addItem(tenNV);
+                }
+            }
+            
+            dangKhoaSuKien = false;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private String formatCurrency(double amount) {
