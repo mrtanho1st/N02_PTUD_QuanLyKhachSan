@@ -342,6 +342,7 @@ INSERT INTO KhuyenMai(maKM, tenKhuyenMai, giaTri, ngayBatDau, ngayKetThuc) VALUE
 ('KM02', N'Giảm 20%',              20, '2026-03-01', '2026-12-31'),
 ('KM03', N'Khách hàng thân thiết', 15, '2026-01-01', '2026-12-31'),
 ('KM04', N'Lễ 30/4 - 1/5',         25, '2026-04-25', '2026-05-02');
+
 GO
 
 INSERT INTO Thue(maThue, tenThue, trangThai, tyLeThue, moTa) VALUES

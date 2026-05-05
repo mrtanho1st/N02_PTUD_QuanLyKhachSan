@@ -342,15 +342,20 @@ public class DichVu_Dao {
         sql.append("LEFT JOIN HoaDon hd ON ctdv.maHD = hd.maHD ");
         sql.append("WHERE 1 = 1 ");
 
+        if (tuNgay != null || denNgay != null) {
+            sql.append("AND ctdv.maHD IS NOT NULL ");
+        }
+
         if (tuNgay != null) {
-            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD >= ?) ");
+            sql.append("AND hd.ngayLapHD >= ? ");
         }
 
         if (denNgay != null) {
-            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
+            sql.append("AND hd.ngayLapHD <= ? ");
         }
 
         sql.append("GROUP BY dv.maDV, dv.tenDichVu, dv.giaDichVu ");
+        sql.append("HAVING ISNULL(SUM(ctdv.thanhTien), 0) > 0 ");
         sql.append("ORDER BY doanhThu DESC");
 
         try (

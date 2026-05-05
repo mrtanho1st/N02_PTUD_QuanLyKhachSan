@@ -100,16 +100,16 @@ public class QLThongKeController {
                 loadDoanhThuTheoThoiGian();
                 break;
             case DOANH_THU_THEO_KHACH_HANG:
-                loadDoanhThuTheoKhachHang("Tất cả");
+                loadDoanhThuTheoKhachHang(null, null, "Tất cả");
                 break;
             case DOANH_THU_THEO_PHONG:
-                loadDoanhThuTheoPhong();
+                loadDoanhThuTheoPhong(null, null, "Tất cả");
                 break;
             case KHACH_HANG_DIEM_CAO_NHAT:
                 loadKhachHangDiemCaoNhat();
                 break;
             case THONG_KE_DICH_VU:
-                loadThongKeDichVu();
+                loadThongKeDichVu(null, null);
                 break;
             case THONG_KE_HOA_DON:
                 loadThongKeHoaDon();
@@ -119,7 +119,7 @@ public class QLThongKeController {
                 loadThongKeDonDatPhong();
                 break;
             case THONG_KE_THEO_NHAN_VIEN:
-                loadThongKeTheoNhanVien();
+                loadThongKeTheoNhanVien(null, null, "Tất cả");
                 break;
         }
     }
@@ -177,7 +177,7 @@ public class QLThongKeController {
                 view.setCardValues("0", "0 Điểm", "0,0 Điểm/Khách");
                 break;
             case THONG_KE_DICH_VU:
-                view.setCardValues("0", "0 VNĐ", "0 VNĐ");
+                view.setCardValues("0", "0 VNĐ", "N/A");
                 break;
             case THONG_KE_HOA_DON:
                 view.setCardValues("0", "0 VNĐ", "0 VNĐ");
@@ -222,35 +222,59 @@ public class QLThongKeController {
     }
 
     private void xuLyDoanhThuTheoKhachHang() {
+        Date tuNgay = getDateFromView(view.getDateTuNgay());
+        Date denNgay = getDateFromView(view.getDateDenNgay());
         String thang = (String) view.getCboLoc1().getSelectedItem();
         String loaiKH = (String) view.getCboLoc2().getSelectedItem();
         
-        // Nếu tháng là "Tất cả", load tất cả
-        if (thang != null && !"Tất cả".equals(thang)) {
+        // ưu tiên 1: Nếu người dùng chọn kĩ vãng ngày cụ thể
+        if (tuNgay != null && denNgay != null) {
+            if (tuNgay.after(denNgay)) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            loadDoanhThuTheoKhachHang(tuNgay, denNgay, loaiKH);
+        }
+        // ưu tiên 2: Nếu người dùng chọn tháng cụ thể
+        else if (thang != null && !"Tất cả".equals(thang)) {
             int month = Integer.parseInt(thang.replace("Tháng ", ""));
             LocalDate now = LocalDate.now();
             LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
             LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
             
             loadDoanhThuTheoKhachHang(Date.valueOf(firstDay), Date.valueOf(lastDay), loaiKH);
-        } else {
+        }
+        // Mặc định: Load tất cả
+        else {
             loadDoanhThuTheoKhachHang(null, null, loaiKH);
         }
     }
 
     private void xuLyDoanhThuTheoPhong() {
+        Date tuNgay = getDateFromView(view.getDateTuNgay());
+        Date denNgay = getDateFromView(view.getDateDenNgay());
         String thang = (String) view.getCboLoc1().getSelectedItem();
         String loaiPhong = (String) view.getCboLoc2().getSelectedItem();
         
-        // Nếu tháng là "Tất cả", load tất cả
-        if (thang != null && !"Tất cả".equals(thang)) {
+        // ưu tiên 1: Nếu người dùng chọn kĩ vãng ngày cụ thể
+        if (tuNgay != null && denNgay != null) {
+            if (tuNgay.after(denNgay)) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            loadDoanhThuTheoPhong(tuNgay, denNgay, loaiPhong);
+        }
+        // ưu tiên 2: Nếu người dùng chọn tháng cụ thể
+        else if (thang != null && !"Tất cả".equals(thang)) {
             int month = Integer.parseInt(thang.replace("Tháng ", ""));
             LocalDate now = LocalDate.now();
             LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
             LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
             
             loadDoanhThuTheoPhong(Date.valueOf(firstDay), Date.valueOf(lastDay), loaiPhong);
-        } else {
+        }
+        // Mặc định: Load tất cả
+        else {
             loadDoanhThuTheoPhong(null, null, loaiPhong);
         }
     }
@@ -263,12 +287,31 @@ public class QLThongKeController {
     private void xuLyThongKeDichVu() {
         Date tuNgay = getDateFromView(view.getDateTuNgay());
         Date denNgay = getDateFromView(view.getDateDenNgay());
-
-        if (!kiemTraKhoangNgay(tuNgay, denNgay)) {
-            return;
+        String thang = (String) view.getCboLoc1().getSelectedItem();
+        
+        // ưu tiên 1: Nếu người dùng chọn kĩ vãng ngày cụ thể
+        if (tuNgay != null && denNgay != null) {
+            if (tuNgay.after(denNgay)) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            loadThongKeDichVu(tuNgay, denNgay);
         }
-
-        loadThongKeDichVu();
+        // ưu tiên 2: Nếu người dùng chọn tháng cụ thể
+        else if (thang != null && !"Tất cả".equals(thang)) {
+            int month = Integer.parseInt(thang.replace("Tháng ", ""));
+            int year = Calendar.getInstance().get(Calendar.YEAR);
+            LocalDate firstDay = LocalDate.of(year, month, 1);
+            LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
+            tuNgay = Date.valueOf(firstDay);
+            denNgay = Date.valueOf(lastDay);
+            
+            loadThongKeDichVu(tuNgay, denNgay);
+        }
+        // Mặc định: Load tất cả
+        else {
+            loadThongKeDichVu(null, null);
+        }
     }
 
     private void xuLyThongKeHoaDon() {
@@ -329,7 +372,32 @@ public class QLThongKeController {
     }
 
     private void xuLyThongKeTheoNhanVien() {
-        loadThongKeTheoNhanVien();
+        Date tuNgay = getDateFromView(view.getDateTuNgay());
+        Date denNgay = getDateFromView(view.getDateDenNgay());
+        String thang = (String) view.getCboLoc1().getSelectedItem();
+        String viTriCongViec = (String) view.getCboLoc2().getSelectedItem();
+        
+        // Ưu tiên 1: Nếu người dùng chọn kỳ vãng ngày cụ thể
+        if (tuNgay != null && denNgay != null) {
+            if (tuNgay.after(denNgay)) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            loadThongKeTheoNhanVien(tuNgay, denNgay, viTriCongViec);
+        }
+        // Ưu tiên 2: Nếu người dùng chọn tháng cụ thể
+        else if (thang != null && !"Tất cả".equals(thang)) {
+            int month = Integer.parseInt(thang.replace("Tháng ", ""));
+            LocalDate now = LocalDate.now();
+            LocalDate firstDay = now.withMonth(month).withDayOfMonth(1);
+            LocalDate lastDay = now.withMonth(month).withDayOfMonth(firstDay.lengthOfMonth());
+            
+            loadThongKeTheoNhanVien(Date.valueOf(firstDay), Date.valueOf(lastDay), viTriCongViec);
+        }
+        // Mặc định: Load tất cả
+        else {
+            loadThongKeTheoNhanVien(null, null, viTriCongViec);
+        }
     }
 
     // =======================================================
@@ -503,39 +571,7 @@ public class QLThongKeController {
 
     private void loadDoanhThuTheoPhong() {
         try {
-            Date tuNgay = getDateFromView(view.getDateTuNgay());
-            Date denNgay = getDateFromView(view.getDateDenNgay());
-            
-            // Debug log
-            System.out.println("=== LOAD DOANH THU THEO PHÒNG ===");
-            System.out.println("Từ ngày: " + tuNgay);
-            System.out.println("Đến ngày: " + denNgay);
-            
-            // Kiểm tra ngày hợp lệ
-            if (tuNgay != null && denNgay != null && tuNgay.after(denNgay)) {
-                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày hợp lệ (Từ ngày phải trước Đến ngày)", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // Fetch dữ liệu từ DAO
-            System.out.println("Đang fetch dữ liệu từ DAO...");
-            List<Object[]> listData = hoaDonDao.getDoanhThuTheoPhong(tuNgay, denNgay);
-            
-            // Debug log
-            if (listData == null) {
-                System.out.println("❌ listData = NULL");
-            } else {
-                System.out.println("✅ Dữ liệu doanh thu theo phòng: " + listData.size() + " bản ghi");
-                
-                // In chi tiết dữ liệu
-                for (int i = 0; i < listData.size(); i++) {
-                    Object[] row = listData.get(i);
-                    System.out.println("  Row " + i + ": MaPhong=" + row[0] + ", LoaiPhong=" + row[1] + 
-                                     ", SoLuotThue=" + row[2] + ", DoanhThu=" + row[4]);
-                }
-            }
-            
-            // Update UI
+            List<Object[]> listData = hoaDonDao.getDoanhThuTheoPhong(null, null);
             updateDoanhThuTheoPhongUI(listData);
             
             System.out.println("Load doanh thu theo phòng thành công!");
@@ -669,13 +705,13 @@ public class QLThongKeController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    private void loadThongKeDichVu() {
+    private void loadThongKeDichVu(Date tuNgay, Date denNgay) {
         try {
-            Date tuNgay = getDateFromView(view.getDateTuNgay());
-            Date denNgay = getDateFromView(view.getDateDenNgay());
             
             List<Object[]> listData = dichVuDao.getThongKeDichVu(tuNgay, denNgay);
-            int totalSuDung = 0; double totalDoanhThu = 0, doanhThuMax = 0;
+            int totalSuDung = 0;
+            double totalDoanhThu = 0, doanhThuMax = 0;
+            String tenDichVuHotNhat = "N/A";
 
             view.getTableModel().setRowCount(0);
             if (listData != null) {
@@ -683,7 +719,10 @@ public class QLThongKeController {
                     double doanhThu = ((Number) row[4]).doubleValue();
                     totalSuDung += ((Number) row[3]).intValue();
                     totalDoanhThu += doanhThu;
-                    if (doanhThu > doanhThuMax) doanhThuMax = doanhThu;
+                    if (doanhThu > doanhThuMax) {
+                        doanhThuMax = doanhThu;
+                        tenDichVuHotNhat = (String) row[1];  // Lấy tên dịch vụ hot nhất
+                    }
 
                     Object[] displayRow = row.clone();
                     displayRow[2] = formatCurrency(((Number) row[2]).doubleValue());
@@ -692,9 +731,11 @@ public class QLThongKeController {
                 }
             }
 
-            view.setCardValues(String.valueOf(totalSuDung), formatCurrency(totalDoanhThu), formatCurrency(doanhThuMax));
+            view.setCardValues(String.valueOf(totalSuDung), formatCurrency(totalDoanhThu), tenDichVuHotNhat);
             updateChartByService(listData);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadThongKeHoaDon() {
@@ -776,27 +817,32 @@ public class QLThongKeController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    private void loadThongKeTheoNhanVien() {
+    private void loadThongKeTheoNhanVien(Date tuNgay, Date denNgay, String viTriCongViec) {
         try {
-            String caLamViec = (String) view.getCboLoc1().getSelectedItem();
-            String thang = (String) view.getCboLoc2().getSelectedItem();
-            String viTriCongViec = (String) view.getCboLoc3().getSelectedItem();
-          
-
-            if ("Tất cả".equals(caLamViec)) caLamViec = null;
-            if ("Tất cả".equals(thang)) thang = null;
-            if ("Tất cả".equals(viTriCongViec)) viTriCongViec = null;
-          
-
-            List<Object[]> listData = nhanVienDao.getThongKeTheoNhanVien(getDateFromView(view.getDateTuNgay()), getDateFromView(view.getDateDenNgay()), caLamViec, thang, viTriCongViec);
-            int totalHoaDon = 0; double totalDoanhThu = 0;
+            // Convert "Tất cả" thành null để lấy tất cả vị trí
+            if ("Tất cả".equals(viTriCongViec)) {
+                viTriCongViec = null;
+            }
+            
+            // Pass null for caLamViec and trangThaiLamViec since they're not in GUI
+            List<Object[]> listData = nhanVienDao.getThongKeTheoNhanVien(tuNgay, denNgay, null, null, viTriCongViec);
+            int totalHoaDon = 0;
+            double totalDoanhThu = 0;
+            String nhanVienXuatSac = "N/A";
+            double doanhThuMax = 0;
 
             view.getTableModel().setRowCount(0);
             if (listData != null) {
                 for (Object[] row : listData) {
-                    totalHoaDon += row[7] != null ? ((Number) row[7]).intValue() : 0;
+                    int soHoaDon = row[7] != null ? ((Number) row[7]).intValue() : 0;
                     double doanhThu = row[8] != null ? ((Number) row[8]).doubleValue() : 0.0;
+                    totalHoaDon += soHoaDon;
                     totalDoanhThu += doanhThu;
+                    
+                    if (doanhThu > doanhThuMax) {
+                        doanhThuMax = doanhThu;
+                        nhanVienXuatSac = (String) row[2];  // Lấy tên nhân viên xuất sắc nhất
+                    }
 
                     Object[] displayRow = row.clone();
                     displayRow[8] = formatCurrency(doanhThu);
@@ -804,9 +850,11 @@ public class QLThongKeController {
                 }
             }
 
-            view.setCardValues(String.valueOf(listData != null ? listData.size() : 0), String.valueOf(totalHoaDon), formatCurrency(totalDoanhThu));
+            view.setCardValues(String.valueOf(listData != null ? listData.size() : 0), String.valueOf(totalHoaDon), nhanVienXuatSac);
             updateChartByStaff(listData);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // =======================================================

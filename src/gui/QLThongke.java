@@ -476,8 +476,8 @@ public class QLThongke extends JPanel {
             });
             // Card: Đánh giá khách hàng mang lại dòng tiền
             setCardTitles("Tổng số khách hàng", "Tổng lượt lưu trú", "Chi tiêu cao nhất");
-            // Lọc theo Tháng và Loại khách hàng
-            setFilterLabels("", "", "Tháng:", "Loại KH:", "");
+            // Lọc theo ngày, tháng, và Loại khách hàng
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng:", "Loại KH:", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -488,7 +488,7 @@ public class QLThongke extends JPanel {
                     "Tất cả", "Thường", "VIP", "Thân thiết"
             });
 
-            showDateFilters(false);
+            showDateFilters(true);
             showLoc1(true); showLoc2(true); showLoc3(false);
             break;
 
@@ -498,8 +498,8 @@ public class QLThongke extends JPanel {
             });
             // Card: Hiệu suất sinh lời của phòng
             setCardTitles("Tổng lượt thuê", "Tổng doanh thu phòng", "Phòng doanh thu cao nhất");
-            // Lọc theo Tháng và Loại phòng
-            setFilterLabels("", "", "Tháng:", "Loại phòng:", "");
+            // Lọc theo ngày, tháng và Loại phòng
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng:", "Loại phòng:", "");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -510,7 +510,7 @@ public class QLThongke extends JPanel {
                     "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
             });
 
-            showDateFilters(false); // Báo cáo theo phòng không cần Từ ngày - Đến ngày
+            showDateFilters(true);
             showLoc1(true); showLoc2(true); showLoc3(false);
             break;
 
@@ -536,10 +536,15 @@ public class QLThongke extends JPanel {
             });
             // Card: Hiệu suất bán chéo dịch vụ
             setCardTitles("Tổng lượt sử dụng", "Tổng doanh thu DV", "Dịch vụ hot nhất");
-            setFilterLabels("Từ ngày:", "Đến ngày:", "", "", "");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng:", "", "");
+
+            setComboBoxData(cboLoc1, new String[] {
+                    "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+            });
 
             showDateFilters(true);
-            showLoc1(false); showLoc2(false); showLoc3(false);
+            showLoc1(true); showLoc2(false); showLoc3(false);
             break;
 
         case THONG_KE_HOA_DON:
@@ -549,7 +554,7 @@ public class QLThongke extends JPanel {
             // Card: Dữ liệu sổ sách
             setCardTitles("Tổng số hóa đơn", "Tiền phòng thu được", "Tiền dịch vụ thu được");
             // Lọc theo Tháng, Giá trị HĐ, Nhân viên lập
-            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng:", "Giá trị HĐ:", "Tên nhân viên:");
+            setFilterLabels("Từ ngày:", "Đến ngày:", "Tháng:", "Giá trị HĐ:", "nhân viên:");
 
             setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
@@ -583,22 +588,22 @@ public class QLThongke extends JPanel {
 
         case THONG_KE_THEO_NHAN_VIEN:
             setTableColumns(new String[] {
-                    "Xếp hạng", "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Số hóa đơn", "Tổng doanh thu","Tháng"
+                    "Xếp hạng", "Mã NV", "Họ tên", "SĐT", "Email", "Ca làm", "Vị trí", "Số hóa đơn", "Tổng doanh thu"
             });
             // Card: Đánh giá KPI nhân viên
             setCardTitles("Tổng nhân sự", "Số hóa đơn đã lập", "Nhân viên xuất sắc nhất");
-            setFilterLabels("Từ ngày:", "Đến ngày:",  "", "Tháng:", "Vị trí:");
+            setFilterLabels("Từ ngày:", "Đến ngày:",  "Tháng:", "Vị trí:", "");
 
-            setComboBoxData(cboLoc2, new String[] {
+            setComboBoxData(cboLoc1, new String[] {
                     "Tất cả", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
                     "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
             });
-            setComboBoxData(cboLoc3, new String[] {
+            setComboBoxData(cboLoc2, new String[] {
                     "Tất cả", "Lễ tân", "Quản lý"
             });
 
             showDateFilters(true); // Mở Date để xem KPI theo tháng
-            showLoc1(false); showLoc2(true); showLoc3(true);
+            showLoc1(true); showLoc2(true); showLoc3(false);
             break;
     }
 }
