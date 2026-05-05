@@ -442,6 +442,7 @@ public class GiaoDienChinh extends JFrame {
     }
 
     public void logout() {
+
     	
     	
     	//Dieu chinh dang nhap
@@ -453,9 +454,8 @@ public class GiaoDienChinh extends JFrame {
         new DangNhapController(dangNhap);
         dangNhap.setVisible(true);
 //        new DangNhap().setVisible(true);
-        
-        dispose();
-        new DangNhap().setVisible(true);
+        // dispose();
+        // new DangNhap().setVisible(true);
     }
 
     public boolean confirmLogout() {
