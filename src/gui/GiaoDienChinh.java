@@ -205,7 +205,8 @@ public class GiaoDienChinh extends JFrame {
                 new EmptyBorder(12, 12, 12, 12)));
         left.setBackground(SIDEBAR_BG);
 
-        JLabel lblUsername = new JLabel("Hi, Tân", SwingConstants.CENTER);
+        
+        JLabel lblUsername = new JLabel("Hi, " + PhienDangNhap.getTenDangNhap(), SwingConstants.CENTER);
         lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblUsername.setForeground(new Color(226, 232, 240));
         lblUsername.setPreferredSize(new Dimension(190, 56));
@@ -454,7 +455,7 @@ public class GiaoDienChinh extends JFrame {
         new DangNhapController(dangNhap);
         dangNhap.setVisible(true);
 //        new DangNhap().setVisible(true);
-        // dispose();
+         dispose();
         // new DangNhap().setVisible(true);
     }
 
