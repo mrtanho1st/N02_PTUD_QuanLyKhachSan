@@ -1005,24 +1005,25 @@ public class DonDatPhong_Dao {
         List<Object[]> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT CAST(ngayNhan AS DATE) AS theoNgay, ");
-        sql.append("       COUNT(DISTINCT maDDP) AS tongDon, ");
-        sql.append("       SUM(CASE WHEN tinhTrang = N'Đã đặt' THEN 1 ELSE 0 END) AS daDat, ");
-        sql.append("       SUM(CASE WHEN tinhTrang = N'Đã nhận' THEN 1 ELSE 0 END) AS daNhan, ");
-        sql.append("       SUM(CASE WHEN tinhTrang = N'Hoàn thành' THEN 1 ELSE 0 END) AS hoanThanh, ");
-        sql.append("       ISNULL(SUM(tienCoc), 0) AS tongTienCoc ");
-        sql.append("FROM DonDatPhong ");
+        sql.append("SELECT CAST(ddp.ngayNhan AS DATE) AS theoNgay, ");
+        sql.append("       COUNT(DISTINCT ddp.maDDP) AS tongDon, ");
+        sql.append("       SUM(CASE WHEN ddp.tinhTrang = N'Đã đặt' THEN 1 ELSE 0 END) AS daDat, ");
+        sql.append("       SUM(CASE WHEN ddp.tinhTrang = N'Đã nhận' THEN 1 ELSE 0 END) AS daNhan, ");
+        sql.append("       SUM(CASE WHEN ddp.tinhTrang = N'Hoàn thành' THEN 1 ELSE 0 END) AS hoanThanh, ");
+        sql.append("       '' AS cacPhong, ");
+        sql.append("       ISNULL(SUM(ddp.tienCoc), 0) AS tongTienCoc ");
+        sql.append("FROM DonDatPhong ddp ");
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
-            sql.append("AND ngayNhan >= ? ");
+            sql.append("AND ddp.ngayNhan >= ? ");
         }
 
         if (denNgay != null) {
-            sql.append("AND ngayTra <= ? ");
+            sql.append("AND ddp.ngayTra <= ? ");
         }
 
-        sql.append("GROUP BY CAST(ngayNhan AS DATE) ");
+        sql.append("GROUP BY CAST(ddp.ngayNhan AS DATE) ");
         sql.append("ORDER BY theoNgay ASC");
 
         try (
@@ -1041,13 +1042,14 @@ public class DonDatPhong_Dao {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Object[] row = new Object[6];
+                    Object[] row = new Object[7];
                     row[0] = rs.getDate("theoNgay").toString();
                     row[1] = rs.getInt("tongDon");
                     row[2] = rs.getInt("daDat");
                     row[3] = rs.getInt("daNhan");
                     row[4] = rs.getInt("hoanThanh");
-                    row[5] = rs.getDouble("tongTienCoc");
+                    row[5] = "";
+                    row[6] = rs.getDouble("tongTienCoc");
                     ds.add(row);
                 }
             }

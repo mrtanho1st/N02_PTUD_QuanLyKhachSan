@@ -295,6 +295,26 @@ public class NhanVien_Dao {
         return list;
     }
 
+    public List<String> getNhanVienNames() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT hoTen FROM NhanVien ORDER BY hoTen ASC";
+
+        try (
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                list.add(rs.getString("hoTen"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
     private NhanVien mapNhanVien(ResultSet rs) throws Exception {
         return new NhanVien(
                 rs.getString("maNV"),
@@ -316,21 +336,20 @@ public class NhanVien_Dao {
         List<Object[]> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY COUNT(hd.maHD) DESC) AS xepHang, ");
+        sql.append("SELECT ROW_NUMBER() OVER (ORDER BY SUM(hd.tongTien) DESC) AS xepHang, ");
         sql.append("       nv.maNV, nv.hoTen, nv.sdt, nv.email, nv.caLamViec, nv.viTriCongViec, ");
         sql.append("       COUNT(DISTINCT hd.maHD) AS soHoaDon, SUM(hd.tongTien) AS doanhThu ");
         sql.append("FROM NhanVien nv ");
-        sql.append("LEFT JOIN HoaDon hd ON nv.maNV = hd.maNV ");
+        sql.append("INNER JOIN HoaDon hd ON nv.maNV = hd.maNV ");
         sql.append("WHERE 1 = 1 ");
 
         if (tuNgay != null) {
-            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD >= ?) ");
+            sql.append("AND hd.ngayLapHD >= ? ");
         }
 
         if (denNgay != null) {
-            sql.append("AND (hd.ngayLapHD IS NULL OR hd.ngayLapHD <= ?) ");
+            sql.append("AND hd.ngayLapHD <= ? ");
         }
-
 
         if (caLamViec != null && !caLamViec.isBlank()) {
             sql.append("AND nv.caLamViec = ? ");
@@ -345,7 +364,7 @@ public class NhanVien_Dao {
         }
 
         sql.append("GROUP BY nv.maNV, nv.hoTen, nv.sdt, nv.email, nv.caLamViec, nv.viTriCongViec ");
-        sql.append("ORDER BY COUNT(hd.maHD) DESC");
+        sql.append("ORDER BY SUM(hd.tongTien) DESC");
 
         try (
                 Connection con = ConnectDB.getConnection();
