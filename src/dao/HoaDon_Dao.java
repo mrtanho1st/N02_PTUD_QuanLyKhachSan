@@ -23,8 +23,7 @@ public class HoaDon_Dao {
             String dichVu,
             Double tongTien,
             String nhanVien,
-            String thue
-    ) {
+            String thue) {
         List<HoaDon> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -68,8 +67,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {
@@ -146,25 +144,24 @@ public class HoaDon_Dao {
         }
 
         if (tuKhoa != null && !tuKhoa.isBlank()) {
-        	sql.append("AND (");
-        	sql.append("hd.maHD LIKE ? ");
-        	sql.append("OR hd.maDDP LIKE ? ");
-        	sql.append("OR kh.hoTen LIKE ? ");
-        	sql.append("OR nv.hoTen LIKE ? ");
-        	sql.append("OR hd.maThue LIKE ? ");
-        	sql.append("OR t.tenThue LIKE ? ");
-        	sql.append("OR dv.maDV LIKE ? ");
-        	sql.append("OR dv.tenDichVu LIKE ? ");
-        	sql.append("OR CAST(hd.tongTien AS NVARCHAR(50)) LIKE ? ");
-        	sql.append(") ");
+            sql.append("AND (");
+            sql.append("hd.maHD LIKE ? ");
+            sql.append("OR hd.maDDP LIKE ? ");
+            sql.append("OR kh.hoTen LIKE ? ");
+            sql.append("OR nv.hoTen LIKE ? ");
+            sql.append("OR hd.maThue LIKE ? ");
+            sql.append("OR t.tenThue LIKE ? ");
+            sql.append("OR dv.maDV LIKE ? ");
+            sql.append("OR dv.tenDichVu LIKE ? ");
+            sql.append("OR CAST(hd.tongTien AS NVARCHAR(50)) LIKE ? ");
+            sql.append(") ");
         }
 
         sql.append("ORDER BY hd.ngayLapHD DESC, hd.maHD DESC");
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {
@@ -224,7 +221,7 @@ public class HoaDon_Dao {
 
         return max;
     }
-    
+
     public String findMaHDByMaDDP(String maDDP) {
         String sql = """
                 SELECT maHD
@@ -234,8 +231,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -258,8 +254,7 @@ public class HoaDon_Dao {
             String maNVLapHoaDon,
             double tongTienThanhToan,
             List<Object[]> dsPhong,
-            List<Object[]> dsDichVu
-    ) {
+            List<Object[]> dsDichVu) {
         String maHDDaCo = findMaHDByMaDDP(maDDP);
 
         if (maHDDaCo != null && !maHDDaCo.isBlank()) {
@@ -329,8 +324,7 @@ public class HoaDon_Dao {
 
         try (
                 PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
+                ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 int nextID = rs.getInt("nextID");
                 return String.format("HD%03d", nextID);
@@ -369,38 +363,36 @@ public class HoaDon_Dao {
             String maKH,
             String maNV,
             String maThue,
-            double tongTien
-    ) throws Exception {
-    	String sql = """
-    	        INSERT INTO HoaDon(maHD, maDDP, maKH, maNV, maThue, ngayLapHD, tongTien)
-    	        VALUES (?, ?, ?, ?, ?, ?, ?)
-    	        """;
+            double tongTien) throws Exception {
+        String sql = """
+                INSERT INTO HoaDon(maHD, maDDP, maKH, maNV, maThue, ngayLapHD, tongTien)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
 
-    	try (PreparedStatement ps = con.prepareStatement(sql)) {
-    	    ps.setString(1, maHD);
-    	    ps.setString(2, maDDP);
-    	    ps.setString(3, maKH);
-    	    ps.setString(4, maNV);
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, maHD);
+            ps.setString(2, maDDP);
+            ps.setString(3, maKH);
+            ps.setString(4, maNV);
 
-    	    if (maThue == null || maThue.isBlank()) {
-    	        ps.setNull(5, Types.VARCHAR);
-    	    } else {
-    	        ps.setString(5, maThue);
-    	    }
+            if (maThue == null || maThue.isBlank()) {
+                ps.setNull(5, Types.VARCHAR);
+            } else {
+                ps.setString(5, maThue);
+            }
 
-    	    ps.setDate(6, Date.valueOf(LocalDate.now()));
-    	    ps.setDouble(7, tongTien);
+            ps.setDate(6, Date.valueOf(LocalDate.now()));
+            ps.setDouble(7, tongTien);
 
-    	    ps.executeUpdate();
-    	}
+            ps.executeUpdate();
+        }
     }
 
     private void insertChiTietPhong(
             Connection con,
             String maHD,
             String maKM,
-            List<Object[]> dsPhong
-    ) throws Exception {
+            List<Object[]> dsPhong) throws Exception {
         if (dsPhong == null) {
             return;
         }
@@ -447,8 +439,7 @@ public class HoaDon_Dao {
             Connection con,
             String maHD,
             String maKM,
-            List<Object[]> dsDichVu
-    ) throws Exception {
+            List<Object[]> dsDichVu) throws Exception {
         if (dsDichVu == null) {
             return;
         }
@@ -504,7 +495,7 @@ public class HoaDon_Dao {
             ps.executeBatch();
         }
     }
-    
+
     private String findMaPDVTheoHoaDonVaDichVu(Connection con, String maHD, String maDV) throws Exception {
         String sql = """
                 SELECT TOP 1 pdv.maPDV
@@ -531,7 +522,7 @@ public class HoaDon_Dao {
 
     public Object[] findThongTinHoaDonDialog(String maHD) {
         String sql = """
-                SELECT 
+                SELECT
                     hd.maHD,
                     hd.maDDP,
                     hd.maKH,
@@ -554,8 +545,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maHD);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -610,8 +600,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maHD);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -632,7 +621,7 @@ public class HoaDon_Dao {
             }
 
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
         }
 
         return list;
@@ -687,106 +676,105 @@ public class HoaDon_Dao {
                 rs.getString("tenNV"),
                 rs.getDate("ngayLapHD"),
                 rs.getString("maThue"),
-                rs.getDouble("tongTien")
-        );
+                rs.getDouble("tongTien"));
     }
-    //lấy để cho hóa đơn xuất ra
+
+    // lấy để cho hóa đơn xuất ra
     public Object[] findThongTinInHoaDon(String maHD) {
         String sql = """
-            SELECT 
-                hd.maHD,
-                hd.ngayLapHD,
-                kh.hoTen AS tenKH,
-                kh.cccd,
-                kh.sdt,
+                    SELECT
+                        hd.maHD,
+                        hd.ngayLapHD,
+                        kh.hoTen AS tenKH,
+                        kh.cccd,
+                        kh.sdt,
 
-                nvLapDon.maNV AS maNVLapDon,
-                nvLapDon.hoTen AS tenNVLapDon,
+                        nvLapDon.maNV AS maNVLapDon,
+                        nvLapDon.hoTen AS tenNVLapDon,
 
-                nvLapHoaDon.maNV AS maNVLapHoaDon,
-                nvLapHoaDon.hoTen AS tenNVLapHoaDon,
+                        nvLapHoaDon.maNV AS maNVLapHoaDon,
+                        nvLapHoaDon.hoTen AS tenNVLapHoaDon,
 
-                ddp.ngayNhan,
-                ddp.ngayTra,
-                DATEDIFF(DAY, ddp.ngayNhan, ddp.ngayTra) AS soDem,
-                ddp.tienCoc,
-                hd.tongTien,
+                        ddp.ngayNhan,
+                        ddp.ngayTra,
+                        DATEDIFF(DAY, ddp.ngayNhan, ddp.ngayTra) AS soDem,
+                        ddp.tienCoc,
+                        hd.tongTien,
 
-                hd.maThue,
-                ISNULL(t.tyLeThue, 0) AS tyLeThue,
+                        hd.maThue,
+                        ISNULL(t.tyLeThue, 0) AS tyLeThue,
 
-                km.maKM,
-                km.tenKhuyenMai,
-                ISNULL(km.giaTri, 0) AS tyLeGiamGia
-            FROM HoaDon hd
-            JOIN DonDatPhong ddp ON hd.maDDP = ddp.maDDP
-            JOIN KhachHang kh ON hd.maKH = kh.maKH
+                        km.maKM,
+                        km.tenKhuyenMai,
+                        ISNULL(km.giaTri, 0) AS tyLeGiamGia
+                    FROM HoaDon hd
+                    JOIN DonDatPhong ddp ON hd.maDDP = ddp.maDDP
+                    JOIN KhachHang kh ON hd.maKH = kh.maKH
 
-            LEFT JOIN NhanVien nvLapDon 
-                ON ddp.maNV = nvLapDon.maNV
+                    LEFT JOIN NhanVien nvLapDon
+                        ON ddp.maNV = nvLapDon.maNV
 
-            LEFT JOIN NhanVien nvLapHoaDon 
-                ON hd.maNV = nvLapHoaDon.maNV
+                    LEFT JOIN NhanVien nvLapHoaDon
+                        ON hd.maNV = nvLapHoaDon.maNV
 
-            LEFT JOIN Thue t 
-                ON hd.maThue = t.maThue
+                    LEFT JOIN Thue t
+                        ON hd.maThue = t.maThue
 
-            OUTER APPLY (
-                SELECT TOP 1 x.maKM
-                FROM (
-                    SELECT maKM
-                    FROM CTHoaDonPhong
-                    WHERE maHD = hd.maHD 
-                      AND maKM IS NOT NULL
+                    OUTER APPLY (
+                        SELECT TOP 1 x.maKM
+                        FROM (
+                            SELECT maKM
+                            FROM CTHoaDonPhong
+                            WHERE maHD = hd.maHD
+                              AND maKM IS NOT NULL
 
-                    UNION
+                            UNION
 
-                    SELECT maKM
-                    FROM CTHoaDonDichVu
-                    WHERE maHD = hd.maHD 
-                      AND maKM IS NOT NULL
-                ) x
-            ) kmHD
+                            SELECT maKM
+                            FROM CTHoaDonDichVu
+                            WHERE maHD = hd.maHD
+                              AND maKM IS NOT NULL
+                        ) x
+                    ) kmHD
 
-            LEFT JOIN KhuyenMai km 
-                ON kmHD.maKM = km.maKM
+                    LEFT JOIN KhuyenMai km
+                        ON kmHD.maKM = km.maKM
 
-            WHERE hd.maHD = ?
-        """;
+                    WHERE hd.maHD = ?
+                """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maHD);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Object[] {
-                        rs.getString("maHD"),              // 0
-                        rs.getDate("ngayLapHD"),           // 1
-                        rs.getString("tenKH"),             // 2
-                        rs.getString("cccd"),              // 3
-                        rs.getString("sdt"),               // 4
+                            rs.getString("maHD"), // 0
+                            rs.getDate("ngayLapHD"), // 1
+                            rs.getString("tenKH"), // 2
+                            rs.getString("cccd"), // 3
+                            rs.getString("sdt"), // 4
 
-                        rs.getString("maNVLapDon"),        // 5
-                        rs.getString("tenNVLapDon"),       // 6
+                            rs.getString("maNVLapDon"), // 5
+                            rs.getString("tenNVLapDon"), // 6
 
-                        rs.getString("maNVLapHoaDon"),     // 7
-                        rs.getString("tenNVLapHoaDon"),    // 8
+                            rs.getString("maNVLapHoaDon"), // 7
+                            rs.getString("tenNVLapHoaDon"), // 8
 
-                        rs.getDate("ngayNhan"),            // 9
-                        rs.getDate("ngayTra"),             // 10
-                        rs.getInt("soDem"),                // 11
-                        rs.getDouble("tienCoc"),           // 12
-                        rs.getDouble("tongTien"),          // 13
+                            rs.getTimestamp("ngayNhan"), // 9
+                            rs.getTimestamp("ngayTra"), // 10
+                            rs.getInt("soDem"), // 11
+                            rs.getDouble("tienCoc"), // 12
+                            rs.getDouble("tongTien"), // 13
 
-                        rs.getString("maThue"),            // 14
-                        rs.getDouble("tyLeThue"),          // 15
+                            rs.getString("maThue"), // 14
+                            rs.getDouble("tyLeThue"), // 15
 
-                        rs.getString("maKM"),              // 16
-                        rs.getString("tenKhuyenMai"),      // 17
-                        rs.getDouble("tyLeGiamGia")        // 18
+                            rs.getString("maKM"), // 16
+                            rs.getString("tenKhuyenMai"), // 17
+                            rs.getDouble("tyLeGiamGia") // 18
                     };
                 }
             }
@@ -796,12 +784,12 @@ public class HoaDon_Dao {
 
         return null;
     }
-    
+
     public List<Object[]> findDanhSachPhongInHoaDon(String maHD) {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
+                SELECT
                     p.maPhong,
                     p.loaiPhong,
                     ctp.soNgay,
@@ -813,19 +801,18 @@ public class HoaDon_Dao {
                 """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maHD);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Object[] {
-                        rs.getString("maPhong"),
-                        rs.getString("loaiPhong"),
-                        rs.getInt("soNgay"),
-                        rs.getDouble("donGia"),
-                        rs.getDouble("thanhTien")
+                            rs.getString("maPhong"),
+                            rs.getString("loaiPhong"),
+                            rs.getInt("soNgay"),
+                            rs.getDouble("donGia"),
+                            rs.getDouble("thanhTien")
                     });
                 }
             }
@@ -835,12 +822,12 @@ public class HoaDon_Dao {
 
         return list;
     }
-    
+
     public List<Object[]> findDanhSachDichVuInHoaDon(String maHD) {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
+                SELECT
                     dv.maDV,
                     dv.tenDichVu,
                     ctdv.soLuong,
@@ -853,19 +840,18 @@ public class HoaDon_Dao {
                 """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maHD);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Object[] {
-                        rs.getString("maDV"),
-                        rs.getString("tenDichVu"),
-                        rs.getInt("soLuong"),
-                        rs.getDouble("donGia"),
-                        rs.getDouble("thanhTien")
+                            rs.getString("maDV"),
+                            rs.getString("tenDichVu"),
+                            rs.getInt("soLuong"),
+                            rs.getDouble("donGia"),
+                            rs.getDouble("thanhTien")
                     });
                 }
             }
@@ -875,7 +861,7 @@ public class HoaDon_Dao {
 
         return list;
     }
-    
+
     public List<HoaDon> searchQuanLyHoaDon(
             Date tuNgay,
             Date denNgay,
@@ -884,8 +870,7 @@ public class HoaDon_Dao {
             String khachHang,
             String nhanVien,
             Double tongTien,
-            String thue
-    ) {
+            String thue) {
         List<HoaDon> ds = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -940,8 +925,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {
@@ -992,7 +976,7 @@ public class HoaDon_Dao {
     // Lấy doanh thu tách riêng phòng và dịch vụ theo thời gian ( Tường )
     public List<Object[]> getDoanhThuTheoThoiGianChiTiet(Date tuNgay, Date denNgay) {
         List<Object[]> ds = new ArrayList<>();
-    
+
         // Query được tối ưu để tránh Cartesian product
         // Bước 1: Tính toán chi tiết cho từng hóa đơn
         // Bước 2: Nhóm theo ngày
@@ -1036,15 +1020,14 @@ public class HoaDon_Dao {
         sql.append("ORDER BY A.ngayLapHD ASC");
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
             if (tuNgay != null && denNgay != null) {
                 ps.setDate(index++, tuNgay);
                 ps.setDate(index++, denNgay);
             }
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Object[] row = new Object[7];
@@ -1066,7 +1049,7 @@ public class HoaDon_Dao {
 
     public List<Object[]> getDoanhThuTheoThoiGianChiTiet(Date tuNgay, Date denNgay, String giaTriHoaDon) {
         List<Object[]> ds = new ArrayList<>();
-    
+
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ");
         sql.append("    A.ngayLapHD, ");
@@ -1099,11 +1082,11 @@ public class HoaDon_Dao {
         sql.append("    ) DV ON HD.maHD = DV.maHD ");
         sql.append("    LEFT JOIN Thue T ON HD.maThue = T.maThue ");
         sql.append("    WHERE 1=1 ");
-        
+
         if (tuNgay != null && denNgay != null) {
             sql.append("    AND HD.ngayLapHD >= ? AND HD.ngayLapHD <= ? ");
         }
-        
+
         // Thêm điều kiện lọc theo giá trị hóa đơn
         if (giaTriHoaDon != null && !"Tất cả".equals(giaTriHoaDon)) {
             if ("Dưới 500 nghìn".equals(giaTriHoaDon)) {
@@ -1116,21 +1099,20 @@ public class HoaDon_Dao {
                 sql.append("    AND HD.tongTien >= 5000000 ");
             }
         }
-        
+
         sql.append(") A ");
         sql.append("GROUP BY A.ngayLapHD ");
         sql.append("ORDER BY A.ngayLapHD ASC");
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
             if (tuNgay != null && denNgay != null) {
                 ps.setDate(index++, tuNgay);
                 ps.setDate(index++, denNgay);
             }
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Object[] row = new Object[7];
@@ -1178,8 +1160,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {
@@ -1241,8 +1222,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (loaiKH != null && !"Tất cả".equals(loaiKH)) {
@@ -1301,8 +1281,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {
@@ -1328,7 +1307,8 @@ public class HoaDon_Dao {
                     row[4] = rs.getDouble("tongDoanhThu");
                     ds.add(row);
                     rowCount++;
-                    System.out.println("🔍 DAO Row " + rowCount + ": " + row[0] + " | " + row[1] + " | DoanhThu=" + row[4]);
+                    System.out.println(
+                            "🔍 DAO Row " + rowCount + ": " + row[0] + " | " + row[1] + " | DoanhThu=" + row[4]);
                 }
                 System.out.println("🔍 DAO: Tổng cộng " + rowCount + " phòng");
             }
@@ -1370,8 +1350,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (loaiPhong != null && !"Tất cả".equals(loaiPhong)) {
@@ -1422,8 +1401,7 @@ public class HoaDon_Dao {
         try (
                 Connection con = ConnectDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Object[] row = new Object[6];
                 row[0] = rs.getInt("xepHang");
@@ -1460,8 +1438,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (loaiKH != null && !"Tất cả".equals(loaiKH)) {
@@ -1498,8 +1475,10 @@ public class HoaDon_Dao {
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT hd.maHD, hd.ngayLapHD, kh.hoTen, nv.hoTen AS tenNV, ");
-        sql.append("       ISNULL(SUM(CASE WHEN ctp.maHD IS NOT NULL THEN ctp.thanhTien ELSE 0 END), 0) AS tienPhong, ");
-        sql.append("       ISNULL(SUM(CASE WHEN ctdv.maHD IS NOT NULL THEN ctdv.thanhTien ELSE 0 END), 0) AS tienDichVu, ");
+        sql.append(
+                "       ISNULL(SUM(CASE WHEN ctp.maHD IS NOT NULL THEN ctp.thanhTien ELSE 0 END), 0) AS tienPhong, ");
+        sql.append(
+                "       ISNULL(SUM(CASE WHEN ctdv.maHD IS NOT NULL THEN ctdv.thanhTien ELSE 0 END), 0) AS tienDichVu, ");
         sql.append("       t.tenThue, hd.tongTien ");
         sql.append("FROM HoaDon hd ");
         sql.append("LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH ");
@@ -1538,8 +1517,7 @@ public class HoaDon_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {

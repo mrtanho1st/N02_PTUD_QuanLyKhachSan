@@ -46,8 +46,7 @@ public class PhongCardPanel extends JPanel {
         setBackground(getStatusColor(trangThai));
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER, 1),
-                new EmptyBorder(10, 12, 10, 12)
-        ));
+                new EmptyBorder(10, 12, 10, 12)));
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         JLabel lblMaPhong = new JLabel(data.getMaPhong());
@@ -116,6 +115,9 @@ public class PhongCardPanel extends JPanel {
             case "Đang sử dụng":
             case "Đã nhận":
                 return new Color(230, 205, 205);
+
+            case "Quá hạn":
+                return new Color(252, 226, 226);
 
             case "Bảo trì":
                 return new Color(220, 220, 220);

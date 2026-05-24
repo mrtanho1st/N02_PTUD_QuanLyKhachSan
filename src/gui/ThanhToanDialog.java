@@ -31,7 +31,6 @@ import javax.swing.table.DefaultTableModel;
 import entity.KhuyenMai;
 import entity.Thue;
 
-
 public class ThanhToanDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
@@ -124,7 +123,7 @@ public class ThanhToanDialog extends JDialog {
 
         cboMaGiamGia = new JComboBox<>();
         styleComboBox(cboMaGiamGia);
-        
+
         cboThue = new JComboBox<>();
         styleComboBox(cboThue);
 
@@ -155,9 +154,8 @@ public class ThanhToanDialog extends JDialog {
                         + "Số TK: 0123456789<br>"
                         + "Chủ TK: HOTEL IMPERIAL<br>"
                         + "Nội dung: Thanh toán đặt phòng"
-                        + "</html>"
-        );
-        
+                        + "</html>");
+
         lblQrChuyenKhoan = new JLabel("QR");
         lblQrChuyenKhoan.setHorizontalAlignment(JLabel.CENTER);
         lblQrChuyenKhoan.setVerticalAlignment(JLabel.CENTER);
@@ -180,19 +178,17 @@ public class ThanhToanDialog extends JDialog {
 
         gbc.gridwidth = 1;
         int row = 1;
-        
+
         addSectionTitle(detailPanel, gbc, row++, "Thông tin khách hàng");
 
         addRowPair(detailPanel, gbc, row++, "Mã đặt phòng", lblMaDDP, "Tên khách hàng", lblTenKH);
         addRowPair(detailPanel, gbc, row++, "CCCD", lblCCCD, "Số điện thoại", lblSDT);
         addRowPair(detailPanel, gbc, row++, "Ngày nhận", lblNgayNhan, "Ngày trả", lblNgayTra);
 
-        
-
         addSectionTitle(detailPanel, gbc, row++, "Danh sách phòng");
 
         modelPhong = new DefaultTableModel(
-                new String[] { "Mã phòng", "Loại phòng", "Số ngày", "Đơn giá", "Thành tiền" }, 0) {
+                new String[] { "Mã phòng", "Loại phòng", "Thời gian lưu trú", "Đơn giá", "Thành tiền" }, 0) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -241,12 +237,16 @@ public class ThanhToanDialog extends JDialog {
         gbc.fill = GridBagConstraints.BOTH;
         detailPanel.add(spDichVu, gbc);
 
-//        addSectionTitle(detailPanel, gbc, row++, "Thanh toán");
-//
-//        addRowPair(detailPanel, gbc, row++, "Tiền phòng", lblTienPhong, "Tiền dịch vụ", lblTienDichVu);
-//        addRowPair(detailPanel, gbc, row++, "Tổng tiền", lblTongTien, "Tiền cọc", lblTienCoc);
-//        addRowPair(detailPanel, gbc, row++, "Mã giảm giá", cboMaGiamGia, "Giảm giá", lblGiamGia);
-//        addRowPair(detailPanel, gbc, row++, "Cần thanh toán", lblCanThanhToan, "Phương thức", createPhuongThucPanel());
+        // addSectionTitle(detailPanel, gbc, row++, "Thanh toán");
+        //
+        // addRowPair(detailPanel, gbc, row++, "Tiền phòng", lblTienPhong, "Tiền dịch
+        // vụ", lblTienDichVu);
+        // addRowPair(detailPanel, gbc, row++, "Tổng tiền", lblTongTien, "Tiền cọc",
+        // lblTienCoc);
+        // addRowPair(detailPanel, gbc, row++, "Mã giảm giá", cboMaGiamGia, "Giảm giá",
+        // lblGiamGia);
+        // addRowPair(detailPanel, gbc, row++, "Cần thanh toán", lblCanThanhToan,
+        // "Phương thức", createPhuongThucPanel());
         addSectionTitle(detailPanel, gbc, row++, "Chi tiết thanh toán");
 
         addRowPair(detailPanel, gbc, row++, "Tiền phòng", lblTienPhong, "Tiền dịch vụ", lblTienDichVu);
@@ -367,8 +367,7 @@ public class ThanhToanDialog extends JDialog {
             String label1,
             JComponent value1,
             String label2,
-            JComponent value2
-    ) {
+            JComponent value2) {
         JPanel rowPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         rowPanel.setOpaque(false);
 
@@ -567,7 +566,7 @@ public class ThanhToanDialog extends JDialog {
     public JComboBox<KhuyenMai> getCboMaGiamGia() {
         return cboMaGiamGia;
     }
-    
+
     public JComboBox<Thue> getCboThue() {
         return cboThue;
     }
@@ -600,12 +599,10 @@ public class ThanhToanDialog extends JDialog {
         return btnThanhToan;
     }
 
-
-
     public JButton getBtnDong() {
         return btnDong;
     }
-    
+
     public JLabel getLblQrChuyenKhoan() {
         return lblQrChuyenKhoan;
     }

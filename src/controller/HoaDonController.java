@@ -3,6 +3,8 @@ package controller;
 import java.awt.Desktop;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -75,31 +77,32 @@ public class HoaDonController {
         String maNVLapHoaDon = toText(thongTinHD[7]);
         String tenNVLapHoaDon = toText(thongTinHD[8]);
 
-        view.getLblNVLapDon().setText(formatNhanVien(maNVLapDon, tenNVLapDon));
+        // NV lập đơn removed from UI; only set NV lập hóa đơn
         view.getLblNVLapHoaDon().setText(formatNhanVien(maNVLapHoaDon, tenNVLapHoaDon));
 
-        if (thongTinHD[9] == null) {
+        Date ngayNhan = toDate(thongTinHD[9]);
+        Date ngayTra = toDate(thongTinHD[10]);
+
+        if (ngayNhan == null) {
             view.getLblNgayNhan().setText("");
         } else {
-            view.getLblNgayNhan().setText(dateFormat.format(thongTinHD[9]));
+            view.getLblNgayNhan().setText(dateFormat.format(ngayNhan));
         }
 
-        if (thongTinHD[10] == null) {
+        if (ngayTra == null) {
             view.getLblNgayTra().setText("");
         } else {
-            view.getLblNgayTra().setText(dateFormat.format(thongTinHD[10]));
+            view.getLblNgayTra().setText(dateFormat.format(ngayTra));
         }
 
-        int soDem = toInt(thongTinHD[11]);
-        if (soDem <= 0) {
-            soDem = 1;
-        }
+        String thoiGianLuuTru = formatThoiGianLuuTru(ngayNhan, ngayTra);
 
-        view.getLblSoDem().setText(soDem + " đêm");
+        view.getLblSoDem().setText(thoiGianLuuTru);
 
         tienCoc = toDouble(thongTinHD[12]);
         tongTien = toDouble(thongTinHD[13]);
     }
+
     private String formatNhanVien(String maNV, String tenNV) {
         if (maNV.isBlank() && tenNV.isBlank()) {
             return "";
@@ -126,12 +129,13 @@ public class HoaDonController {
             return;
         }
 
+        String thoiGianLuuTru = formatThoiGianLuuTru(toDate(thongTinHD[9]), toDate(thongTinHD[10]));
+
         for (int i = 0; i < dsPhong.size(); i++) {
             Object[] p = dsPhong.get(i);
 
             String maPhong = toText(p[0]);
             String loaiPhong = toText(p[1]);
-            int soDem = toInt(p[2]);
             double donGia = toDouble(p[3]);
             double thanhTien = toDouble(p[4]);
 
@@ -140,7 +144,7 @@ public class HoaDonController {
             model.addRow(new Object[] {
                     i + 1,
                     maPhong + " - " + loaiPhong,
-                    soDem,
+                    thoiGianLuuTru,
                     formatMoney(donGia) + " VNĐ",
                     formatMoney(thanhTien) + " VNĐ"
             });
@@ -179,7 +183,7 @@ public class HoaDonController {
 
     private void hienThiTongTien() {
         giamGia = 0;
-        
+
         double tyLeGiamGia = 0;
 
         if (thongTinHD != null && thongTinHD.length > 18) {
@@ -191,7 +195,7 @@ public class HoaDonController {
         if (thongTinHD != null && thongTinHD.length > 15) {
             tyLeThue = toDouble(thongTinHD[15]);
         }
-        
+
         double tongTruocGiam = tienPhong + tienDichVu;
 
         giamGia = tongTruocGiam * tyLeGiamGia / 100.0;
@@ -203,7 +207,6 @@ public class HoaDonController {
         }
 
         thue = tienSauGiam * tyLeThue / 100.0;
-
 
         view.getLblTienPhong().setText(formatMoney(tienPhong) + " VNĐ");
         view.getLblTienDichVu().setText(formatMoney(tienDichVu) + " VNĐ");
@@ -247,13 +250,11 @@ public class HoaDonController {
                     file.getAbsolutePath(),
                     thongTinHD,
                     dsPhong,
-                    dsDichVu
-            );
+                    dsDichVu);
 
             JOptionPane.showMessageDialog(
                     view,
-                    "Xuất hóa đơn PDF thành công.\nFile được lưu tại: " + file.getAbsolutePath()
-            );
+                    "Xuất hóa đơn PDF thành công.\nFile được lưu tại: " + file.getAbsolutePath());
 
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(file);
@@ -308,5 +309,30 @@ public class HoaDonController {
 
     private String formatMoney(double amount) {
         return moneyFormat.format(amount);
+    }
+
+    private Date toDate(Object value) {
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+
+        return null;
+    }
+
+    private String formatThoiGianLuuTru(Date ngayNhan, Date ngayTra) {
+        if (ngayNhan == null || ngayTra == null) {
+            return "";
+        }
+
+        long minutes = Duration.between(ngayNhan.toInstant(), ngayTra.toInstant()).toMinutes();
+        if (minutes < 0) {
+            minutes = 0;
+        }
+
+        long totalHours = minutes / 60;
+        long soNgay = totalHours / 24;
+        long soGio = totalHours % 24;
+
+        return soNgay + " ngày, " + soGio + " giờ";
     }
 }

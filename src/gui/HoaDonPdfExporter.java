@@ -3,6 +3,8 @@ package gui;
 import java.io.FileOutputStream;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,12 +25,10 @@ import com.itextpdf.text.Image;
 
 public class HoaDonPdfExporter {
 
-    private static final NumberFormat moneyFormat =
-            NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+    private static final NumberFormat moneyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    private static final SimpleDateFormat dateFormat =
-            new SimpleDateFormat("dd/MM/yyyy");
-    
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+
     private static final String BANK_ID = "970428"; // NamABank
     private static final String ACCOUNT_NO = "0787702900";
     private static final String ACCOUNT_NAME = "NGUYEN THI THANH THU";
@@ -37,8 +37,7 @@ public class HoaDonPdfExporter {
             String filePath,
             Object[] thongTinHD,
             List<Object[]> dsPhong,
-            List<Object[]> dsDichVu
-    ) throws Exception {
+            List<Object[]> dsDichVu) throws Exception {
         Document document = new Document(PageSize.A4, 36, 36, 36, 36);
         PdfWriter.getInstance(document, new FileOutputStream(filePath));
         document.open();
@@ -46,8 +45,7 @@ public class HoaDonPdfExporter {
         BaseFont baseFont = BaseFont.createFont(
                 "C:/Windows/Fonts/arial.ttf",
                 BaseFont.IDENTITY_H,
-                BaseFont.EMBEDDED
-        );
+                BaseFont.EMBEDDED);
 
         Font titleFont = new Font(baseFont, 18, Font.BOLD);
         Font headerFont = new Font(baseFont, 12, Font.BOLD);
@@ -66,10 +64,13 @@ public class HoaDonPdfExporter {
         String maNVLapHoaDon = toText(thongTinHD[7]);
         String tenNVLapHoaDon = toText(thongTinHD[8]);
 
-        String ngayNhan = thongTinHD[9] == null ? "" : dateFormat.format(thongTinHD[9]);
-        String ngayTra = thongTinHD[10] == null ? "" : dateFormat.format(thongTinHD[10]);
+        Date ngayNhanDate = toDate(thongTinHD[9]);
+        Date ngayTraDate = toDate(thongTinHD[10]);
 
-        int soDem = toInt(thongTinHD[11]);
+        String ngayNhan = ngayNhanDate == null ? "" : dateFormat.format(ngayNhanDate);
+        String ngayTra = ngayTraDate == null ? "" : dateFormat.format(ngayTraDate);
+        String thoiGianLuuTru = formatThoiGianLuuTru(ngayNhanDate, ngayTraDate);
+
         double tienCoc = toDouble(thongTinHD[12]);
         double tongTien = toDouble(thongTinHD[13]);
 
@@ -95,10 +96,12 @@ public class HoaDonPdfExporter {
         }
 
         double tongTienPhong = 0;
-        for (Object[] p : dsPhong) tongTienPhong += toDouble(p[4]);
+        for (Object[] p : dsPhong)
+            tongTienPhong += toDouble(p[4]);
 
         double tongTienDV = 0;
-        for (Object[] dv : dsDichVu) tongTienDV += toDouble(dv[4]);
+        for (Object[] dv : dsDichVu)
+            tongTienDV += toDouble(dv[4]);
 
         double tongTruocGiam = tongTienPhong + tongTienDV;
 
@@ -117,15 +120,13 @@ public class HoaDonPdfExporter {
 
         Paragraph address = new Paragraph(
                 "Địa chỉ: 12 Nguyễn Huệ, Quận 1, TP.HCM",
-                normalFont
-        );
+                normalFont);
         address.setAlignment(Element.ALIGN_CENTER);
         document.add(address);
 
         Paragraph hotline = new Paragraph(
                 "Hotline: 0909 999 999",
-                normalFont
-        );
+                normalFont);
         hotline.setAlignment(Element.ALIGN_CENTER);
         document.add(hotline);
 
@@ -137,7 +138,7 @@ public class HoaDonPdfExporter {
 
         PdfPTable topInfo = new PdfPTable(2);
         topInfo.setWidthPercentage(100);
-        topInfo.setWidths(new float[]{1, 1});
+        topInfo.setWidths(new float[] { 1, 1 });
 
         addNoBorderCell(topInfo, "Mã hóa đơn: " + maHD, boldFont);
         addNoBorderCell(topInfo, "Ngày thanh toán: " + ngayThanhToan, boldFont);
@@ -150,18 +151,18 @@ public class HoaDonPdfExporter {
         info.setSpacingBefore(10);
         info.setSpacingAfter(10);
 
-        addNoBorderCell(info, "NV lập đơn: " + formatNhanVien(maNVLapDon, tenNVLapDon), normalFont);
+        // Thông tin theo thứ tự và nhãn giống `HoaDonDialog`
+        addNoBorderCell(info, "Tên khách hàng: " + tenKH, normalFont);
         addNoBorderCell(info, "NV lập hóa đơn: " + formatNhanVien(maNVLapHoaDon, tenNVLapHoaDon), normalFont);
 
-        addNoBorderCell(info, "Tên khách hàng: " + tenKH, normalFont);
         addNoBorderCell(info, "CCCD: " + cccd, normalFont);
-
         addNoBorderCell(info, "SĐT: " + sdt, normalFont);
-        addNoBorderCell(info, "Số đêm lưu trú: " + soDem, normalFont);
-        
-        addNoBorderCell(info, "Thời gian nhận phòng: " + ngayNhan, normalFont);
-        addNoBorderCell(info, "Thời gian trả phòng: " + ngayTra, normalFont);
-        
+
+        addNoBorderCell(info, "Ngày nhận phòng: " + ngayNhan, normalFont);
+        addNoBorderCell(info, "Ngày trả phòng: " + ngayTra, normalFont);
+
+        addNoBorderCell(info, "Thời gian lưu trú: " + thoiGianLuuTru, normalFont);
+
         addNoBorderCell(info, "", normalFont);
 
         document.add(info);
@@ -174,11 +175,11 @@ public class HoaDonPdfExporter {
 
         PdfPTable tblPhong = new PdfPTable(5);
         tblPhong.setWidthPercentage(100);
-        tblPhong.setWidths(new float[]{0.8f, 1.5f, 1.2f, 1.2f, 1.5f});
+        tblPhong.setWidths(new float[] { 0.8f, 1.5f, 1.2f, 1.2f, 1.5f });
 
         addHeaderCell(tblPhong, "STT", boldFont);
         addHeaderCell(tblPhong, "Tên phòng", boldFont);
-        addHeaderCell(tblPhong, "Số đêm", boldFont);
+        addHeaderCell(tblPhong, "Thời gian lưu trú", boldFont);
         addHeaderCell(tblPhong, "Đơn giá", boldFont);
         addHeaderCell(tblPhong, "Thành tiền", boldFont);
 
@@ -186,7 +187,7 @@ public class HoaDonPdfExporter {
             Object[] p = dsPhong.get(i);
             addBodyCell(tblPhong, String.valueOf(i + 1), normalFont);
             addBodyCell(tblPhong, toText(p[0]) + " - " + toText(p[1]), normalFont);
-            addBodyCell(tblPhong, String.valueOf(toInt(p[2])), normalFont);
+            addBodyCell(tblPhong, thoiGianLuuTru, normalFont);
             addBodyCell(tblPhong, formatMoney(toDouble(p[3])) + " VNĐ", normalFont);
             addBodyCell(tblPhong, formatMoney(toDouble(p[4])) + " VNĐ", normalFont);
         }
@@ -201,7 +202,7 @@ public class HoaDonPdfExporter {
 
         PdfPTable tblDV = new PdfPTable(5);
         tblDV.setWidthPercentage(100);
-        tblDV.setWidths(new float[]{0.8f, 2.5f, 1.2f, 1.2f, 1.5f});
+        tblDV.setWidths(new float[] { 0.8f, 2.5f, 1.2f, 1.2f, 1.5f });
 
         addHeaderCell(tblDV, "STT", boldFont);
         addHeaderCell(tblDV, "Tên dịch vụ", boldFont);
@@ -235,13 +236,13 @@ public class HoaDonPdfExporter {
 
         addNoBorderCell(tongKet, "Tiền cọc:", boldFont);
         addNoBorderCell(tongKet, formatMoney(tienCoc) + " VNĐ", normalFont);
-        
-//        addNoBorderCell(tongKet, "Khuyến mãi:", boldFont);
-//        if (!maKM.isBlank()) {
-//            addNoBorderCell(tongKet, maKM + " - " + tenKhuyenMai, normalFont);
-//        } else {
-//            addNoBorderCell(tongKet, "Không áp dụng", normalFont);
-//        }
+
+        // addNoBorderCell(tongKet, "Khuyến mãi:", boldFont);
+        // if (!maKM.isBlank()) {
+        // addNoBorderCell(tongKet, maKM + " - " + tenKhuyenMai, normalFont);
+        // } else {
+        // addNoBorderCell(tongKet, "Không áp dụng", normalFont);
+        // }
 
         addNoBorderCell(tongKet, "Giảm giá:", boldFont);
         if (tyLeGiamGia > 0) {
@@ -281,18 +282,19 @@ public class HoaDonPdfExporter {
                 "Ngân hàng: NamABank\n"
                         + "Số tài khoản: 0787702900\n"
                         + "Chủ tài khoản: NGUYEN THI THANH THU",
-                normalFont
-        );
+                normalFont);
         qrInfo.setAlignment(Element.ALIGN_CENTER);
         qrInfo.setSpacingBefore(6);
         document.add(qrInfo);
 
         document.close();
     }
-    
+
     private static String formatNhanVien(String maNV, String tenNV) {
-        if (maNV == null) maNV = "";
-        if (tenNV == null) tenNV = "";
+        if (maNV == null)
+            maNV = "";
+        if (tenNV == null)
+            tenNV = "";
 
         maNV = maNV.trim();
         tenNV = tenNV.trim();
@@ -311,6 +313,7 @@ public class HoaDonPdfExporter {
 
         return maNV + " - " + tenNV;
     }
+
     private static void addNoBorderCell(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setBorder(PdfPCell.NO_BORDER);
@@ -333,7 +336,6 @@ public class HoaDonPdfExporter {
             return 0;
         }
     }
-    
 
     private static void addInfoCell(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
@@ -378,7 +380,32 @@ public class HoaDonPdfExporter {
     private static String formatMoney(double amount) {
         return moneyFormat.format(amount);
     }
-    
+
+    private static Date toDate(Object value) {
+        if (value instanceof Date) {
+            return (Date) value;
+        }
+
+        return null;
+    }
+
+    private static String formatThoiGianLuuTru(Date ngayNhan, Date ngayTra) {
+        if (ngayNhan == null || ngayTra == null) {
+            return "";
+        }
+
+        long minutes = Duration.between(ngayNhan.toInstant(), ngayTra.toInstant()).toMinutes();
+        if (minutes < 0) {
+            minutes = 0;
+        }
+
+        long totalHours = minutes / 60;
+        long soNgay = totalHours / 24;
+        long soGio = totalHours % 24;
+
+        return soNgay + " ngày, " + soGio + " giờ";
+    }
+
     private static String taoLinkVietQR(double soTien, String noiDung) {
         String amount = String.valueOf((long) soTien);
 

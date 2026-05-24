@@ -85,8 +85,7 @@ public class HoaDonDialog extends JDialog {
         pnlHoaDon.setBackground(Color.WHITE);
         pnlHoaDon.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER_COLOR),
-                new EmptyBorder(22, 28, 22, 28)
-        ));
+                new EmptyBorder(22, 28, 22, 28)));
 
         pnlHoaDon.add(createHeaderPanel(), BorderLayout.NORTH);
         pnlHoaDon.add(createCenterPanel(), BorderLayout.CENTER);
@@ -111,14 +110,12 @@ public class HoaDonDialog extends JDialog {
 
         JLabel lblAddress = new JLabel(
                 "Địa chỉ: 12 Nguyễn Huệ, Quận 1, TP.HCM",
-                JLabel.CENTER
-        );
+                JLabel.CENTER);
         lblAddress.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         JLabel lblHotline = new JLabel(
                 "Hotline: 0909 999 999",
-                JLabel.CENTER
-        );
+                JLabel.CENTER);
         lblHotline.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         JLabel lblTitle = new JLabel("HÓA ĐƠN THANH TOÁN", JLabel.CENTER);
@@ -166,7 +163,7 @@ public class HoaDonDialog extends JDialog {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createTitledBorder("Thông tin thanh toán"));
 
-        lblNVLapDon = createValueLabel();
+        // removed lblNVLapDon per UI change
         lblNVLapHoaDon = createValueLabel();
         lblTenKH = createValueLabel();
         lblCCCD = createValueLabel();
@@ -175,26 +172,25 @@ public class HoaDonDialog extends JDialog {
         lblNgayTra = createValueLabel();
         lblSoDem = createValueLabel();
 
-        panel.add(createLine("NV lập đơn:", lblNVLapDon));
+        panel.add(createLine("Tên khách hàng:", lblTenKH));
         panel.add(createLine("NV lập hóa đơn:", lblNVLapHoaDon));
 
-        panel.add(createLine("Tên khách hàng:", lblTenKH));
         panel.add(createLine("CCCD:", lblCCCD));
-
         panel.add(createLine("SĐT:", lblSDT));
-        panel.add(createLine("Ngày nhận phòng:", lblNgayNhan));
 
+        panel.add(createLine("Ngày nhận phòng:", lblNgayNhan));
         panel.add(createLine("Ngày trả phòng:", lblNgayTra));
-        panel.add(createLine("Số đêm lưu trú:", lblSoDem));
+
+        panel.add(createLine("Thời gian lưu trú:", lblSoDem));
+        panel.add(createLine("", createValueLabel()));
 
         return panel;
     }
 
     private JScrollPane createPhongTablePanel() {
         modelPhong = new DefaultTableModel(
-                new String[] { "STT", "Tên phòng", "Số đêm", "Đơn giá", "Thành tiền" },
-                0
-        ) {
+                new String[] { "STT", "Tên phòng", "Thời gian lưu trú", "Đơn giá", "Thành tiền" },
+                0) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -216,8 +212,7 @@ public class HoaDonDialog extends JDialog {
     private JScrollPane createDichVuTablePanel() {
         modelDichVu = new DefaultTableModel(
                 new String[] { "STT", "Tên dịch vụ", "Số lượng", "Đơn giá", "Thành tiền" },
-                0
-        ) {
+                0) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -252,8 +247,7 @@ public class HoaDonDialog extends JDialog {
                 "Ghi chú:\n"
                         + "- Hóa đơn được lập sau khi khách hoàn tất thanh toán.\n"
                         + "- Vui lòng kiểm tra thông tin trước khi rời quầy.\n"
-                        + "- Cảm ơn quý khách đã sử dụng dịch vụ của Khách sạn Imperial."
-        );
+                        + "- Cảm ơn quý khách đã sử dụng dịch vụ của Khách sạn Imperial.");
         note.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         note.setEditable(false);
         note.setOpaque(false);
@@ -289,13 +283,11 @@ public class HoaDonDialog extends JDialog {
 
         JLabel lblKhach = new JLabel(
                 "<html><center>Khách hàng<br><br><br><br>________________</center></html>",
-                JLabel.CENTER
-        );
+                JLabel.CENTER);
 
         JLabel lblNhanVien = new JLabel(
                 "<html><center>Nhân viên lập hóa đơn<br><br><br><br>________________</center></html>",
-                JLabel.CENTER
-        );
+                JLabel.CENTER);
 
         lblKhach.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblNhanVien.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -365,10 +357,6 @@ public class HoaDonDialog extends JDialog {
 
     public JLabel getLblNgayLap() {
         return lblNgayLap;
-    }
-
-    public JLabel getLblNVLapDon() {
-        return lblNVLapDon;
     }
 
     public JLabel getLblNVLapHoaDon() {

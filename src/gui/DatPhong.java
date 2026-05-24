@@ -59,10 +59,10 @@ public class DatPhong extends JPanel {
     private JComboBox<String> cboLoaiPhong;
     private JComboBox<String> cboTrangThai;
     private JButton btnTaiLai;
-    
+
     private JDatePicker dateTuNgay;
     private JDatePicker dateDenNgay;
-    
+
     private JPanel pnlDanhSachPhong;
 
     private JButton btnTaoDonDatPhong;
@@ -72,22 +72,22 @@ public class DatPhong extends JPanel {
     private final List<Phong> selectedRooms = new ArrayList<>();
     private final Set<String> selectedRoomIds = new LinkedHashSet<>();
     private final Map<String, JPanel> roomCardWrappers = new LinkedHashMap<>();
-    
+
     private Consumer<Phong> occupiedRoomClickListener;
 
     public DatPhong() {
         initUI();
     }
 
-//    private void initUI() {
-//        setLayout(new BorderLayout(0, 16));
-//        setBackground(APP_BG);
-//        setBorder(new EmptyBorder(12, 12, 12, 12));
-//
-//        add(createFilterPanel(), BorderLayout.NORTH);
-//        add(createRoomArea(), BorderLayout.CENTER);
-//        add(createActionPanel(), BorderLayout.SOUTH);
-//    }
+    // private void initUI() {
+    // setLayout(new BorderLayout(0, 16));
+    // setBackground(APP_BG);
+    // setBorder(new EmptyBorder(12, 12, 12, 12));
+    //
+    // add(createFilterPanel(), BorderLayout.NORTH);
+    // add(createRoomArea(), BorderLayout.CENTER);
+    // add(createActionPanel(), BorderLayout.SOUTH);
+    // }
     private void initUI() {
         setLayout(new BorderLayout(0, 16));
         setBackground(APP_BG);
@@ -110,8 +110,7 @@ public class DatPhong extends JPanel {
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(16, 18, 16, 18)
-        ));
+                new EmptyBorder(16, 18, 16, 18)));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 8, 6, 8);
@@ -135,7 +134,7 @@ public class DatPhong extends JPanel {
         });
 
         cboTrangThai = new JComboBox<>(new String[] {
-                "Tất cả", "Trống", "Đã đặt", "Đang sử dụng", "Bảo trì"
+                "Tất cả", "Trống", "Đã đặt", "Đang sử dụng", "Quá hạn", "Bảo trì"
         });
 
         styleComboBox(cboLoaiPhong);
@@ -174,14 +173,13 @@ public class DatPhong extends JPanel {
 
         return panel;
     }
-    
+
     private JPanel createDatePanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(10, 18, 10, 18)
-        ));
+                new EmptyBorder(10, 18, 10, 18)));
 
         JLabel lblTuNgay = createLabel("Từ ngày:");
         JLabel lblDenNgay = createLabel("Đến ngày:");
@@ -209,8 +207,7 @@ public class DatPhong extends JPanel {
         JScrollPane scrollPane = new JScrollPane(pnlDanhSachPhong);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(8, 8, 8, 8)
-        ));
+                new EmptyBorder(8, 8, 8, 8)));
         scrollPane.getViewport().setBackground(APP_BG);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -222,8 +219,7 @@ public class DatPhong extends JPanel {
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(12, 18, 12, 18)
-        ));
+                new EmptyBorder(12, 18, 12, 18)));
 
         lblSoPhongDaChon = new JLabel("Đã chọn: 0 phòng");
         lblSoPhongDaChon.setFont(new Font("Segoe UI", Font.BOLD, 16));
@@ -259,8 +255,7 @@ public class DatPhong extends JPanel {
         List<Phong> sortedRooms = new ArrayList<>(uniqueRooms.values());
         sortedRooms.sort(
                 Comparator.comparing(Phong::getLoaiPhong)
-                        .thenComparing(Phong::getMaPhong)
-        );
+                        .thenComparing(Phong::getMaPhong));
 
         Map<String, List<Phong>> groupMap = new LinkedHashMap<>();
 
@@ -344,6 +339,7 @@ public class DatPhong extends JPanel {
 
         return wrapper;
     }
+
     private JDatePicker createDatePicker() {
         UtilDateModel model = new UtilDateModel();
         JDatePicker datePicker = new JDatePicker(model);
@@ -357,6 +353,7 @@ public class DatPhong extends JPanel {
 
         return datePicker;
     }
+
     private void styleDatePickerChildren(Container container) {
         for (Component comp : container.getComponents()) {
             comp.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -367,8 +364,7 @@ public class DatPhong extends JPanel {
                 textField.setForeground(TEXT_DARK);
                 textField.setBorder(BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(CARD_BORDER),
-                        new EmptyBorder(6, 8, 6, 8)
-                ));
+                        new EmptyBorder(6, 8, 6, 8)));
                 textField.setPreferredSize(new Dimension(160, 34));
                 textField.setMinimumSize(new Dimension(120, 34));
             }
@@ -423,7 +419,8 @@ public class DatPhong extends JPanel {
 
         if ("Đã đặt".equalsIgnoreCase(trangThai)
                 || "Đang sử dụng".equalsIgnoreCase(trangThai)
-                || "Đã nhận".equalsIgnoreCase(trangThai)) {
+                || "Đã nhận".equalsIgnoreCase(trangThai)
+                || "Quá hạn".equalsIgnoreCase(trangThai)) {
 
             if (occupiedRoomClickListener != null) {
                 occupiedRoomClickListener.accept(room);
@@ -439,7 +436,7 @@ public class DatPhong extends JPanel {
 
         JOptionPane.showMessageDialog(this, "Trạng thái phòng không hợp lệ: " + trangThai);
     }
-    
+
     private void togglePhongTrong(Phong room) {
         String maPhong = room.getMaPhong();
 
@@ -472,21 +469,24 @@ public class DatPhong extends JPanel {
             wrapper.setBackground(SELECTED_BG);
             wrapper.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(SELECTED_BORDER, 3),
-                    new EmptyBorder(3, 3, 3, 3)
-            ));
+                    new EmptyBorder(3, 3, 3, 3)));
+        } else if ("Quá hạn".equalsIgnoreCase(room.getTrangThai())) {
+            wrapper.setBackground(new Color(252, 226, 226));
+            wrapper.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(220, 38, 38), 2),
+                    new EmptyBorder(3, 3, 3, 3)));
+            wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         } else if (!selectable) {
             wrapper.setBackground(DISABLED_BG);
             wrapper.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(203, 213, 225), 1),
-                    new EmptyBorder(3, 3, 3, 3)
-            ));
+                    new EmptyBorder(3, 3, 3, 3)));
             wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         } else {
             wrapper.setBackground(Color.WHITE);
             wrapper.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(CARD_BORDER, 1),
-                    new EmptyBorder(3, 3, 3, 3)
-            ));
+                    new EmptyBorder(3, 3, 3, 3)));
             wrapper.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
 
@@ -517,8 +517,7 @@ public class DatPhong extends JPanel {
             wrapper.setBackground(Color.WHITE);
             wrapper.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(CARD_BORDER, 1),
-                    new EmptyBorder(3, 3, 3, 3)
-            ));
+                    new EmptyBorder(3, 3, 3, 3)));
             wrapper.repaint();
         }
 
@@ -538,8 +537,7 @@ public class DatPhong extends JPanel {
         textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         textField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(CARD_BORDER),
-                new EmptyBorder(6, 10, 6, 10)
-        ));
+                new EmptyBorder(6, 10, 6, 10)));
     }
 
     private void styleComboBox(JComboBox<?> comboBox) {
@@ -612,7 +610,7 @@ public class DatPhong extends JPanel {
     public List<String> getSelectedRoomIds() {
         return new ArrayList<>(selectedRoomIds);
     }
-    
+
     public void setOccupiedRoomClickListener(Consumer<Phong> listener) {
         this.occupiedRoomClickListener = listener;
     }
@@ -620,7 +618,7 @@ public class DatPhong extends JPanel {
     public boolean hasSelectedRooms() {
         return !selectedRooms.isEmpty();
     }
-    
+
     public JDatePicker getDateTuNgay() {
         return dateTuNgay;
     }

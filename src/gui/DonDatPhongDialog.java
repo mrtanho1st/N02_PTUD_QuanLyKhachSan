@@ -64,7 +64,7 @@ public class DonDatPhongDialog extends JDialog {
     private JTextField txtSDT;
     private JComboBox<String> cboLoaiKH;
     private JTextField txtDiemSo;
-    
+
     private JTextField txtTienCoc;
     private JCheckBox chkCheckInNgay;
 
@@ -73,7 +73,7 @@ public class DonDatPhongDialog extends JDialog {
 
     private JTable tblDichVu;
     private DefaultTableModel modelDichVu;
-    
+
     private KhachHang_Dao khachHangDao;
     private boolean dangTuDongDienKhachHang = false;
 
@@ -209,7 +209,7 @@ public class DonDatPhongDialog extends JDialog {
         cboLoaiKH = new JComboBox<>(new String[] {
                 "Thường", "Thành viên", "VIP"
         });
-        
+
         cboLoaiKH.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         cboLoaiKH.setPreferredSize(new Dimension(220, 34));
         cboLoaiKH.setBackground(Color.WHITE);
@@ -217,7 +217,7 @@ public class DonDatPhongDialog extends JDialog {
 
         txtDiemSo = createTextField();
         txtDiemSo.setText("0");
-        
+
         addGoiYKhachHangTheoSDT();
 
         addRow(panel, 0, "Tên khách hàng:", txtTenKH,
@@ -229,6 +229,7 @@ public class DonDatPhongDialog extends JDialog {
 
         return panel;
     }
+
     private void addGoiYKhachHangTheoSDT() {
         txtSDT.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -289,9 +290,10 @@ public class DonDatPhongDialog extends JDialog {
         addRow(panel, 0, "Check-in dự kiến:", spnNgayNhan,
                 "Check-out dự kiến:", spnNgayTra);
 
-//        JLabel note = new JLabel("Lưu ý: DB hiện tại của bạn đang dùng kiểu DATE cho ngày nhận/ngày trả.");
-//        note.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-//        note.setForeground(new Color(160, 80, 40));
+        // JLabel note = new JLabel("Lưu ý: DB hiện tại của bạn đang dùng kiểu DATE cho
+        // ngày nhận/ngày trả.");
+        // note.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        // note.setForeground(new Color(160, 80, 40));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -299,7 +301,7 @@ public class DonDatPhongDialog extends JDialog {
         gbc.gridwidth = 4;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(6, 6, 0, 6);
-//        panel.add(note, gbc);
+        // panel.add(note, gbc);
 
         return panel;
     }
@@ -307,12 +309,14 @@ public class DonDatPhongDialog extends JDialog {
     private JPanel createDichVuPanel() {
         JPanel panel = createSectionPanel("Dịch vụ đặt trước");
 
-        String[] cols = {"Chọn", "Mã DV", "Tên dịch vụ", "Đơn giá", "Số lượng"};
+        String[] cols = { "Chọn", "Mã DV", "Tên dịch vụ", "Đơn giá", "Số lượng" };
         modelDichVu = new DefaultTableModel(cols, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 0) return Boolean.class;
-                if (columnIndex == 4) return Integer.class;
+                if (columnIndex == 0)
+                    return Boolean.class;
+                if (columnIndex == 4)
+                    return Integer.class;
                 return String.class;
             }
 
@@ -324,12 +328,12 @@ public class DonDatPhongDialog extends JDialog {
 
         NumberFormat nf = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
         for (DichVu dv : dsDichVu) {
-            modelDichVu.addRow(new Object[]{
-                false,
-                dv.getMaDV(),
-                dv.getTenDV(),
-                nf.format(dv.getGia()) + " VNĐ",
-                1
+            modelDichVu.addRow(new Object[] {
+                    false,
+                    dv.getMaDV(),
+                    dv.getTenDV(),
+                    nf.format(dv.getGia()) + " VNĐ",
+                    1
             });
         }
 
@@ -372,8 +376,7 @@ public class DonDatPhongDialog extends JDialog {
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER),
-                new EmptyBorder(14, 14, 14, 14)
-        ));
+                new EmptyBorder(14, 14, 14, 14)));
 
         JLabel lbl = new JLabel(title);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 17));
@@ -434,8 +437,7 @@ public class DonDatPhongDialog extends JDialog {
         lbl.setBackground(new Color(248, 250, 253));
         lbl.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER),
-                new EmptyBorder(8, 10, 8, 10)
-        ));
+                new EmptyBorder(8, 10, 8, 10)));
         return lbl;
     }
 
@@ -445,8 +447,7 @@ public class DonDatPhongDialog extends JDialog {
         txt.setPreferredSize(new Dimension(220, 34));
         txt.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER),
-                new EmptyBorder(6, 10, 6, 10)
-        ));
+                new EmptyBorder(6, 10, 6, 10)));
         return txt;
     }
 
@@ -487,7 +488,7 @@ public class DonDatPhongDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại.");
             return;
         }
-        
+
         String diemSoText = txtDiemSo.getText().trim();
 
         if (diemSoText.isEmpty()) {
@@ -516,13 +517,26 @@ public class DonDatPhongDialog extends JDialog {
         }
 
         String tienCoc = txtTienCoc.getText().trim();
+        double tienCocValue = 0;
         if (!tienCoc.isEmpty()) {
             try {
-                Double.parseDouble(tienCoc);
+                tienCocValue = Double.parseDouble(tienCoc);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Tiền cọc phải là số hợp lệ.");
                 return;
             }
+        }
+
+        double tongGiaTriDon = tinhTongGiaTriDon();
+        double minTienCoc = tongGiaTriDon * 0.3;
+
+        if (tienCocValue < minTienCoc) {
+            NumberFormat nf = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Tiền cọc phải >= 30% tổng giá trị đơn đặt phòng. Số tiền tối thiểu là "
+                            + nf.format(Math.ceil(minTienCoc)) + " VNĐ.");
+            return;
         }
 
         for (int i = 0; i < modelDichVu.getRowCount(); i++) {
@@ -536,6 +550,54 @@ public class DonDatPhongDialog extends JDialog {
 
         succeeded = true;
         dispose();
+    }
+
+    private double tinhTongGiaTriDon() { // M.Tân - Tính tổng giá trị đơn đặt phòng dựa trên phòng và dịch vụ đã chọn
+        int soNgay = tinhSoNgay(getNgayNhan(), getNgayTra());
+
+        double tongPhong = 0;
+        for (Phong phong : dsPhongDaChon) {
+            tongPhong += phong.getGiaPhong() * soNgay;
+        }
+
+        double tongDichVuMotPhong = 0;
+        for (int i = 0; i < modelDichVu.getRowCount(); i++) {
+            Boolean chon = (Boolean) modelDichVu.getValueAt(i, 0);
+            if (!Boolean.TRUE.equals(chon)) {
+                continue;
+            }
+
+            Object soLuongObj = modelDichVu.getValueAt(i, 4);
+            int soLuong = soLuongObj == null ? 0 : (Integer) soLuongObj;
+            if (soLuong <= 0) {
+                continue;
+            }
+
+            String donGiaText = String.valueOf(modelDichVu.getValueAt(i, 3));
+            double donGia = parseMoney(donGiaText);
+            tongDichVuMotPhong += donGia * soLuong;
+        }
+
+        return tongPhong + tongDichVuMotPhong * dsPhongDaChon.size();
+    }
+
+    private int tinhSoNgay(Date ngayNhan, Date ngayTra) {
+        long millis = ngayTra.getTime() - ngayNhan.getTime();
+        int soNgay = (int) Math.ceil(millis / (1000.0 * 60 * 60 * 24));
+        return soNgay <= 0 ? 1 : soNgay;
+    }
+
+    private double parseMoney(String value) {
+        if (value == null || value.isBlank()) {
+            return 0;
+        }
+
+        String cleaned = value.replace("VNĐ", "").replace("VND", "").replace(".", "").replace(",", "").trim();
+        try {
+            return Double.parseDouble(cleaned);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     public boolean isSucceeded() {
@@ -583,6 +645,7 @@ public class DonDatPhongDialog extends JDialog {
         }
         return ds;
     }
+
     public List<Phong> getDsPhongDaChon() {
         return dsPhongDaChon;
     }
@@ -598,11 +661,20 @@ public class DonDatPhongDialog extends JDialog {
             this.soLuong = soLuong;
         }
 
-        public String getMaDV() { return maDV; }
-        public String getTenDV() { return tenDV; }
-        public int getSoLuong() { return soLuong; }
-        
+        public String getMaDV() {
+            return maDV;
+        }
+
+        public String getTenDV() {
+            return tenDV;
+        }
+
+        public int getSoLuong() {
+            return soLuong;
+        }
+
     }
+
     public String getLoaiKH() {
         Object value = cboLoaiKH.getSelectedItem();
         return value == null ? "Thường" : value.toString();
@@ -612,8 +684,7 @@ public class DonDatPhongDialog extends JDialog {
         try {
             return Integer.parseInt(txtDiemSo.getText().trim());
         } catch (NumberFormatException e) {
-        	
-        	
+
             return 0;
         }
     }

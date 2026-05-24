@@ -54,7 +54,7 @@ public class ThanhToanController {
     private Object[] donDangChon;
     private List<Object[]> dsPhongDangChon;
     private List<Object[]> dsDichVuDangChon;
-    
+
     private static final String BANK_ID = "970428"; // NamABank
     private static final String ACCOUNT_NO = "0787702900";
     private static final String ACCOUNT_NAME = "NGUYEN THI THANH THU";
@@ -252,7 +252,6 @@ public class ThanhToanController {
 
         dialog.getBtnThanhToan().addActionListener(e -> xuLyThanhToan());
 
-
         dialog.getTxtKhachDua().getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -297,7 +296,6 @@ public class ThanhToanController {
                 capNhatGiaoDienPhuongThuc();
             }
         });
-        
 
         hienThiThongTinLenDialog();
         capNhatGiaoDienPhuongThuc();
@@ -305,6 +303,7 @@ public class ThanhToanController {
         dialog.setLocationRelativeTo(view);
         dialog.setVisible(true);
     }
+
     private void loadThueLenDialog() {
         if (dialog == null) {
             return;
@@ -313,8 +312,7 @@ public class ThanhToanController {
         dialog.getCboThue().removeAllItems();
 
         dialog.getCboThue().addItem(
-                new Thue("", "Không áp dụng", "Áp dụng", 0, "Không tính thuế")
-        );
+                new Thue("", "Không áp dụng", "Áp dụng", 0, "Không tính thuế"));
 
         List<Thue> list = thueDao.findThueDangApDung();
 
@@ -331,8 +329,7 @@ public class ThanhToanController {
         dialog.getCboMaGiamGia().removeAllItems();
 
         dialog.getCboMaGiamGia().addItem(
-                new KhuyenMai("", "Không áp dụng", 0, null, null)
-        );
+                new KhuyenMai("", "Không áp dụng", 0, null, null));
 
         List<KhuyenMai> list = khuyenMaiDao.findKhuyenMaiConHieuLuc();
 
@@ -374,6 +371,7 @@ public class ThanhToanController {
             String loaiPhong = toText(row[1]);
             int soNgay = toInt(row[2]);
             double donGia = toDouble(row[3]);
+            String thoiGianLuuTru = formatThoiGianLuuTru();
 
             double thanhTien;
 
@@ -386,10 +384,43 @@ public class ThanhToanController {
             model.addRow(new Object[] {
                     maPhong,
                     loaiPhong,
-                    soNgay,
+                    thoiGianLuuTru,
                     formatMoney(donGia) + " VNĐ",
                     formatMoney(thanhTien) + " VNĐ"
             });
+        }
+    }
+
+    private String formatThoiGianLuuTru() {
+        if (donDangChon == null || donDangChon.length < 6) {
+            return "";
+        }
+
+        java.time.LocalDateTime ngayNhan = parseNgayGio(toText(donDangChon[4]));
+        java.time.LocalDateTime ngayTra = parseNgayGio(toText(donDangChon[5]));
+
+        if (ngayNhan == null || ngayTra == null || ngayTra.isBefore(ngayNhan)) {
+            return "";
+        }
+
+        java.time.Duration duration = java.time.Duration.between(ngayNhan, ngayTra);
+        long totalHours = Math.max(0, duration.toHours());
+        long soNgay = totalHours / 24;
+        long soGio = totalHours % 24;
+
+        return soNgay + " ngày, " + soGio + " giờ";
+    }
+
+    private java.time.LocalDateTime parseNgayGio(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return java.time.LocalDateTime.parse(value.trim(),
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (java.time.format.DateTimeParseException ex) {
+            return null;
         }
     }
 
@@ -506,8 +537,7 @@ public class ThanhToanController {
                             + "Chủ TK: " + ACCOUNT_NAME + "<br>"
                             + "Số tiền: " + formatMoney(canThanhToan) + " VNĐ<br>"
                             + "Nội dung: Thanh toán đơn " + maDDPDangChon
-                            + "</html>"
-            );
+                            + "</html>");
 
             capNhatQrChuyenKhoan();
         }
@@ -590,14 +620,12 @@ public class ThanhToanController {
                 view,
                 "Xác nhận thanh toán đơn " + maDDPDangChon + "?",
                 "Xác nhận thanh toán",
-                JOptionPane.YES_NO_OPTION
-        );
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
 
-        
         String maHD = taoHoaDon(maDDPDangChon);
 
         if (maHD == null || maHD.isBlank()) {
@@ -625,8 +653,6 @@ public class ThanhToanController {
             JOptionPane.showMessageDialog(view, "Tạo hóa đơn thành công nhưng cập nhật trạng thái đơn thất bại.");
         }
     }
-
-    
 
     private String toText(Object value) {
         return value == null ? "" : value.toString();
@@ -672,7 +698,7 @@ public class ThanhToanController {
     private String formatMoney(double amount) {
         return moneyFormat.format(amount);
     }
-    
+
     private String taoHoaDon(String maDDP) {
         tinhTienTheoMaGiamGiaVaThue();
 
@@ -699,7 +725,7 @@ public class ThanhToanController {
                 maThue = thue.getMaThue();
             }
         }
-        
+
         NhanVien nvDangNhap = PhienDangNhap.getNhanVienDangNhap();
 
         if (nvDangNhap == null) {
@@ -716,10 +742,9 @@ public class ThanhToanController {
                 maNVLapHoaDon,
                 canThanhToan,
                 dsPhongDangChon,
-                dsDichVuDangChon
-        );
+                dsDichVuDangChon);
     }
-    
+
     private String taoLinkVietQR(double soTien, String noiDung) {
         String amount = String.valueOf((long) soTien);
 
@@ -739,7 +764,6 @@ public class ThanhToanController {
                 + "&addInfo=" + cleanNoiDung.replace(" ", "%20")
                 + "&accountName=" + ACCOUNT_NAME.replace(" ", "%20");
     }
-
 
     private void capNhatQrChuyenKhoan() {
         if (dialog == null) {

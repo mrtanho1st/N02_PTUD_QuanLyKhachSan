@@ -1,6 +1,7 @@
 package gui;
 
 import controller.DangNhapController;
+import controller.DonDatPhongController;
 import controller.GiaoDienChinhController;
 import entity.LoaiBaoBieu;
 import entity.LoaiThongKe;
@@ -205,7 +206,6 @@ public class GiaoDienChinh extends JFrame {
                 new EmptyBorder(12, 12, 12, 12)));
         left.setBackground(SIDEBAR_BG);
 
-        
         JLabel lblUsername = new JLabel("Hi, " + PhienDangNhap.getTenDangNhap(), SwingConstants.CENTER);
         lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblUsername.setForeground(new Color(226, 232, 240));
@@ -388,13 +388,12 @@ public class GiaoDienChinh extends JFrame {
             JMenuItem item = new JMenuItem(sub);
             item.setFont(new Font("Segoe UI", Font.PLAIN, 15));
             item.addActionListener(e -> {
-            	if (!GiaoDienChinhController.coQuyen(text, sub)) {
+                if (!GiaoDienChinhController.coQuyen(text, sub)) {
                     JOptionPane.showMessageDialog(
                             this,
                             "Bạn không có quyền sử dụng chức năng này!",
                             "Từ chối truy cập",
-                            JOptionPane.WARNING_MESSAGE
-                    );
+                            JOptionPane.WARNING_MESSAGE);
                     return;
                 }
                 setActiveNavButton(button);
@@ -444,18 +443,16 @@ public class GiaoDienChinh extends JFrame {
 
     public void logout() {
 
-    	
-    	
-    	//Dieu chinh dang nhap
-    	
-    	PhienDangNhap.setTaiKhoanDangNhap(null);
+        // Dieu chinh dang nhap
+
+        PhienDangNhap.setTaiKhoanDangNhap(null);
         PhienDangNhap.setNhanVienDangNhap(null);
-        
+
         DangNhap dangNhap = new DangNhap();
         new DangNhapController(dangNhap);
         dangNhap.setVisible(true);
-//        new DangNhap().setVisible(true);
-         dispose();
+        // new DangNhap().setVisible(true);
+        dispose();
         // new DangNhap().setVisible(true);
     }
 
@@ -482,6 +479,10 @@ public class GiaoDienChinh extends JFrame {
         String panelKey = mainMenu + "/" + subMenu;
 
         if (loadedPanels.containsKey(panelKey)) {
+            if ("Xử lí/Đặt phòng".equals(panelKey)) {
+                DonDatPhongController.reloadData();
+            }
+
             cardLayout.show(contentPanel, panelKey);
             return;
         }
@@ -585,6 +586,11 @@ public class GiaoDienChinh extends JFrame {
             panel.setBorder(BorderFactory.createEmptyBorder());
             contentPanel.add(panel, panelKey);
             loadedPanels.put(panelKey, panel);
+
+            if ("Xử lí/Đặt phòng".equals(panelKey)) {
+                DonDatPhongController.reloadData();
+            }
+
             cardLayout.show(contentPanel, panelKey);
             updateAppTitle("Quản lý " + subMenu);
         } else {

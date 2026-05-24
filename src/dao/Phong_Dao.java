@@ -14,13 +14,38 @@ public class Phong_Dao {
 
     public List<Phong> findAll() {
         List<Phong> list = new ArrayList<>();
-        String sql = "SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong FROM Phong";
+        String sql = "SELECT p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, "
+                + "CASE "
+                + "    WHEN EXISTS ( "
+                + "        SELECT 1 "
+                + "        FROM CTDonDatPhong ct "
+                + "        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP "
+                + "        WHERE ct.maPhong = p.maPhong "
+                + "        AND ddp.ngayTra < GETDATE() "
+                + "        AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận') "
+                + "    ) THEN N'Quá hạn' "
+                + "    WHEN EXISTS ( "
+                + "        SELECT 1 "
+                + "        FROM CTDonDatPhong ct "
+                + "        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP "
+                + "        WHERE ct.maPhong = p.maPhong "
+                + "        AND ddp.tinhTrang = N'Đã nhận' "
+                + "    ) THEN N'Đang sử dụng' "
+                + "    WHEN EXISTS ( "
+                + "        SELECT 1 "
+                + "        FROM CTDonDatPhong ct "
+                + "        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP "
+                + "        WHERE ct.maPhong = p.maPhong "
+                + "        AND ddp.tinhTrang = N'Đã đặt' "
+                + "    ) THEN N'Đã đặt' "
+                + "    ELSE N'Trống' "
+                + "END AS trangThaiPhong "
+                + "FROM Phong p";
 
         try (
                 Connection con = ConnectDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapPhong(rs));
             }
@@ -32,13 +57,37 @@ public class Phong_Dao {
     }
 
     public Phong findById(String maPhong) {
-        String sql = "SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong "
-                   + "FROM Phong WHERE maPhong = ?";
+        String sql = "SELECT p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, "
+                + "CASE "
+                + "    WHEN EXISTS ( "
+                + "        SELECT 1 "
+                + "        FROM CTDonDatPhong ct "
+                + "        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP "
+                + "        WHERE ct.maPhong = p.maPhong "
+                + "        AND ddp.ngayTra < GETDATE() "
+                + "        AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận') "
+                + "    ) THEN N'Quá hạn' "
+                + "    WHEN EXISTS ( "
+                + "        SELECT 1 "
+                + "        FROM CTDonDatPhong ct "
+                + "        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP "
+                + "        WHERE ct.maPhong = p.maPhong "
+                + "        AND ddp.tinhTrang = N'Đã nhận' "
+                + "    ) THEN N'Đang sử dụng' "
+                + "    WHEN EXISTS ( "
+                + "        SELECT 1 "
+                + "        FROM CTDonDatPhong ct "
+                + "        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP "
+                + "        WHERE ct.maPhong = p.maPhong "
+                + "        AND ddp.tinhTrang = N'Đã đặt' "
+                + "    ) THEN N'Đã đặt' "
+                + "    ELSE N'Trống' "
+                + "END AS trangThaiPhong "
+                + "FROM Phong p WHERE p.maPhong = ?";
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maPhong);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -55,12 +104,11 @@ public class Phong_Dao {
 
     public boolean insert(Phong phong) {
         String sql = "INSERT INTO Phong(maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong) "
-                   + "VALUES (?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?)";
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, phong.getMaPhong());
             ps.setString(2, phong.getLoaiPhong());
             ps.setInt(3, phong.getSoNguoiToiDa());
@@ -77,13 +125,12 @@ public class Phong_Dao {
 
     public boolean update(Phong phong) {
         String sql = "UPDATE Phong "
-                   + "SET loaiPhong = ?, soNguoiToiDa = ?, giaPhong = ?, trangThaiPhong = ? "
-                   + "WHERE maPhong = ?";
+                + "SET loaiPhong = ?, soNguoiToiDa = ?, giaPhong = ?, trangThaiPhong = ? "
+                + "WHERE maPhong = ?";
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, phong.getLoaiPhong());
             ps.setInt(2, phong.getSoNguoiToiDa());
             ps.setDouble(3, phong.getGiaPhong());
@@ -103,8 +150,7 @@ public class Phong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maPhong);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -113,6 +159,7 @@ public class Phong_Dao {
 
         return false;
     }
+
     // Hàm mới cho Báo biểu Phòng.
     // Giao diện báo biểu chỉ có 1 ô từ khóa:
     // tìm theo mã phòng, loại phòng, giá phòng, số người tối đa.
@@ -145,8 +192,7 @@ public class Phong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuKhoa != null && !tuKhoa.isBlank()) {
@@ -177,17 +223,16 @@ public class Phong_Dao {
 
         return list;
     }
-    
+
     public List<String> getAllLoaiPhongFromPhong() {
         List<String> list = new ArrayList<>();
 
         String sql = "SELECT DISTINCT loaiPhong FROM Phong";
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(rs.getString("loaiPhong"));
             }
@@ -197,9 +242,7 @@ public class Phong_Dao {
 
         return list;
     }
-    
 
-    
     public List<Phong> search(
             String maPhong,
             Integer soNguoiCanTim,
@@ -207,41 +250,49 @@ public class Phong_Dao {
             String loaiPhong,
             String trangThai,
             java.sql.Date tuNgay,
-            java.sql.Date denNgay
-    ) {
+            java.sql.Date denNgay) {
         List<Phong> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
 
         sql.append("""
-            SELECT 
-                p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong,
+                    SELECT
+                        p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong,
 
-                CASE 
-                    WHEN EXISTS (
-                        SELECT 1 
-                        FROM CTDonDatPhong ct
-                        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
-                        WHERE ct.maPhong = p.maPhong
-                        AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?)
-                        AND ddp.tinhTrang = N'Đã nhận'
-                    ) THEN N'Đang sử dụng'
+                        CASE
+                            WHEN EXISTS (
+                                SELECT 1
+                                FROM CTDonDatPhong ct
+                                JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
+                                WHERE ct.maPhong = p.maPhong
+                                AND ddp.ngayTra < GETDATE()
+                                AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận')
+                            ) THEN N'Quá hạn'
 
-                    WHEN EXISTS (
-                        SELECT 1 
-                        FROM CTDonDatPhong ct
-                        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
-                        WHERE ct.maPhong = p.maPhong
-                        AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?)
-                        AND ddp.tinhTrang = N'Đã đặt'
-                    ) THEN N'Đã đặt'
+                            WHEN EXISTS (
+                                SELECT 1
+                                FROM CTDonDatPhong ct
+                                JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
+                                WHERE ct.maPhong = p.maPhong
+                                AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?)
+                                AND ddp.tinhTrang = N'Đã nhận'
+                            ) THEN N'Đang sử dụng'
 
-                    ELSE N'Trống'
-                END AS trangThaiPhong
+                            WHEN EXISTS (
+                                SELECT 1
+                                FROM CTDonDatPhong ct
+                                JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
+                                WHERE ct.maPhong = p.maPhong
+                                AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?)
+                                AND ddp.tinhTrang = N'Đã đặt'
+                            ) THEN N'Đã đặt'
 
-            FROM Phong p
-            WHERE 1=1
-        """);
+                            ELSE N'Trống'
+                        END AS trangThaiPhong
+
+                    FROM Phong p
+                    WHERE 1=1
+                """);
 
         // 🔎 FILTER
         if (maPhong != null && !maPhong.isBlank()) {
@@ -265,18 +316,22 @@ public class Phong_Dao {
             sql.append(" AND (");
             sql.append(" CASE ");
             sql.append(" WHEN EXISTS (SELECT 1 FROM CTDonDatPhong ct JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
-            sql.append(" WHERE ct.maPhong = p.maPhong AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?) AND ddp.tinhTrang = N'Đã nhận') THEN N'Đang sử dụng' ");
+            sql.append(
+                    " WHERE ct.maPhong = p.maPhong AND ddp.ngayTra < GETDATE() AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận')) THEN N'Quá hạn' ");
             sql.append(" WHEN EXISTS (SELECT 1 FROM CTDonDatPhong ct JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
-            sql.append(" WHERE ct.maPhong = p.maPhong AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?) AND ddp.tinhTrang = N'Đã đặt') THEN N'Đã đặt' ");
+            sql.append(
+                    " WHERE ct.maPhong = p.maPhong AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?) AND ddp.tinhTrang = N'Đã nhận') THEN N'Đang sử dụng' ");
+            sql.append(" WHEN EXISTS (SELECT 1 FROM CTDonDatPhong ct JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+            sql.append(
+                    " WHERE ct.maPhong = p.maPhong AND NOT (ddp.ngayTra < ? OR ddp.ngayNhan > ?) AND ddp.tinhTrang = N'Đã đặt') THEN N'Đã đặt' ");
             sql.append(" ELSE N'Trống' END = ? ) ");
         }
 
         sql.append(" ORDER BY p.maPhong ");
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int i = 1;
 
             // CASE chính
@@ -332,18 +387,44 @@ public class Phong_Dao {
 
         return list;
     }
-    //Dùng trong tìm kiếm của quản lý phòng
+
+    // Dùng trong tìm kiếm của quản lý phòng
     public List<Phong> searchKhongTheoNgay(
             String maPhong,
             Integer soNguoiCanTim,
             Double giaPhongCanTim,
             String loaiPhong,
-            String trangThai
-    ) {
+            String trangThai) {
         List<Phong> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT maPhong, loaiPhong, soNguoiToiDa, giaPhong, trangThaiPhong FROM Phong WHERE 1=1 ");
+        sql.append("SELECT p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, ");
+        sql.append("CASE ");
+        sql.append("    WHEN EXISTS ( ");
+        sql.append("        SELECT 1 ");
+        sql.append("        FROM CTDonDatPhong ct ");
+        sql.append("        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("        WHERE ct.maPhong = p.maPhong ");
+        sql.append("        AND ddp.ngayTra < GETDATE() ");
+        sql.append("        AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận') ");
+        sql.append("    ) THEN N'Quá hạn' ");
+        sql.append("    WHEN EXISTS ( ");
+        sql.append("        SELECT 1 ");
+        sql.append("        FROM CTDonDatPhong ct ");
+        sql.append("        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("        WHERE ct.maPhong = p.maPhong ");
+        sql.append("        AND ddp.tinhTrang = N'Đã nhận' ");
+        sql.append("    ) THEN N'Đang sử dụng' ");
+        sql.append("    WHEN EXISTS ( ");
+        sql.append("        SELECT 1 ");
+        sql.append("        FROM CTDonDatPhong ct ");
+        sql.append("        JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP ");
+        sql.append("        WHERE ct.maPhong = p.maPhong ");
+        sql.append("        AND ddp.tinhTrang = N'Đã đặt' ");
+        sql.append("    ) THEN N'Đã đặt' ");
+        sql.append("    ELSE N'Trống' ");
+        sql.append("END AS trangThaiPhong ");
+        sql.append("FROM Phong p WHERE 1=1 ");
 
         if (maPhong != null && !maPhong.isBlank()) {
             sql.append("AND maPhong LIKE ? ");
@@ -366,9 +447,8 @@ public class Phong_Dao {
         }
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int i = 1;
 
             if (maPhong != null && !maPhong.isBlank()) {
@@ -410,7 +490,6 @@ public class Phong_Dao {
                 rs.getString("loaiPhong"),
                 rs.getInt("soNguoiToiDa"),
                 rs.getDouble("giaPhong"),
-                rs.getString("trangThaiPhong")
-        );
+                rs.getString("trangThaiPhong"));
     }
 }
