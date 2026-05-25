@@ -46,6 +46,7 @@ public class ThanhToanController {
     private double tienCoc = 0;
     private double giamGia = 0;
     private double tienThue = 0;
+    private double tienPhat = 0;
     private double tongTien = 0;
     private double canThanhToan = 0;
 
@@ -225,7 +226,7 @@ public class ThanhToanController {
     }
 
     private void tinhTien() {
-        tongTien = tienPhong + tienDichVu;
+        tongTien = tienPhong + tienDichVu + tienPhat;
         giamGia = 0;
         canThanhToan = tongTien - tienCoc;
 
@@ -366,6 +367,11 @@ public class ThanhToanController {
             return;
         }
 
+        tienPhat = 0;
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        java.time.LocalDateTime ngayTra = parseNgayGio(toText(donDangChon[5]));
+
         for (Object[] row : dsPhongDangChon) {
             String maPhong = toText(row[0]);
             String loaiPhong = toText(row[1]);
@@ -381,14 +387,40 @@ public class ThanhToanController {
                 thanhTien = soNgay * donGia;
             }
 
+            // Tính tiền phạt dựa trên thời gian quá hạn (so sánh ngayTra với now)
+            double phiPhat = 0;
+
+            if (ngayTra != null && now.isAfter(ngayTra)) {
+                long minutesOver = java.time.Duration.between(ngayTra, now).toMinutes();
+
+                if (minutesOver <= 30) {
+                    phiPhat = 0;
+                } else if (minutesOver <= 120) { // <= 2 giờ
+                    phiPhat = 0.10 * thanhTien;
+                } else if (minutesOver <= 240) { // <= 4 giờ
+                    phiPhat = 0.30 * thanhTien;
+                } else if (minutesOver <= 360) { // <= 6 giờ
+                    phiPhat = 0.50 * thanhTien;
+                } else { // > 6 giờ -> 100% tiền phòng (1 ngày)
+                    phiPhat = donGia;
+                }
+            }
+
+            tienPhat += phiPhat;
+
             model.addRow(new Object[] {
                     maPhong,
                     loaiPhong,
                     thoiGianLuuTru,
                     formatMoney(donGia) + " VNĐ",
+                    phiPhat <= 0 ? "" : formatMoney(phiPhat) + " VNĐ",
                     formatMoney(thanhTien) + " VNĐ"
             });
         }
+
+        // Sau khi cập nhật các dòng phòng, cập nhật lại các phép tính
+        tinhTien();
+        hienThiTongTienLenDialog();
     }
 
     private String formatThoiGianLuuTru() {
@@ -511,6 +543,7 @@ public class ThanhToanController {
         dialog.getLblTienPhong().setText(formatMoney(tienPhong) + " VNĐ");
         dialog.getLblTienDichVu().setText(formatMoney(tienDichVu) + " VNĐ");
         dialog.getLblTongTien().setText(formatMoney(tongTien) + " VNĐ");
+        dialog.getLblPhiPhat().setText(formatMoney(tienPhat) + " VNĐ");
         dialog.getLblTienCoc().setText(formatMoney(tienCoc) + " VNĐ");
         dialog.getLblGiamGia().setText(formatMoney(giamGia) + " VNĐ");
         dialog.getLblTienThue().setText(formatMoney(tienThue) + " VNĐ");

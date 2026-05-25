@@ -113,6 +113,43 @@ public class HoaDonPdfExporter {
         }
 
         double thue = tienSauGiam * tyLeThue / 100.0;
+        // Tính tiền phạt: so sánh ngày trả (ngayTraDate) và ngày lập hóa đơn
+        // (thongTinHD[1])
+        double tienPhat = 0;
+        try {
+            Date ngayLapDate = (Date) thongTinHD[1];
+
+            if (ngayTraDate != null && ngayLapDate != null && ngayLapDate.after(ngayTraDate)) {
+                long minutesOver = (ngayLapDate.getTime() - ngayTraDate.getTime()) / 60000L;
+
+                if (minutesOver < 0) {
+                    minutesOver = 0;
+                }
+
+                for (Object[] p : dsPhong) {
+                    double donGia = toDouble(p[3]);
+                    double thanhTien = toDouble(p[4]);
+
+                    double phiPhat = 0;
+
+                    if (minutesOver <= 30) {
+                        phiPhat = 0;
+                    } else if (minutesOver <= 120) {
+                        phiPhat = 0.10 * thanhTien;
+                    } else if (minutesOver <= 240) {
+                        phiPhat = 0.30 * thanhTien;
+                    } else if (minutesOver <= 360) {
+                        phiPhat = 0.50 * thanhTien;
+                    } else {
+                        phiPhat = donGia; // 100% = 1 ngày
+                    }
+
+                    tienPhat += phiPhat;
+                }
+            }
+        } catch (Exception ex) {
+            // ignore
+        }
         // ===== HEADER =====
         Paragraph hotel = new Paragraph("KHÁCH SẠN IMPERIAL", titleFont);
         hotel.setAlignment(Element.ALIGN_CENTER);
@@ -236,6 +273,9 @@ public class HoaDonPdfExporter {
 
         addNoBorderCell(tongKet, "Tiền cọc:", boldFont);
         addNoBorderCell(tongKet, formatMoney(tienCoc) + " VNĐ", normalFont);
+
+        addNoBorderCell(tongKet, "Phí phạt:", boldFont);
+        addNoBorderCell(tongKet, formatMoney(tienPhat) + " VNĐ", normalFont);
 
         // addNoBorderCell(tongKet, "Khuyến mãi:", boldFont);
         // if (!maKM.isBlank()) {

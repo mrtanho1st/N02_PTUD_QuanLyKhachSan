@@ -58,6 +58,7 @@ public class ThanhToanDialog extends JDialog {
     private JLabel lblTienPhong;
     private JLabel lblTienDichVu;
     private JLabel lblTongTien;
+    private JLabel lblPhiPhat;
     private JLabel lblTienCoc;
     private JLabel lblGiamGia;
     private JLabel lblCanThanhToan;
@@ -117,6 +118,7 @@ public class ThanhToanDialog extends JDialog {
         lblTienPhong = createValueLabel();
         lblTienDichVu = createValueLabel();
         lblTongTien = createValueLabel();
+        lblPhiPhat = createValueLabel();
         lblTienCoc = createValueLabel();
         lblGiamGia = createValueLabel();
         lblCanThanhToan = createValueLabel();
@@ -188,7 +190,8 @@ public class ThanhToanDialog extends JDialog {
         addSectionTitle(detailPanel, gbc, row++, "Danh sách phòng");
 
         modelPhong = new DefaultTableModel(
-                new String[] { "Mã phòng", "Loại phòng", "Thời gian lưu trú", "Đơn giá", "Thành tiền" }, 0) {
+                new String[] { "Mã phòng", "Loại phòng", "Thời gian lưu trú", "Đơn giá", "Phí phạt", "Thành tiền" },
+                0) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -251,6 +254,7 @@ public class ThanhToanDialog extends JDialog {
 
         addRowPair(detailPanel, gbc, row++, "Tiền phòng", lblTienPhong, "Tiền dịch vụ", lblTienDichVu);
         addRowPair(detailPanel, gbc, row++, "Tổng tiền", lblTongTien, "Tiền cọc", lblTienCoc);
+        addRowPair(detailPanel, gbc, row++, "Phí phạt", lblPhiPhat, null, new JPanel());
         addRowPair(detailPanel, gbc, row++, "Mã giảm giá", cboMaGiamGia, "Giảm giá", lblGiamGia);
         addRowPair(detailPanel, gbc, row++, "Thuế", cboThue, "Tiền thuế", lblTienThue);
         addRowPair(detailPanel, gbc, row++, "Cần thanh toán", lblCanThanhToan, "Phương thức", createPhuongThucPanel());
@@ -573,6 +577,10 @@ public class ThanhToanDialog extends JDialog {
 
     public JLabel getLblTienThue() {
         return lblTienThue;
+    }
+
+    public JLabel getLblPhiPhat() {
+        return lblPhiPhat;
     }
 
     public JRadioButton getRdoTienMat() {

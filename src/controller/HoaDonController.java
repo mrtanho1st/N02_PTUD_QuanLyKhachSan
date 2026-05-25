@@ -35,6 +35,7 @@ public class HoaDonController {
     private double giamGia = 0;
     private double thue = 0;
     private double tongTien = 0;
+    private double tienPhat = 0;
 
     public HoaDonController(HoaDonDialog view, String maHD) {
         this.view = view;
@@ -207,9 +208,42 @@ public class HoaDonController {
         }
 
         thue = tienSauGiam * tyLeThue / 100.0;
+        // Tính tiền phạt dựa trên thời gian trả phòng và thời điểm lập hóa đơn
+        tienPhat = 0;
+        Date ngayLapHD = toDate(thongTinHD[1]);
+        Date ngayTra = toDate(thongTinHD[10]);
 
+        if (ngayTra != null && ngayLapHD != null && ngayLapHD.after(ngayTra) && dsPhong != null) {
+            long minutesOver = (ngayLapHD.getTime() - ngayTra.getTime()) / 60000L;
+
+            if (minutesOver < 0) {
+                minutesOver = 0;
+            }
+
+            for (Object[] p : dsPhong) {
+                double donGia = toDouble(p[3]);
+                double thanhTien = toDouble(p[4]);
+
+                double phiPhat = 0;
+
+                if (minutesOver <= 30) {
+                    phiPhat = 0;
+                } else if (minutesOver <= 120) {
+                    phiPhat = 0.10 * thanhTien;
+                } else if (minutesOver <= 240) {
+                    phiPhat = 0.30 * thanhTien;
+                } else if (minutesOver <= 360) {
+                    phiPhat = 0.50 * thanhTien;
+                } else {
+                    phiPhat = donGia; // 100% = 1 ngày
+                }
+
+                tienPhat += phiPhat;
+            }
+        }
         view.getLblTienPhong().setText(formatMoney(tienPhong) + " VNĐ");
         view.getLblTienDichVu().setText(formatMoney(tienDichVu) + " VNĐ");
+        view.getLblPhiPhat().setText(formatMoney(tienPhat) + " VNĐ");
         view.getLblTienCoc().setText(formatMoney(tienCoc) + " VNĐ");
         view.getLblGiamGia().setText(formatMoney(giamGia) + " VNĐ");
 

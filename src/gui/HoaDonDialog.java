@@ -51,6 +51,7 @@ public class HoaDonDialog extends JDialog {
 
     private JLabel lblTienPhong;
     private JLabel lblTienDichVu;
+    private JLabel lblPhiPhat;
     private JLabel lblTienCoc;
     private JLabel lblGiamGia;
     private JLabel lblThue;
@@ -252,12 +253,13 @@ public class HoaDonDialog extends JDialog {
         note.setEditable(false);
         note.setOpaque(false);
 
-        JPanel totalPanel = new JPanel(new GridLayout(6, 1, 0, 7));
+        JPanel totalPanel = new JPanel(new GridLayout(0, 1, 0, 7));
         totalPanel.setBackground(Color.WHITE);
-        totalPanel.setPreferredSize(new Dimension(360, 190));
+        totalPanel.setPreferredSize(new Dimension(360, 240));
 
         lblTienPhong = createValueLabel();
         lblTienDichVu = createValueLabel();
+        lblPhiPhat = createValueLabel();
         lblTienCoc = createValueLabel();
         lblGiamGia = createValueLabel();
         lblThue = createValueLabel();
@@ -265,6 +267,7 @@ public class HoaDonDialog extends JDialog {
 
         totalPanel.add(createLine("Tiền phòng:", lblTienPhong));
         totalPanel.add(createLine("Tiền dịch vụ:", lblTienDichVu));
+        totalPanel.add(createLine("Phí phạt:", lblPhiPhat));
         totalPanel.add(createLine("Tiền cọc:", lblTienCoc));
         totalPanel.add(createLine("Giảm giá:", lblGiamGia));
         totalPanel.add(createLine("Thuế:", lblThue));
@@ -401,6 +404,10 @@ public class HoaDonDialog extends JDialog {
 
     public JLabel getLblTienDichVu() {
         return lblTienDichVu;
+    }
+
+    public JLabel getLblPhiPhat() {
+        return lblPhiPhat;
     }
 
     public JLabel getLblTienCoc() {
