@@ -468,6 +468,7 @@ public class ThanhToanController {
     }
 
     private double tinhTienPhongTheoThoiGian(double giaPhong, String ngayNhanText, String ngayTraText) {
+
         LocalDateTime ngayNhan = parseNgayGio(ngayNhanText);
         LocalDateTime ngayTra = parseNgayGio(ngayTraText);
 
@@ -481,21 +482,29 @@ public class ThanhToanController {
             return 0;
         }
 
+        // Số ngày đầy đủ
         long fullDays = totalMinutes / 1440;
         long remainderMinutes = totalMinutes % 1440;
         double base = giaPhong / 24.0;
         double tongTien = fullDays * giaPhong;
 
         if (remainderMinutes > 0) {
-            if (remainderMinutes <= 120) {
-                tongTien += base * 4.0;
-            } else if (remainderMinutes <= 360) {
-                tongTien += base * 3.0;
-            } else if (remainderMinutes <= 720) {
-                tongTien += base * 2.2;
+            double hours = Math.ceil(remainderMinutes / 60.0);
+            double multiplier;
+
+            if (hours <= 2) {
+                multiplier = 4.0;
+            } else if (hours <= 6) {
+                multiplier = 3.0;
+            } else if (hours <= 12) {
+                multiplier = 2.2;
             } else {
-                tongTien += base * 1.0;
+                multiplier = 1.5;
             }
+
+            double tienPhanDu = hours * base * multiplier;
+            tienPhanDu = Math.min(tienPhanDu, giaPhong);
+            tongTien += tienPhanDu;
         }
 
         return tongTien;
