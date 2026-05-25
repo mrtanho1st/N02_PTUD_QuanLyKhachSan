@@ -26,7 +26,7 @@ public class DonDatPhongController {
 
     private static DatPhong view;
     private DonDatPhong_Dao datPhongDao;
-    private static Phong_Dao phongDao;
+    private static final Phong_Dao phongDao = new Phong_Dao();
     private DichVu_Dao dichVuDao;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -34,7 +34,6 @@ public class DonDatPhongController {
     public DonDatPhongController(DatPhong view) {
         this.view = view;
         this.datPhongDao = new DonDatPhong_Dao();
-        this.phongDao = new Phong_Dao();
         this.dichVuDao = new DichVu_Dao();
 
         initController();
@@ -77,11 +76,20 @@ public class DonDatPhongController {
         view.getDateTuNgay().addActionListener(e -> timPhongKhongThongBao());
         view.getDateDenNgay().addActionListener(e -> timPhongKhongThongBao());
     }
-    public static  void reloadData() {
+
+    public static void reloadData() {
+        if (view == null) {
+            return;
+        }
+
         loadDanhSachPhong();
     }
 
     private static void loadDanhSachPhong() {
+        if (view == null) {
+            return;
+        }
+
         List<Phong> rooms = phongDao.findAll();
         view.renderRooms(rooms);
     }
@@ -92,11 +100,11 @@ public class DonDatPhongController {
         String trangThai = view.getCboTrangThai().getSelectedItem().toString();
 
         Date tuNgayUtil = (Date) view.getDateTuNgay().getModel().getValue();
-        
+
         Date denNgayUtil = (Date) view.getDateDenNgay().getModel().getValue();
 
         List<Phong> rooms;
-        
+
         java.sql.Date tuNgay = null;
         java.sql.Date denNgay = null;
 
@@ -114,13 +122,14 @@ public class DonDatPhongController {
                 return;
             }
 
-            rooms = phongDao.search(maPhong,null, null,  loaiPhong, trangThai, tuNgay , denNgay); // ✅ đổi hàm
+            rooms = phongDao.search(maPhong, null, null, loaiPhong, trangThai, tuNgay, denNgay); // ✅ đổi hàm
         } else {
             rooms = phongDao.findAll();
         }
 
         view.renderRooms(rooms);
     }
+
     private void lamMoiLoc() {
         view.getTxtTimMaPhong().setText("");
         view.getCboLoaiPhong().setSelectedIndex(0);
@@ -134,8 +143,7 @@ public class DonDatPhongController {
         if (!view.hasSelectedRooms()) {
             JOptionPane.showMessageDialog(
                     view,
-                    "Vui lòng chọn ít nhất một phòng để tạo đơn đặt phòng."
-            );
+                    "Vui lòng chọn ít nhất một phòng để tạo đơn đặt phòng.");
             return;
         }
 
@@ -146,8 +154,7 @@ public class DonDatPhongController {
         if (nhanVien == null) {
             JOptionPane.showMessageDialog(
                     view,
-                    "Không xác định được nhân viên đang đăng nhập."
-            );
+                    "Không xác định được nhân viên đang đăng nhập.");
             return;
         }
 
@@ -157,8 +164,7 @@ public class DonDatPhongController {
                 null,
                 dsPhongDaChon,
                 nhanVien,
-                dsDichVu
-        );
+                dsDichVu);
 
         dialog.setLocationRelativeTo(view);
         dialog.setVisible(true);
@@ -187,8 +193,7 @@ public class DonDatPhongController {
                     new java.sql.Timestamp(dialog.getNgayTra().getTime()),
                     tienCoc,
                     dialog.isCheckInNgay(),
-                    dialog.getDichVuDaChon()
-            );
+                    dialog.getDichVuDaChon());
 
             if (success) {
                 JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thành công.");
@@ -246,8 +251,7 @@ public class DonDatPhongController {
                     view,
                     "Ngày nhận và ngày trả không được để trống.",
                     "Thiếu thông tin",
-                    JOptionPane.WARNING_MESSAGE
-            );
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -260,8 +264,7 @@ public class DonDatPhongController {
                         view,
                         "Ngày trả phải sau ngày nhận.",
                         "Lỗi thời gian",
-                        JOptionPane.WARNING_MESSAGE
-                );
+                        JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -269,8 +272,7 @@ public class DonDatPhongController {
                     view,
                     "Cập nhật thời gian đặt phòng thành công cho phòng " + room.getMaPhong(),
                     "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+                    JOptionPane.INFORMATION_MESSAGE);
 
             loadDanhSachPhong();
 
@@ -279,15 +281,13 @@ public class DonDatPhongController {
                     view,
                     "Ngày giờ phải đúng định dạng dd/MM/yyyy HH:mm",
                     "Lỗi định dạng",
-                    JOptionPane.ERROR_MESSAGE
-            );
+                    JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(
                     view,
                     "Có lỗi khi cập nhật thời gian: " + ex.getMessage(),
                     "Lỗi",
-                    JOptionPane.ERROR_MESSAGE
-            );
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }

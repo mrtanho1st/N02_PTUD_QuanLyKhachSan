@@ -96,8 +96,9 @@ public class HoaDonPdfExporter {
         }
 
         double tongTienPhong = 0;
-        for (Object[] p : dsPhong)
-            tongTienPhong += toDouble(p[4]);
+        for (Object[] p : dsPhong) {
+            tongTienPhong += tinhTienPhongTheoThoiGian(ngayNhanDate, ngayTraDate, toDouble(p[3]));
+        }
 
         double tongTienDV = 0;
         for (Object[] dv : dsDichVu)
@@ -128,7 +129,7 @@ public class HoaDonPdfExporter {
 
                 for (Object[] p : dsPhong) {
                     double donGia = toDouble(p[3]);
-                    double thanhTien = toDouble(p[4]);
+                    double thanhTien = tinhTienPhongTheoThoiGian(ngayNhanDate, ngayTraDate, donGia);
 
                     double phiPhat = 0;
 
@@ -222,11 +223,12 @@ public class HoaDonPdfExporter {
 
         for (int i = 0; i < dsPhong.size(); i++) {
             Object[] p = dsPhong.get(i);
+            double thanhTien = tinhTienPhongTheoThoiGian(ngayNhanDate, ngayTraDate, toDouble(p[3]));
             addBodyCell(tblPhong, String.valueOf(i + 1), normalFont);
             addBodyCell(tblPhong, toText(p[0]) + " - " + toText(p[1]), normalFont);
             addBodyCell(tblPhong, thoiGianLuuTru, normalFont);
             addBodyCell(tblPhong, formatMoney(toDouble(p[3])) + " VNĐ", normalFont);
-            addBodyCell(tblPhong, formatMoney(toDouble(p[4])) + " VNĐ", normalFont);
+            addBodyCell(tblPhong, formatMoney(thanhTien) + " VNĐ", normalFont);
         }
 
         document.add(tblPhong);
@@ -444,6 +446,37 @@ public class HoaDonPdfExporter {
         long soGio = totalHours % 24;
 
         return soNgay + " ngày, " + soGio + " giờ";
+    }
+
+    private static double tinhTienPhongTheoThoiGian(Date ngayNhan, Date ngayTra, double giaPhong) {
+        if (ngayNhan == null || ngayTra == null || ngayTra.before(ngayNhan)) {
+            return 0;
+        }
+
+        long totalMinutes = (ngayTra.getTime() - ngayNhan.getTime()) / 60000L;
+
+        if (totalMinutes <= 0) {
+            return 0;
+        }
+
+        long fullDays = totalMinutes / 1440;
+        long remainderMinutes = totalMinutes % 1440;
+        double base = giaPhong / 24.0;
+        double tongTien = fullDays * giaPhong;
+
+        if (remainderMinutes > 0) {
+            if (remainderMinutes <= 120) {
+                tongTien += base * 4.0;
+            } else if (remainderMinutes <= 360) {
+                tongTien += base * 3.0;
+            } else if (remainderMinutes <= 720) {
+                tongTien += base * 2.2;
+            } else {
+                tongTien += base * 1.0;
+            }
+        }
+
+        return tongTien;
     }
 
     private static String taoLinkVietQR(double soTien, String noiDung) {

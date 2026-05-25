@@ -131,6 +131,8 @@ public class HoaDonController {
         }
 
         String thoiGianLuuTru = formatThoiGianLuuTru(toDate(thongTinHD[9]), toDate(thongTinHD[10]));
+        Date ngayNhan = toDate(thongTinHD[9]);
+        Date ngayTra = toDate(thongTinHD[10]);
 
         for (int i = 0; i < dsPhong.size(); i++) {
             Object[] p = dsPhong.get(i);
@@ -138,7 +140,11 @@ public class HoaDonController {
             String maPhong = toText(p[0]);
             String loaiPhong = toText(p[1]);
             double donGia = toDouble(p[3]);
-            double thanhTien = toDouble(p[4]);
+            double thanhTien = tinhTienPhongTheoThoiGian(ngayNhan, ngayTra, donGia);
+
+            if (thanhTien <= 0) {
+                thanhTien = toDouble(p[4]);
+            }
 
             tienPhong += thanhTien;
 
@@ -259,6 +265,37 @@ public class HoaDonController {
         }
 
         view.getLblTongTien().setText(formatMoney(tongTien) + " VNĐ");
+    }
+
+    private double tinhTienPhongTheoThoiGian(Date ngayNhan, Date ngayTra, double giaPhong) {
+        if (ngayNhan == null || ngayTra == null || ngayTra.before(ngayNhan)) {
+            return 0;
+        }
+
+        long totalMinutes = (ngayTra.getTime() - ngayNhan.getTime()) / 60000L;
+
+        if (totalMinutes <= 0) {
+            return 0;
+        }
+
+        long fullDays = totalMinutes / 1440;
+        long remainderMinutes = totalMinutes % 1440;
+        double base = giaPhong / 24.0;
+        double tongTien = fullDays * giaPhong;
+
+        if (remainderMinutes > 0) {
+            if (remainderMinutes <= 120) {
+                tongTien += base * 4.0;
+            } else if (remainderMinutes <= 360) {
+                tongTien += base * 3.0;
+            } else if (remainderMinutes <= 720) {
+                tongTien += base * 2.2;
+            } else {
+                tongTien += base * 1.0;
+            }
+        }
+
+        return tongTien;
     }
 
     public void xuatHoaDon() {

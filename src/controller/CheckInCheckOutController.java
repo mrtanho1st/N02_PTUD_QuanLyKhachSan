@@ -1,6 +1,9 @@
 package controller;
 
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
@@ -148,10 +151,9 @@ public class CheckInCheckOutController {
         view.getLblCheckInDuKien().setText(item.getNgayNhan());
         view.getLblCheckOutDuKien().setText(item.getNgayTra());
 
-
         loadDichVuTheoDon(maDDP);
 
-        double tienPhong = tinhTienPhongTheoDon(maDDP);
+        double tienPhong = tinhTienPhongTheoDon(item, maDDP);
         double tienDichVu = tinhTienDichVuTheoDon(maDDP);
         double tienCoc = item.getTienCoc() == null ? 0 : item.getTienCoc();
         double conLai = tienPhong + tienDichVu - tienCoc;
@@ -163,6 +165,7 @@ public class CheckInCheckOutController {
 
         capNhatTrangThaiNut(item.getTinhTrang());
     }
+
     private double tinhTienDichVuTheoDon(String maDDP) {
         double tong = 0;
 
@@ -174,28 +177,80 @@ public class CheckInCheckOutController {
 
         return tong;
     }
-    private double tinhTienPhongTheoDon(String maDDP) {
+
+    private double tinhTienPhongTheoDon(CheckInCheckOutItem item, String maDDP) {
         double tong = 0;
 
         List<Object[]> dsPhong = dao.findPhongByMaDDP(maDDP);
+        String ngayNhanText = item.getNgayNhan();
+        String ngayTraText = item.getNgayTra();
 
         for (Object[] row : dsPhong) {
             Object giaObj = row[2];
+            double giaPhong = 0;
 
             if (giaObj instanceof Number) {
-                tong += ((Number) giaObj).doubleValue();
+                giaPhong = ((Number) giaObj).doubleValue();
             } else if (giaObj != null) {
                 try {
-                    tong += Double.parseDouble(giaObj.toString());
+                    giaPhong = Double.parseDouble(giaObj.toString());
                 } catch (NumberFormatException e) {
                     // bỏ qua dòng không parse được
                 }
             }
+
+            tong += tinhTienPhongTheoThoiGian(giaPhong, ngayNhanText, ngayTraText);
         }
 
         return tong;
     }
-    
+
+    private double tinhTienPhongTheoThoiGian(double giaPhong, String ngayNhanText, String ngayTraText) {
+        LocalDateTime ngayNhan = parseNgayGio(ngayNhanText);
+        LocalDateTime ngayTra = parseNgayGio(ngayTraText);
+
+        if (ngayNhan == null || ngayTra == null || ngayTra.isBefore(ngayNhan)) {
+            return 0;
+        }
+
+        long totalMinutes = Duration.between(ngayNhan, ngayTra).toMinutes();
+
+        if (totalMinutes <= 0) {
+            return 0;
+        }
+
+        long fullDays = totalMinutes / 1440;
+        long remainderMinutes = totalMinutes % 1440;
+        double base = giaPhong / 24.0;
+        double tongTien = fullDays * giaPhong;
+
+        if (remainderMinutes > 0) {
+            if (remainderMinutes <= 120) {
+                tongTien += base * 4.0;
+            } else if (remainderMinutes <= 360) {
+                tongTien += base * 3.0;
+            } else if (remainderMinutes <= 720) {
+                tongTien += base * 2.2;
+            } else {
+                tongTien += base * 1.0;
+            }
+        }
+
+        return tongTien;
+    }
+
+    private LocalDateTime parseNgayGio(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void loadDichVuTheoDon(String maDDP) {
         DefaultTableModel model = view.getModelDichVu();
         model.setRowCount(0);
@@ -211,6 +266,7 @@ public class CheckInCheckOutController {
             });
         }
     }
+
     private void loadPhongChiTiet(String maDDP) {
         DefaultTableModel model = view.getModelPhongChiTiet();
         model.setRowCount(0);
@@ -250,8 +306,7 @@ public class CheckInCheckOutController {
                 view,
                 "Xác nhận check-in cho đơn " + maDDP + "?",
                 "Check-in",
-                JOptionPane.YES_NO_OPTION
-        );
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             if (dao.checkIn(maDDP)) {
@@ -275,8 +330,7 @@ public class CheckInCheckOutController {
                 view,
                 "Chuyển sang màn hình thanh toán cho đơn " + maDDP + "?",
                 "Thanh toán",
-                JOptionPane.YES_NO_OPTION
-        );
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) {
             return;
@@ -292,8 +346,6 @@ public class CheckInCheckOutController {
         }
     }
 
-    
-
     private void xuLyCapNhatThoiGian() {
         JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog cập nhật thời gian ở đây.");
     }
@@ -306,7 +358,7 @@ public class CheckInCheckOutController {
     }
 
     private void lamMoiChiTiet() {
-    	view.getModelPhongChiTiet().setRowCount(0);
+        view.getModelPhongChiTiet().setRowCount(0);
         view.getLblTenKH().setText("");
         view.getLblCCCD().setText("");
         view.getLblSDT().setText("");
@@ -327,9 +379,12 @@ public class CheckInCheckOutController {
     }
 
     private String mapTinhTrang(String tinhTrangDB) {
-        if ("Đã đặt".equals(tinhTrangDB)) return "Đã đặt";
-        if ("Đã nhận".equals(tinhTrangDB)) return "Đã nhận";
-        if ("Hoàn thành".equals(tinhTrangDB)) return "Hoàn thành";
+        if ("Đã đặt".equals(tinhTrangDB))
+            return "Đã đặt";
+        if ("Đã nhận".equals(tinhTrangDB))
+            return "Đã nhận";
+        if ("Hoàn thành".equals(tinhTrangDB))
+            return "Hoàn thành";
         return tinhTrangDB;
     }
 

@@ -553,11 +553,12 @@ public class DonDatPhongDialog extends JDialog {
     }
 
     private double tinhTongGiaTriDon() { // M.Tân - Tính tổng giá trị đơn đặt phòng dựa trên phòng và dịch vụ đã chọn
-        int soNgay = tinhSoNgay(getNgayNhan(), getNgayTra());
+        Date ngayNhan = getNgayNhan();
+        Date ngayTra = getNgayTra();
 
         double tongPhong = 0;
         for (Phong phong : dsPhongDaChon) {
-            tongPhong += phong.getGiaPhong() * soNgay;
+            tongPhong += tinhTienPhongTheoThoiGian(phong.getGiaPhong(), ngayNhan, ngayTra);
         }
 
         double tongDichVuMotPhong = 0;
@@ -581,10 +582,35 @@ public class DonDatPhongDialog extends JDialog {
         return tongPhong + tongDichVuMotPhong * dsPhongDaChon.size();
     }
 
-    private int tinhSoNgay(Date ngayNhan, Date ngayTra) {
-        long millis = ngayTra.getTime() - ngayNhan.getTime();
-        int soNgay = (int) Math.ceil(millis / (1000.0 * 60 * 60 * 24));
-        return soNgay <= 0 ? 1 : soNgay;
+    private double tinhTienPhongTheoThoiGian(double giaPhong, Date ngayNhan, Date ngayTra) {
+        if (ngayNhan == null || ngayTra == null || ngayTra.before(ngayNhan)) {
+            return 0;
+        }
+
+        long totalMinutes = (ngayTra.getTime() - ngayNhan.getTime()) / 60000L;
+
+        if (totalMinutes <= 0) {
+            return 0;
+        }
+
+        long fullDays = totalMinutes / 1440;
+        long remainderMinutes = totalMinutes % 1440;
+        double base = giaPhong / 24.0;
+        double tongTien = fullDays * giaPhong;
+
+        if (remainderMinutes > 0) {
+            if (remainderMinutes <= 120) {
+                tongTien += base * 4.0;
+            } else if (remainderMinutes <= 360) {
+                tongTien += base * 3.0;
+            } else if (remainderMinutes <= 720) {
+                tongTien += base * 2.2;
+            } else {
+                tongTien += base * 1.0;
+            }
+        }
+
+        return tongTien;
     }
 
     private double parseMoney(String value) {

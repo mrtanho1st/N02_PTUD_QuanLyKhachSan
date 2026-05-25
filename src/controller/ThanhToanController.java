@@ -1,6 +1,9 @@
 package controller;
 
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
@@ -192,15 +195,19 @@ public class ThanhToanController {
         tienPhong = 0;
         dsPhongDangChon = dao.findPhongByMaDDP(maDDP);
 
+        String ngayNhanText = toText(donDangChon[4]);
+        String ngayTraText = toText(donDangChon[5]);
+
         for (Object[] row : dsPhongDangChon) {
-            int soNgay = toInt(row[2]);
             double donGia = toDouble(row[3]);
+            double thanhTien = tinhTienPhongTheoThoiGian(donGia, ngayNhanText, ngayTraText);
 
-            double thanhTien;
-
-            if (row.length >= 5) {
+            if (thanhTien <= 0 && row.length >= 5) {
                 thanhTien = toDouble(row[4]);
-            } else {
+            }
+
+            if (thanhTien <= 0) {
+                int soNgay = toInt(row[2]);
                 thanhTien = soNgay * donGia;
             }
 
@@ -371,19 +378,23 @@ public class ThanhToanController {
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.LocalDateTime ngayTra = parseNgayGio(toText(donDangChon[5]));
+        String ngayNhanText = toText(donDangChon[4]);
+        String ngayTraText = toText(donDangChon[5]);
 
         for (Object[] row : dsPhongDangChon) {
             String maPhong = toText(row[0]);
             String loaiPhong = toText(row[1]);
-            int soNgay = toInt(row[2]);
             double donGia = toDouble(row[3]);
             String thoiGianLuuTru = formatThoiGianLuuTru();
 
-            double thanhTien;
+            double thanhTien = tinhTienPhongTheoThoiGian(donGia, ngayNhanText, ngayTraText);
 
-            if (row.length >= 5) {
+            if (thanhTien <= 0 && row.length >= 5) {
                 thanhTien = toDouble(row[4]);
-            } else {
+            }
+
+            if (thanhTien <= 0) {
+                int soNgay = toInt(row[2]);
                 thanhTien = soNgay * donGia;
             }
 
@@ -450,10 +461,44 @@ public class ThanhToanController {
 
         try {
             return java.time.LocalDateTime.parse(value.trim(),
-                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } catch (java.time.format.DateTimeParseException ex) {
             return null;
         }
+    }
+
+    private double tinhTienPhongTheoThoiGian(double giaPhong, String ngayNhanText, String ngayTraText) {
+        LocalDateTime ngayNhan = parseNgayGio(ngayNhanText);
+        LocalDateTime ngayTra = parseNgayGio(ngayTraText);
+
+        if (ngayNhan == null || ngayTra == null || ngayTra.isBefore(ngayNhan)) {
+            return 0;
+        }
+
+        long totalMinutes = Duration.between(ngayNhan, ngayTra).toMinutes();
+
+        if (totalMinutes <= 0) {
+            return 0;
+        }
+
+        long fullDays = totalMinutes / 1440;
+        long remainderMinutes = totalMinutes % 1440;
+        double base = giaPhong / 24.0;
+        double tongTien = fullDays * giaPhong;
+
+        if (remainderMinutes > 0) {
+            if (remainderMinutes <= 120) {
+                tongTien += base * 4.0;
+            } else if (remainderMinutes <= 360) {
+                tongTien += base * 3.0;
+            } else if (remainderMinutes <= 720) {
+                tongTien += base * 2.2;
+            } else {
+                tongTien += base * 1.0;
+            }
+        }
+
+        return tongTien;
     }
 
     private void fillDichVuDialog() {
