@@ -106,8 +106,17 @@ public class QLDonDatPhongController {
             xoaDichVuDangChon();
         });
     }
-    
+    //Set trạng thái các nút với trạng thái các đơn đặt phòng khác nhau
     private void capNhatTrangThaiNut(String trangThai) {
+    	view.getBtnLuu().setEnabled(true);
+        view.getBtnHuyDon().setEnabled(true);
+
+        view.getCboThaoTacPhong().setEnabled(true);
+        view.getCboPhongTrong().setEnabled(true);
+        view.getCboPhongCanDoi().setEnabled(true);
+
+        view.getTblDichVu().setEnabled(true);
+        
     	if("Đã nhận".equalsIgnoreCase(trangThai)) {
     		view.getBtnHuyDon().setEnabled(false);
     	}else if(("Đã hủy".equalsIgnoreCase(trangThai) || "Hoàn thành".equalsIgnoreCase(trangThai))) {
