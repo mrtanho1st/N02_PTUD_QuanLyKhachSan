@@ -211,6 +211,7 @@ public class ThanhToan_Dao {
                     SUM(pdv.soLuong * pdv.donGia) AS thanhTien
                 FROM CTDonDatPhong ct
                 INNER JOIN PhieuDichVu pdv ON ct.maPhong = pdv.maPhong
+                    AND ct.maDDP = pdv.maDDP
                 INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
                 WHERE ct.maDDP = ?
                 GROUP BY pdv.maDV, dv.tenDichVu, pdv.donGia
