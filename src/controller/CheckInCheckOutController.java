@@ -7,7 +7,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -357,9 +360,10 @@ public class CheckInCheckOutController {
         }
     }
 
-//    private void xuLyCapNhatThoiGian() {
-//        JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog cập nhật thời gian ở đây.");
-//    }
+    // private void xuLyCapNhatThoiGian() {
+    // JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog cập
+    // nhật thời gian ở đây.");
+    // }
     private void xuLyCapNhatThoiGian() {
         String maDDP = view.getLblMaDDPChiTiet().getText().trim();
 
@@ -369,25 +373,86 @@ public class CheckInCheckOutController {
             return;
         }
 
-        String ngayMoi = JOptionPane.showInputDialog(
-                view,
-                "Nhập thời gian checkout mới (yyyy-MM-dd HH:mm:ss):");
+        String ngayTraCu = view.getLblCheckOutDuKien().getText().trim();
+        String ngayMoiMacDinh = taoNgayTraMoiMacDinh(ngayTraCu);
 
-        if (ngayMoi == null || ngayMoi.trim().isEmpty()) {
+        LocalDateTime ngayTraCuParsed = parseNgayGio(ngayTraCu);
+
+        if (ngayTraCuParsed == null) {
+            JOptionPane.showMessageDialog(view, "Không đọc được ngày trả phòng hiện tại.");
             return;
         }
 
-        boolean success = dao.capNhatNgayTra(maDDP, ngayMoi);
+        while (true) {
+            JTextField txtNgayMoi = new JTextField(
+                    taoNgayTraMoiMacDinh(ngayTraCuParsed.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))),
+                    22);
+            JPanel panel = new JPanel(new java.awt.BorderLayout(8, 8));
+            panel.add(new JLabel("Nhập thời gian checkout mới (yyyy-MM-dd HH:mm:ss):"), java.awt.BorderLayout.NORTH);
+            panel.add(txtNgayMoi, java.awt.BorderLayout.CENTER);
 
-        if (success) {
-            JOptionPane.showMessageDialog(view,
-                    "Cập nhật thành công.");
+            int confirm = JOptionPane.showConfirmDialog(
+                    view,
+                    panel,
+                    "Đặt tiếp",
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE);
 
-            timKiemKhongThongBao();
-        } else {
-            JOptionPane.showMessageDialog(view,
-                    "Cập nhật thất bại.");
+            if (confirm != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            String ngayMoi = txtNgayMoi.getText().trim();
+
+            if (ngayMoi.isEmpty()) {
+                JOptionPane.showMessageDialog(view, "Vui lòng nhập thời gian checkout mới.");
+                continue;
+            }
+
+            LocalDateTime ngayMoiParsed = parseNgayGio(ngayMoi);
+
+            if (ngayMoiParsed == null) {
+                JOptionPane.showMessageDialog(view,
+                        "Định dạng ngày giờ không hợp lệ. Vui lòng nhập theo yyyy-MM-dd HH:mm:ss.");
+                continue;
+            }
+
+            long chenhLechPhut = Duration.between(ngayTraCuParsed, ngayMoiParsed).toMinutes();
+
+            if (chenhLechPhut < 60) {
+                JOptionPane.showMessageDialog(view,
+                        "Ngày trả phòng mới phải lớn hơn ngày trả phòng cũ ít nhất 60 phút.");
+                continue;
+            }
+
+            if (dao.isNgayTraBiTrungLich(maDDP, ngayMoi)) {
+                JOptionPane.showMessageDialog(view,
+                        "Ngày trả phòng mới bị trùng với thời gian thuê của đơn đặt phòng khác. Vui lòng nhập lại.");
+                continue;
+            }
+
+            boolean success = dao.capNhatNgayTra(maDDP, ngayMoi);
+
+            if (success) {
+                JOptionPane.showMessageDialog(view,
+                        "Cập nhật thành công.");
+                timKiemKhongThongBao();
+            } else {
+                JOptionPane.showMessageDialog(view,
+                        "Cập nhật thất bại.");
+            }
+            return;
         }
+    }
+
+    private String taoNgayTraMoiMacDinh(String ngayTraCu) {
+        LocalDateTime ngayTraParsed = parseNgayGio(ngayTraCu);
+
+        if (ngayTraParsed == null) {
+            return ngayTraCu;
+        }
+
+        return ngayTraParsed.plusHours(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
     private void lamMoiTatCa() {

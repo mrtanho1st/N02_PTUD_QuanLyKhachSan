@@ -322,6 +322,48 @@ public class CheckInCheckOut_Dao {
 		return false;
 	}
 
+	public boolean isNgayTraBiTrungLich(String maDDP, String ngayTraMoi) {
+		if (maDDP == null || maDDP.isBlank() || ngayTraMoi == null || ngayTraMoi.isBlank()) {
+			return false;
+		}
+
+		String sql = """
+				SELECT TOP 1 1
+				FROM DonDatPhong ddp
+				WHERE ddp.maDDP <> ?
+				  AND ddp.tinhTrang IN (N'Đã đặt', N'Đã nhận')
+				  AND ddp.ngayNhan < ?
+				  AND ddp.ngayTra > (
+				      SELECT ngayTra
+				      FROM DonDatPhong
+				      WHERE maDDP = ?
+				  )
+				  AND EXISTS (
+				      SELECT 1
+				      FROM CTDonDatPhong ctNew
+				      INNER JOIN CTDonDatPhong ctOther ON ctNew.maPhong = ctOther.maPhong
+				      WHERE ctNew.maDDP = ?
+				        AND ctOther.maDDP = ddp.maDDP
+				  )
+				""";
+
+		try (
+				Connection con = ConnectDB.getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setString(1, maDDP);
+			ps.setString(2, ngayTraMoi);
+			ps.setString(3, maDDP);
+			ps.setString(4, maDDP);
+
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 	private boolean isNgayTraHopLe(String maDDP, String ngayTraMoi) {
 		if (ngayTraMoi == null || ngayTraMoi.isBlank()) {
 			return false;
