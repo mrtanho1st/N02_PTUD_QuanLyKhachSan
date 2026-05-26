@@ -290,4 +290,30 @@ public class CheckInCheckOut_Dao {
 
 	    return false;
 	}
+	//cập nhật ngày checkout
+	public boolean capNhatNgayTra(String maDDP, String ngayTraMoi) {
+
+	    String sql = """
+	            UPDATE DonDatPhong
+	            SET ngayTra = ?
+	            WHERE maDDP = ?
+	            AND tinhTrang = N'Đã nhận'
+	            """;
+
+	    try (
+	            Connection con = ConnectDB.getConnection();
+	            PreparedStatement ps = con.prepareStatement(sql)
+	    ) {
+
+	        ps.setString(1, ngayTraMoi);
+	        ps.setString(2, maDDP);
+
+	        return ps.executeUpdate() > 0;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+
+	    return false;
+	}
 }

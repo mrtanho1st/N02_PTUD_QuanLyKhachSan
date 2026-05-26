@@ -357,8 +357,37 @@ public class CheckInCheckOutController {
         }
     }
 
+//    private void xuLyCapNhatThoiGian() {
+//        JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog cập nhật thời gian ở đây.");
+//    }
     private void xuLyCapNhatThoiGian() {
-        JOptionPane.showMessageDialog(view, "Bước tiếp theo mình sẽ nối dialog cập nhật thời gian ở đây.");
+        String maDDP = view.getLblMaDDPChiTiet().getText().trim();
+
+        if (maDDP.isEmpty()) {
+            JOptionPane.showMessageDialog(view,
+                    "Vui lòng chọn đơn.");
+            return;
+        }
+
+        String ngayMoi = JOptionPane.showInputDialog(
+                view,
+                "Nhập thời gian checkout mới (yyyy-MM-dd HH:mm:ss):");
+
+        if (ngayMoi == null || ngayMoi.trim().isEmpty()) {
+            return;
+        }
+
+        boolean success = dao.capNhatNgayTra(maDDP, ngayMoi);
+
+        if (success) {
+            JOptionPane.showMessageDialog(view,
+                    "Cập nhật thành công.");
+
+            timKiemKhongThongBao();
+        } else {
+            JOptionPane.showMessageDialog(view,
+                    "Cập nhật thất bại.");
+        }
     }
 
     private void lamMoiTatCa() {

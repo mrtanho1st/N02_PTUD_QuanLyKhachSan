@@ -405,10 +405,11 @@ public class HoaDon_Dao {
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             for (Object[] row : dsPhong) {
                 String maPhong = toText(row[0]);
-                int soNgay = toInt(row[2]);
+                double soNgay = toDouble(row[2]);
                 double donGia = toDouble(row[3]);
 
                 double thanhTien;
+
                 if (row.length >= 5) {
                     thanhTien = toDouble(row[4]);
                 } else {
@@ -424,7 +425,7 @@ public class HoaDon_Dao {
                     ps.setString(3, maKM);
                 }
 
-                ps.setInt(4, soNgay);
+                ps.setDouble(4, soNgay);
                 ps.setDouble(5, donGia);
                 ps.setDouble(6, thanhTien);
 

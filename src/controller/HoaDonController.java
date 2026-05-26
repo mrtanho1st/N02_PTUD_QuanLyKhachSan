@@ -36,6 +36,7 @@ public class HoaDonController {
     private double thue = 0;
     private double tongTien = 0;
     private double tienPhat = 0;
+    private double tienPhaiTra = 0;
 
     public HoaDonController(HoaDonDialog view, String maHD) {
         this.view = view;
@@ -263,8 +264,17 @@ public class HoaDonController {
         } else {
             view.getLblGiamGia().setText("0 VNĐ");
         }
+        
 
         view.getLblTongTien().setText(formatMoney(tongTien) + " VNĐ");
+        
+        tienPhaiTra = tongTien - tienCoc;
+
+        if (tienPhaiTra < 0) {
+            tienPhaiTra = 0;
+        }
+        view.getLblTienPhaiTra().setText(formatMoney(tienPhaiTra) + " VNĐ");
+        
     }
 
     private double tinhTienPhongTheoThoiGian(Date ngayNhan, Date ngayTra, double giaPhong) {

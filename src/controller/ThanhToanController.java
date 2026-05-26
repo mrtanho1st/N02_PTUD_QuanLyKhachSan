@@ -827,7 +827,7 @@ public class ThanhToanController {
                 maKM,
                 maThue,
                 maNVLapHoaDon,
-                canThanhToan,
+                tongTien,
                 dsPhongDangChon,
                 dsDichVuDangChon);
     }
