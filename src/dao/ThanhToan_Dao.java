@@ -3,6 +3,9 @@ package dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +17,7 @@ public class ThanhToan_Dao {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
+                SELECT
                     ddp.maDDP,
                     kh.hoTen,
                     kh.cccd,
@@ -31,8 +34,7 @@ public class ThanhToan_Dao {
         try (
                 Connection con = ConnectDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()
-        ) {
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(new Object[] {
                         rs.getString("maDDP"),
@@ -81,8 +83,7 @@ public class ThanhToan_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (maDDP != null && !maDDP.isBlank()) {
@@ -118,7 +119,7 @@ public class ThanhToan_Dao {
 
     public Object[] findDonThanhToanByMaDDP(String maDDP) {
         String sql = """
-                SELECT 
+                SELECT
                     ddp.maDDP,
                     kh.hoTen,
                     kh.cccd,
@@ -134,8 +135,7 @@ public class ThanhToan_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -163,12 +163,12 @@ public class ThanhToan_Dao {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
+                SELECT
                     p.maPhong,
                     p.loaiPhong,
                     ct.soNgay,
                     ct.donGia,
-                    ct.soNgay * ct.donGia AS thanhTien
+                    0.0 AS thanhTien
                 FROM CTDonDatPhong ct
                 INNER JOIN Phong p ON ct.maPhong = p.maPhong
                 WHERE ct.maDDP = ?
@@ -177,8 +177,7 @@ public class ThanhToan_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -204,7 +203,7 @@ public class ThanhToan_Dao {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
+                SELECT
                     pdv.maDV,
                     dv.tenDichVu,
                     SUM(pdv.soLuong) AS soLuong,
@@ -220,8 +219,7 @@ public class ThanhToan_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -244,21 +242,71 @@ public class ThanhToan_Dao {
     }
 
     public double tinhTienPhong(String maDDP) {
+        double total = 0.0;
+
         String sql = """
-                SELECT SUM(soNgay * donGia) AS tongTienPhong
-                FROM CTDonDatPhong
-                WHERE maDDP = ?
+                SELECT ct.soNgay, ct.donGia, ddp.ngayNhan, ddp.ngayTra
+                FROM CTDonDatPhong ct
+                JOIN DonDatPhong ddp ON ct.maDDP = ddp.maDDP
+                WHERE ct.maDDP = ?
                 """;
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getDouble("tongTienPhong");
+                while (rs.next()) {
+                    int soNgay = rs.getObject("soNgay") == null ? 0 : rs.getInt("soNgay");
+                    double donGia = rs.getObject("donGia") == null ? 0.0 : rs.getDouble("donGia");
+                    Timestamp ngayNhanTs = rs.getTimestamp("ngayNhan");
+                    Timestamp ngayTraTs = rs.getTimestamp("ngayTra");
+
+                    double thanhTien = 0.0;
+
+                    if (ngayNhanTs != null && ngayTraTs != null && !ngayTraTs.before(ngayNhanTs)) {
+                        LocalDateTime ngayNhan = ngayNhanTs.toLocalDateTime();
+                        LocalDateTime ngayTra = ngayTraTs.toLocalDateTime();
+
+                        long totalMinutes = Duration.between(ngayNhan, ngayTra).toMinutes();
+
+                        if (totalMinutes <= 0) {
+                            thanhTien = 0.0;
+                        } else {
+                            long fullDays = totalMinutes / 1440;
+                            long remainderMinutes = totalMinutes % 1440;
+                            double base = donGia / 24.0;
+                            double tongTien = fullDays * donGia;
+
+                            if (remainderMinutes > 0) {
+                                double hours = Math.ceil(remainderMinutes / 60.0);
+                                double multiplier;
+
+                                if (hours <= 2) {
+                                    multiplier = 4.0;
+                                } else if (hours <= 6) {
+                                    multiplier = 3.0;
+                                } else if (hours <= 12) {
+                                    multiplier = 2.2;
+                                } else {
+                                    multiplier = 1.5;
+                                }
+
+                                double tienPhanDu = hours * base * multiplier;
+                                tienPhanDu = Math.min(tienPhanDu, donGia);
+                                tongTien += tienPhanDu;
+                            }
+
+                            thanhTien = tongTien;
+                        }
+                    }
+
+                    if (thanhTien <= 0) {
+                        thanhTien = soNgay * donGia;
+                    }
+
+                    total += thanhTien;
                 }
             }
 
@@ -266,7 +314,7 @@ public class ThanhToan_Dao {
             e.printStackTrace();
         }
 
-        return 0;
+        return total;
     }
 
     public double tinhTienDichVu(String maDDP) {
@@ -279,8 +327,7 @@ public class ThanhToan_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
