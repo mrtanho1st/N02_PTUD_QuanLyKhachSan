@@ -442,6 +442,10 @@ public class HoaDonPdfExporter {
         }
 
         long totalHours = minutes / 60;
+        if (minutes % 60 >= 30) {
+            totalHours++;
+        }
+
         long soNgay = totalHours / 24;
         long soGio = totalHours % 24;
 

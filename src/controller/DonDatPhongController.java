@@ -48,7 +48,7 @@ public class DonDatPhongController {
         view.getBtnTaoDonDatPhong().addActionListener(e -> moDialogTaoDonDatPhong());
 
         view.setOccupiedRoomClickListener(phong -> moDialogThongTinPhongDangCoDon(phong));
-        
+
         List<String> dsLoai = phongDao.getAllLoaiPhongFromPhong();
         view.getCboLoaiPhong().addItem("Tất cả");
 
@@ -205,7 +205,8 @@ public class DonDatPhongController {
             if (success) {
                 JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thành công.");
                 view.clearSelectedRooms();
-                timPhongKhongThongBao();;
+                timPhongKhongThongBao();
+                ;
             } else {
                 JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thất bại.");
             }
@@ -248,7 +249,8 @@ public class DonDatPhongController {
             return;
         }
 
-        timPhongKhongThongBao();;
+        timPhongKhongThongBao();
+        ;
     }
 
     private void capNhatThoiGianDatPhong(DonDatPhong room, String ngayNhanStr, String ngayTraStr) {
@@ -270,6 +272,16 @@ public class DonDatPhongController {
                 JOptionPane.showMessageDialog(
                         view,
                         "Ngày trả phải sau ngày nhận.",
+                        "Lỗi thời gian",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            long durationMinutes = java.time.Duration.between(ngayNhan, ngayTra).toMinutes();
+            if (durationMinutes < 60) {
+                JOptionPane.showMessageDialog(
+                        view,
+                        "Thời gian từ ngày nhận phòng đến ngày trả phòng phải ít nhất 1 giờ.",
                         "Lỗi thời gian",
                         JOptionPane.WARNING_MESSAGE);
                 return;

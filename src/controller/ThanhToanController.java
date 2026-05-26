@@ -447,7 +447,13 @@ public class ThanhToanController {
         }
 
         java.time.Duration duration = java.time.Duration.between(ngayNhan, ngayTra);
-        long totalHours = Math.max(0, duration.toHours());
+        long minutes = Math.max(0, duration.toMinutes());
+        long totalHours = minutes / 60;
+
+        if (minutes % 60 >= 30) {
+            totalHours++;
+        }
+
         long soNgay = totalHours / 24;
         long soGio = totalHours % 24;
 

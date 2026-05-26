@@ -264,17 +264,16 @@ public class HoaDonController {
         } else {
             view.getLblGiamGia().setText("0 VNĐ");
         }
-        
 
         view.getLblTongTien().setText(formatMoney(tongTien) + " VNĐ");
-        
+
         tienPhaiTra = tongTien - tienCoc;
 
         if (tienPhaiTra < 0) {
             tienPhaiTra = 0;
         }
         view.getLblTienPhaiTra().setText(formatMoney(tienPhaiTra) + " VNĐ");
-        
+
     }
 
     private double tinhTienPhongTheoThoiGian(Date ngayNhan, Date ngayTra, double giaPhong) {
@@ -418,6 +417,10 @@ public class HoaDonController {
         }
 
         long totalHours = minutes / 60;
+        if (minutes % 60 >= 30) {
+            totalHours++;
+        }
+
         long soNgay = totalHours / 24;
         long soGio = totalHours % 24;
 

@@ -274,8 +274,7 @@ public class HoaDonDialog extends JDialog {
         totalPanel.add(createLine("Giảm giá:", lblGiamGia));
         totalPanel.add(createLine("Thuế:", lblThue));
         totalPanel.add(createLine("Tổng tiền:", lblTongTien));
-        totalPanel.add(createLine("Tổng khách phải trả thêm:", lblTienPhaiTra));
-        
+        totalPanel.add(createLine("Tiền thừa:", lblTienPhaiTra));
 
         panel.add(note, BorderLayout.CENTER);
         panel.add(totalPanel, BorderLayout.EAST);
@@ -429,8 +428,9 @@ public class HoaDonDialog extends JDialog {
     public JLabel getLblTongTien() {
         return lblTongTien;
     }
+
     public JLabel getLblTienPhaiTra() {
-    	return lblTienPhaiTra;
+        return lblTienPhaiTra;
     }
-    
+
 }

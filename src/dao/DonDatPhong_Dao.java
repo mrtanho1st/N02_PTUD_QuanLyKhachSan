@@ -8,9 +8,12 @@ import gui.DonDatPhongDialog;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class DonDatPhong_Dao {
 
@@ -26,8 +29,7 @@ public class DonDatPhong_Dao {
             String tinhTrang,
             Double tienCoc,
             java.sql.Date ngayBatDau,
-            java.sql.Date ngayKetThuc
-    ) {
+            java.sql.Date ngayKetThuc) {
         List<DonDatPhong> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -83,8 +85,7 @@ public class DonDatPhong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (phong != null && !phong.isBlank()) {
@@ -139,6 +140,7 @@ public class DonDatPhong_Dao {
 
         return list;
     }
+
     public List<DonDatPhong> findDonDangXuLy() {
         List<DonDatPhong> list = new ArrayList<>();
 
@@ -148,7 +150,7 @@ public class DonDatPhong_Dao {
         sql.append("    p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, p.trangThaiPhong, ");
         sql.append("    ddp.maDDP, ddp.tinhTrang, ");
         sql.append("    kh.maKH, kh.hoTen AS tenKH, ");
-//        sql.append("    kh.soDienThoai, kh.cccd, ");
+        // sql.append(" kh.soDienThoai, kh.cccd, ");
         sql.append("    nv.maNV, nv.hoTen AS tenNV, ");
         sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
         sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
@@ -164,8 +166,7 @@ public class DonDatPhong_Dao {
         try (
                 Connection con = ConnectDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql.toString());
-                ResultSet rs = ps.executeQuery()
-        ) {
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapDonDatPhong(rs));
             }
@@ -181,8 +182,7 @@ public class DonDatPhong_Dao {
             String tuKhoa,
             String tinhTrang,
             java.sql.Date tuNgay,
-            java.sql.Date denNgay
-    ) {
+            java.sql.Date denNgay) {
         List<DonDatPhong> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -229,8 +229,7 @@ public class DonDatPhong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuKhoa != null && !tuKhoa.isBlank()) {
@@ -268,8 +267,6 @@ public class DonDatPhong_Dao {
         return list;
     }
 
-    
-    
     public DonDatPhong findRoomDetailByMaPhong(String maPhong) {
         List<DonDatPhong> list = search(maPhong, "", "Tất cả", "", "Tất cả", null, null, null);
         return list.isEmpty() ? null : list.get(0);
@@ -287,8 +284,7 @@ public class DonDatPhong_Dao {
             java.sql.Timestamp ngayTra,
             double tienCoc,
             boolean checkInNgay,
-            List<DonDatPhongDialog.DichVuDatTruoc> dsDichVu
-    ) {
+            List<DonDatPhongDialog.DichVuDatTruoc> dsDichVu) {
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -302,12 +298,16 @@ public class DonDatPhong_Dao {
                 return false;
             }
 
+            if (!isKhoangThoiGianHopLe(ngayNhan, ngayTra)) {
+                return false;
+            }
+
             con = ConnectDB.getConnection();
             con.setAutoCommit(false);
 
             String maKH = timHoacTaoKhachHang(con, tenKH, cccd, sdt, loaiKH, diemSo);
 
-            String maDDP = taoMa("DDP");
+            String maDDP = taoMaKhongTrung(con, "DDP", 20, "DonDatPhong", "maDDP");
             String tinhTrangMoi = checkInNgay ? "Đã nhận" : "Đã đặt";
 
             String sqlInsertDDP = """
@@ -396,8 +396,7 @@ public class DonDatPhong_Dao {
             String cccd,
             String sdt,
             String loaiKH,
-            int diemSo
-    ) throws Exception {
+            int diemSo) throws Exception {
         String maKH = null;
 
         String sqlFindKH = "SELECT maKH FROM KhachHang WHERE cccd = ?";
@@ -416,7 +415,7 @@ public class DonDatPhong_Dao {
             return maKH;
         }
 
-        maKH = taoMa("KH");
+        maKH = taoMaKhongTrung(con, "KH", 10, "KhachHang", "maKH");
 
         String sqlInsertKH = """
                 INSERT INTO KhachHang(maKH, hoTen, cccd, sdt, loaiKH, diemSo)
@@ -438,8 +437,7 @@ public class DonDatPhong_Dao {
 
     private int tinhSoNgay(
             java.sql.Timestamp ngayNhan,
-            java.sql.Timestamp ngayTra
-    ) {
+            java.sql.Timestamp ngayTra) {
         long millis = ngayTra.getTime() - ngayNhan.getTime();
         int soNgay = (int) Math.ceil(millis / (1000.0 * 60 * 60 * 24));
 
@@ -454,8 +452,7 @@ public class DonDatPhong_Dao {
             Connection con,
             String maDDP,
             List<Phong> dsPhong,
-            List<DonDatPhongDialog.DichVuDatTruoc> dsDichVu
-    ) throws Exception {
+            List<DonDatPhongDialog.DichVuDatTruoc> dsDichVu) throws Exception {
         if (dsDichVu == null || dsDichVu.isEmpty()) {
             return;
         }
@@ -463,9 +460,9 @@ public class DonDatPhong_Dao {
         String sqlGiaDV = "SELECT giaDichVu FROM DichVu WHERE maDV = ?";
 
         String sqlInsertPDV = """
-        	    INSERT INTO PhieuDichVu(maPDV, maDDP, maPhong, maDV, soLuong, donGia)
-        	    VALUES (?, ?, ?, ?, ?, ?)
-        	""";
+                    INSERT INTO PhieuDichVu(maPDV, maDDP, maPhong, maDV, soLuong, donGia)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """;
 
         for (Phong phong : dsPhong) {
             for (DonDatPhongDialog.DichVuDatTruoc dv : dsDichVu) {
@@ -482,7 +479,7 @@ public class DonDatPhong_Dao {
                 }
 
                 try (PreparedStatement psInsert = con.prepareStatement(sqlInsertPDV)) {
-                    psInsert.setString(1, taoMa("PDV"));
+                    psInsert.setString(1, taoMaKhongTrung(con, "PDV", 20, "PhieuDichVu", "maPDV"));
                     psInsert.setString(2, maDDP);
                     psInsert.setString(3, phong.getMaPhong());
                     psInsert.setString(4, dv.getMaDV());
@@ -507,68 +504,96 @@ public class DonDatPhong_Dao {
                 rs.getString("tenKH"),
                 rs.getString("ngayNhan"),
                 rs.getString("ngayTra"),
-                rs.getObject("tienCoc") == null ? null : rs.getDouble("tienCoc")
-        );
+                rs.getObject("tienCoc") == null ? null : rs.getDouble("tienCoc"));
     }
 
-    private String taoMa(String prefix) {
-        int length = (int)(Math.random() * 4) + 2; // 2 -> 5 chữ số
+    private String taoMaKhongTrung(Connection con, String prefix, int maxLength, String tableName, String columnName)
+            throws Exception {
+        int suffixLength = maxLength - prefix.length();
 
-        int min = (int)Math.pow(10, length - 1);
-        int max = (int)Math.pow(10, length) - 1;
+        if (suffixLength <= 0) {
+            throw new IllegalArgumentException("Độ dài mã không hợp lệ cho prefix " + prefix);
+        }
 
-        int number = (int)(Math.random() * (max - min + 1)) + min;
+        for (int attempts = 0; attempts < 1000; attempts++) {
+            String candidate = prefix + taoPhanSoNgauNhien(suffixLength);
 
-        return prefix + number;
+            if (!daTonTai(con, tableName, columnName, candidate)) {
+                return candidate;
+            }
+        }
+
+        throw new IllegalStateException("Không thể sinh mã không trùng cho " + prefix);
     }
-//    public List<Object[]> getDichVuByMaPhong(String maPhong) {
-//        List<Object[]> list = new ArrayList<>();
-//
-//        String sql = """
-//                SELECT 
-//                    pdv.maDV,
-//                    dv.tenDichVu,
-//                    pdv.soLuong,
-//                    pdv.donGia,
-//                    pdv.soLuong * pdv.donGia AS thanhTien
-//                FROM PhieuDichVu pdv
-//                INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
-//                WHERE pdv.maPhong = ?
-//                ORDER BY pdv.maPDV DESC
-//                """;
-//
-//        try (
-//                Connection con = ConnectDB.getConnection();
-//                PreparedStatement ps = con.prepareStatement(sql)
-//        ) {
-//            ps.setString(1, maPhong);
-//
-//            try (ResultSet rs = ps.executeQuery()) {
-//                while (rs.next()) {
-//                    list.add(new Object[] {
-//                            rs.getString("maDV"),
-//                            rs.getString("tenDichVu"),
-//                            rs.getInt("soLuong"),
-//                            rs.getDouble("donGia"),
-//                            rs.getDouble("thanhTien")
-//                    });
-//                }
-//            }
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//        return list;
-//    }
-    
-    
-    
+
+    private String taoPhanSoNgauNhien(int length) {
+        String seed = String.valueOf(System.currentTimeMillis())
+                + String.valueOf((long) (Math.random() * 1_000_000_000L));
+
+        while (seed.length() < length) {
+            seed += String.valueOf((int) (Math.random() * 10));
+        }
+
+        return seed.substring(seed.length() - length);
+    }
+
+    private boolean daTonTai(Connection con, String tableName, String columnName, String value) throws Exception {
+        String sql = "SELECT 1 FROM " + tableName + " WHERE " + columnName + " = ?";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, value);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+    // public List<Object[]> getDichVuByMaPhong(String maPhong) {
+    // List<Object[]> list = new ArrayList<>();
+    //
+    // String sql = """
+    // SELECT
+    // pdv.maDV,
+    // dv.tenDichVu,
+    // pdv.soLuong,
+    // pdv.donGia,
+    // pdv.soLuong * pdv.donGia AS thanhTien
+    // FROM PhieuDichVu pdv
+    // INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
+    // WHERE pdv.maPhong = ?
+    // ORDER BY pdv.maPDV DESC
+    // """;
+    //
+    // try (
+    // Connection con = ConnectDB.getConnection();
+    // PreparedStatement ps = con.prepareStatement(sql)
+    // ) {
+    // ps.setString(1, maPhong);
+    //
+    // try (ResultSet rs = ps.executeQuery()) {
+    // while (rs.next()) {
+    // list.add(new Object[] {
+    // rs.getString("maDV"),
+    // rs.getString("tenDichVu"),
+    // rs.getInt("soLuong"),
+    // rs.getDouble("donGia"),
+    // rs.getDouble("thanhTien")
+    // });
+    // }
+    // }
+    //
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    //
+    // return list;
+    // }
+
     public List<Object[]> getPhongTrongDon(String maDDP) {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
+                SELECT
                     p.maPhong,
                     p.loaiPhong,
                     ct.soNgay,
@@ -581,8 +606,7 @@ public class DonDatPhong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -608,8 +632,11 @@ public class DonDatPhong_Dao {
             String ngayNhan,
             String ngayTra,
             int soNguoi,
-            String tinhTrang
-    ) {
+            String tinhTrang) {
+        if (!isKhoangThoiGianHopLe(ngayNhan, ngayTra)) {
+            return false;
+        }
+
         String sqlUpdateDon = """
                 UPDATE DonDatPhong
                 SET ngayNhan = ?, ngayTra = ?, tinhTrang = ?
@@ -624,8 +651,7 @@ public class DonDatPhong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sqlUpdateDon)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sqlUpdateDon)) {
             ps.setString(1, ngayNhan);
             ps.setString(2, ngayTra);
             ps.setString(3, tinhTrang);
@@ -638,6 +664,50 @@ public class DonDatPhong_Dao {
         }
 
         return false;
+    }
+
+    private boolean isKhoangThoiGianHopLe(java.sql.Timestamp ngayNhan, java.sql.Timestamp ngayTra) {
+        if (ngayNhan == null || ngayTra == null) {
+            return false;
+        }
+
+        return Duration.between(ngayNhan.toLocalDateTime(), ngayTra.toLocalDateTime()).toMinutes() >= 60;
+    }
+
+    private boolean isKhoangThoiGianHopLe(String ngayNhan, String ngayTra) {
+        LocalDateTime start = parseNgayGio(ngayNhan);
+        LocalDateTime end = parseNgayGio(ngayTra);
+
+        if (start == null || end == null) {
+            return false;
+        }
+
+        return Duration.between(start, end).toMinutes() >= 60;
+    }
+
+    private LocalDateTime parseNgayGio(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        String[] patterns = {
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd HH:mm",
+                "dd/MM/yyyy HH:mm",
+                "dd/MM/yyyy HH:mm:ss",
+                "yyyy-MM-dd",
+                "dd/MM/yyyy"
+        };
+
+        for (String pattern : patterns) {
+            try {
+                return LocalDateTime.parse(value.trim(), DateTimeFormatter.ofPattern(pattern));
+            } catch (DateTimeParseException ex) {
+                // thử mẫu khác
+            }
+        }
+
+        return null;
     }
 
     public boolean themPhongVaoDon(String maDDP, String maPhong) {
@@ -791,13 +861,14 @@ public class DonDatPhong_Dao {
             try (PreparedStatement psGia = con.prepareStatement(sqlGiaDV)) {
                 psGia.setString(1, maDV);
                 try (ResultSet rs = psGia.executeQuery()) {
-                    if (rs.next()) donGia = rs.getDouble("giaDichVu");
+                    if (rs.next())
+                        donGia = rs.getDouble("giaDichVu");
                 }
             }
 
             try (PreparedStatement ps = con.prepareStatement(sqlInsertPDV)) {
-                ps.setString(1, taoMa("PDV"));
-                ps.setString(2, maDDP);   // Đảm bảo lấy giá trị từ Controller truyền xuống
+                ps.setString(1, taoMaKhongTrung(con, "PDV", 20, "PhieuDichVu", "maPDV"));
+                ps.setString(2, maDDP); // Đảm bảo lấy giá trị từ Controller truyền xuống
                 ps.setString(3, maPhong);
                 ps.setString(4, maDV);
                 ps.setInt(5, soLuong);
@@ -809,6 +880,7 @@ public class DonDatPhong_Dao {
         }
         return false;
     }
+
     public boolean huyDonDatPhong(String maDDP) {
         Connection con = null;
 
@@ -872,7 +944,7 @@ public class DonDatPhong_Dao {
 
         return false;
     }
-    
+
     private int getSoNgayCuaDon(Connection con, String maDDP) throws Exception {
         String sql = """
                 SELECT DATEDIFF(DAY, ngayNhan, ngayTra) AS soNgay
@@ -935,31 +1007,30 @@ public class DonDatPhong_Dao {
             ps.executeUpdate();
         }
     }
-    
+
     public List<Object[]> getDichVuTrongDon(String maDDP) {
         List<Object[]> list = new ArrayList<>();
 
         String sql = """
-                SELECT 
-                    pdv.maPhong,
-                    pdv.maDV,
-                    dv.tenDichVu,
-                    pdv.donGia,
-                    pdv.soLuong,
-                    pdv.soLuong * pdv.donGia AS thanhTien
-                FROM CTDonDatPhong ct
-                INNER JOIN PhieuDichVu pdv 
-					ON ct.maPhong = pdv.maPhong 
-					AND ct.maDDP = pdv.maDDP
-                INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
-                WHERE ct.maDDP = ?
-                ORDER BY pdv.maPhong, pdv.maPDV DESC
-                """;
+                           SELECT
+                               pdv.maPhong,
+                               pdv.maDV,
+                               dv.tenDichVu,
+                               pdv.donGia,
+                               pdv.soLuong,
+                               pdv.soLuong * pdv.donGia AS thanhTien
+                           FROM CTDonDatPhong ct
+                           INNER JOIN PhieuDichVu pdv
+                ON ct.maPhong = pdv.maPhong
+                AND ct.maDDP = pdv.maDDP
+                           INNER JOIN DichVu dv ON pdv.maDV = dv.maDV
+                           WHERE ct.maDDP = ?
+                           ORDER BY pdv.maPhong, pdv.maPDV DESC
+                           """;
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maDDP);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -981,16 +1052,16 @@ public class DonDatPhong_Dao {
 
         return list;
     }
+
     public boolean xoaDichVuChoPhong(String maPhong, String maDV) {
         String sql = """
-                DELETE FROM PhieuDichVu
-        			WHERE maDDP = ? AND maPhong = ? AND maDV = ?
-                """;
+                     DELETE FROM PhieuDichVu
+                WHERE maDDP = ? AND maPhong = ? AND maDV = ?
+                     """;
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, maPhong);
             ps.setString(2, maDV);
 
@@ -1031,8 +1102,7 @@ public class DonDatPhong_Dao {
 
         try (
                 Connection con = ConnectDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql.toString())
-        ) {
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
             int index = 1;
 
             if (tuNgay != null) {
@@ -1063,25 +1133,23 @@ public class DonDatPhong_Dao {
 
         return ds;
     }
-    
-    
-    //dùng cho trang chủ
+
+    // dùng cho trang chủ
     public int demPhongSapTraHomNay() {
 
         int count = 0;
 
         String sql = """
-            SELECT COUNT(*)
-            FROM DonDatPhong
-            WHERE CAST(ngayTra AS DATE) = CAST(GETDATE() AS DATE)
-            AND tinhTrang = N'Đã nhận'
-        """;
+                    SELECT COUNT(*)
+                    FROM DonDatPhong
+                    WHERE CAST(ngayTra AS DATE) = CAST(GETDATE() AS DATE)
+                    AND tinhTrang = N'Đã nhận'
+                """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement stmt = con.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 count = rs.getInt(1);
@@ -1093,22 +1161,21 @@ public class DonDatPhong_Dao {
 
         return count;
     }
-    
+
     public int demDonDatHomNay() {
 
         int count = 0;
 
         String sql = """
-            SELECT COUNT(*)
-            FROM DonDatPhong
-            WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
-        """;
+                    SELECT COUNT(*)
+                    FROM DonDatPhong
+                    WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
+                """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement stmt = con.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 count = rs.getInt(1);
@@ -1120,22 +1187,21 @@ public class DonDatPhong_Dao {
 
         return count;
     }
-    
+
     public int demKhachHomNay() {
 
         int count = 0;
 
         String sql = """
-            SELECT COUNT(DISTINCT maKH)
-            FROM DonDatPhong
-            WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
-        """;
+                    SELECT COUNT(DISTINCT maKH)
+                    FROM DonDatPhong
+                    WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
+                """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement stmt = con.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 count = rs.getInt(1);

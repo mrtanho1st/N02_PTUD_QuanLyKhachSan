@@ -516,6 +516,14 @@ public class DonDatPhongDialog extends JDialog {
             return;
         }
 
+        long durationMinutes = (ngayTra.getTime() - ngayNhan.getTime()) / 60000L;
+        if (durationMinutes < 60) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Thời gian từ ngày nhận phòng đến ngày trả phòng phải ít nhất 1 giờ.");
+            return;
+        }
+
         String tienCoc = txtTienCoc.getText().trim();
         double tienCocValue = 0;
         if (!tienCoc.isEmpty()) {
