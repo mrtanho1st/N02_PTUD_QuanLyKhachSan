@@ -1553,4 +1553,58 @@ public class HoaDon_Dao {
 
         return ds;
     }
+    
+    //dùng cho trang chủ
+    public double tinhDoanhThuHomNay() {
+
+        double tong = 0;
+
+        String sql = """
+            SELECT ISNULL(SUM(tongTien), 0)
+            FROM HoaDon
+            WHERE CAST(ngayLapHD AS DATE) = CAST(GETDATE() AS DATE)
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                tong = rs.getDouble(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return tong;
+    }
+    public int demDonDatHomNay() {
+
+        int count = 0;
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM DonDatPhong
+            WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
 }

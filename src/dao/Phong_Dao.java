@@ -492,4 +492,58 @@ public class Phong_Dao {
                 rs.getDouble("giaPhong"),
                 rs.getString("trangThaiPhong"));
     }
+    //dùng cho trang chủ
+    public int demPhongDangSuDung() {
+
+        int count = 0;
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM Phong
+            WHERE trangThaiPhong = N'Đang sử dụng'
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+    
+    public int demPhongBaoTri() {
+
+        int count = 0;
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM Phong
+            WHERE trangThaiPhong = N'Bảo trì'
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
 }

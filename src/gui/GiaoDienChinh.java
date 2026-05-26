@@ -3,6 +3,9 @@ package gui;
 import controller.DangNhapController;
 import controller.DonDatPhongController;
 import controller.GiaoDienChinhController;
+import dao.DonDatPhong_Dao;
+import dao.HoaDon_Dao;
+import dao.Phong_Dao;
 import entity.LoaiBaoBieu;
 import entity.LoaiThongKe;
 import entity.PhienDangNhap;
@@ -269,25 +272,68 @@ public class GiaoDienChinh extends JFrame {
         JPanel statCards = new JPanel(new GridLayout(1, 4, 16, 16));
         statCards.setOpaque(false);
 
-        statCards.add(createStatCard("Phòng đang thuê", "24", new Color(227, 242, 253)));
-        statCards.add(createStatCard("Khách hôm nay", "58", new Color(232, 245, 233)));
-        statCards.add(createStatCard("Hóa đơn chờ xử lý", "12", new Color(255, 243, 224)));
-        statCards.add(createStatCard("Doanh thu hôm nay", "18.5 triệu", new Color(252, 228, 236)));
+//        statCards.add(createStatCard("Phòng đang thuê", "24", new Color(227, 242, 253)));
+//        statCards.add(createStatCard("Khách hôm nay", "58", new Color(232, 245, 233)));
+//        statCards.add(createStatCard("Hóa đơn chờ xử lý", "12", new Color(255, 243, 224)));
+//        statCards.add(createStatCard("Doanh thu hôm nay", "18.5 triệu", new Color(252, 228, 236)));
+        Phong_Dao phongDao = new Phong_Dao();
+
+        DonDatPhong_Dao donDatPhongDao = new DonDatPhong_Dao();
+
+        HoaDon_Dao hoaDonDao = new HoaDon_Dao();
+
+        int phongDangThue = phongDao.demPhongDangSuDung();
+
+        int khachHomNay = donDatPhongDao.demKhachHomNay();
+
+        int donDatHomNay = donDatPhongDao.demDonDatHomNay();
+
+        double doanhThu = hoaDonDao.tinhDoanhThuHomNay();
+
+        statCards.add(createStatCard(
+                "Phòng đang thuê",
+                String.valueOf(phongDangThue),
+                new Color(227, 242, 253)));
+
+        statCards.add(createStatCard(
+                "Khách hôm nay",
+                String.valueOf(khachHomNay),
+                new Color(232, 245, 233)));
+
+        statCards.add(createStatCard(
+                "Đơn đặt hôm nay",
+                String.valueOf(donDatHomNay),
+                new Color(255, 243, 224)));
+
+        statCards.add(createStatCard(
+                "Doanh thu hôm nay",
+                String.format("%.1f triệu", doanhThu / 1_000_000),
+                new Color(252, 228, 236)));
 
         JPanel center = new JPanel(new GridLayout(1, 2, 16, 16));
         center.setOpaque(false);
-        center.add(createFeaturePanel("Truy cập nhanh", new String[] {
-                "Đặt phòng mới",
-                "Lập hóa đơn",
-                "Tra cứu khách hàng",
-                "Kiểm tra tình trạng phòng"
-        }));
-        center.add(createFeaturePanel("Thông báo hệ thống", new String[] {
-                "3 phòng sắp trả trong hôm nay",
-                "2 hóa đơn chưa thanh toán",
-                "1 tài khoản nhân viên cần cấp quyền",
-                "Có 5 yêu cầu cập nhật thông tin khách hàng"
-        }));
+//        center.add(createFeaturePanel("Truy cập nhanh", new String[] {
+//                "Đặt phòng mới",
+//                "Lập hóa đơn",
+//                "Tra cứu khách hàng",
+//                "Kiểm tra tình trạng phòng"
+//        }));
+//        center.add(createFeaturePanel("Thông báo hệ thống", new String[] {
+//                "3 phòng sắp trả trong hôm nay",
+//                "2 hóa đơn chưa thanh toán",
+//                "1 tài khoản nhân viên cần cấp quyền",
+//                "Có 5 yêu cầu cập nhật thông tin khách hàng"
+//        }));
+        DonDatPhong_Dao dao = new DonDatPhong_Dao();
+
+        int soPhongSapTra = dao.demPhongSapTraHomNay();
+
+        List<String> thongBao = taoThongBaoHeThong();
+
+        center.add(createFeaturePanel(
+                "Thông báo hệ thống",
+                thongBao
+        ));
 
         JPanel bottom = createWelcomePanel();
 
@@ -298,7 +344,55 @@ public class GiaoDienChinh extends JFrame {
         return panel;
     }
 
-    private JPanel createWelcomePanel() {
+    private List<String> taoThongBaoHeThong() {
+
+        List<String> ds = new ArrayList<>();
+
+        try {
+
+            Phong_Dao phongDao = new Phong_Dao();
+
+            DonDatPhong_Dao donDatPhongDao = new DonDatPhong_Dao();
+
+            HoaDon_Dao hoaDonDao = new HoaDon_Dao();
+
+            int phongSapTra = donDatPhongDao.demPhongSapTraHomNay();
+
+            int phongDangSuDung = phongDao.demPhongDangSuDung();
+
+            int phongBaoTri = phongDao.demPhongBaoTri();
+
+            int donDatHomNay = donDatPhongDao.demDonDatHomNay();
+
+            if (donDatHomNay > 0) {
+                ds.add(donDatHomNay + " đơn đặt phòng hôm nay");
+            }
+
+            if (phongSapTra > 0) {
+                ds.add(phongSapTra + " phòng sắp trả hôm nay");
+            }
+
+            
+
+            if (phongBaoTri > 0) {
+                ds.add(phongBaoTri + " phòng đang bảo trì");
+            }
+
+            ds.add(phongDangSuDung + " phòng đang sử dụng");
+
+            if (ds.isEmpty()) {
+                ds.add("Không có thông báo mới");
+            }
+
+        } catch (Exception e) {
+            ds.add("Không tải được dữ liệu thông báo");
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+	private JPanel createWelcomePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -342,7 +436,7 @@ public class GiaoDienChinh extends JFrame {
         return card;
     }
 
-    private JPanel createFeaturePanel(String title, String[] items) {
+    private JPanel createFeaturePanel(String title, List<String> items) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(

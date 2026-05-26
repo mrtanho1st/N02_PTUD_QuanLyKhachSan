@@ -48,6 +48,13 @@ public class DonDatPhongController {
         view.getBtnTaoDonDatPhong().addActionListener(e -> moDialogTaoDonDatPhong());
 
         view.setOccupiedRoomClickListener(phong -> moDialogThongTinPhongDangCoDon(phong));
+        
+        List<String> dsLoai = phongDao.getAllLoaiPhongFromPhong();
+        view.getCboLoaiPhong().addItem("Tất cả");
+
+        for (String loai : dsLoai) {
+            view.getCboLoaiPhong().addItem(loai);
+        }
 
         ganSuKienTimKiemTuDong();
     }
@@ -198,7 +205,7 @@ public class DonDatPhongController {
             if (success) {
                 JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thành công.");
                 view.clearSelectedRooms();
-                loadDanhSachPhong();
+                timPhongKhongThongBao();;
             } else {
                 JOptionPane.showMessageDialog(view, "Tạo đơn đặt phòng thất bại.");
             }
@@ -241,7 +248,7 @@ public class DonDatPhongController {
             return;
         }
 
-        loadDanhSachPhong();
+        timPhongKhongThongBao();;
     }
 
     private void capNhatThoiGianDatPhong(DonDatPhong room, String ngayNhanStr, String ngayTraStr) {

@@ -124,14 +124,8 @@ public class DatPhong extends JPanel {
         txtTimMaPhong = new JTextField();
         styleTextField(txtTimMaPhong);
 
-        cboLoaiPhong = new JComboBox<>(new String[] {
-                "Tất cả",
-                "Phòng Thượng hạng",
-                "Phòng Cao cấp",
-                "Phòng Tiêu chuẩn",
-                "Phòng Gia đình",
-                "Phòng Sang trọng"
-        });
+        cboLoaiPhong = new JComboBox<>();
+        
 
         cboTrangThai = new JComboBox<>(new String[] {
                 "Tất cả", "Trống", "Đã đặt", "Đang sử dụng", "Quá hạn", "Bảo trì"

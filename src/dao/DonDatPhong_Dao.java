@@ -512,11 +512,14 @@ public class DonDatPhong_Dao {
     }
 
     private String taoMa(String prefix) {
-        return prefix + UUID.randomUUID()
-                .toString()
-                .replace("-", "")
-                .substring(0, 6)
-                .toUpperCase();
+        int length = (int)(Math.random() * 4) + 2; // 2 -> 5 chữ số
+
+        int min = (int)Math.pow(10, length - 1);
+        int max = (int)Math.pow(10, length) - 1;
+
+        int number = (int)(Math.random() * (max - min + 1)) + min;
+
+        return prefix + number;
     }
 //    public List<Object[]> getDichVuByMaPhong(String maPhong) {
 //        List<Object[]> list = new ArrayList<>();
@@ -1059,5 +1062,87 @@ public class DonDatPhong_Dao {
         }
 
         return ds;
+    }
+    //dùng cho trang chủ
+    public int demPhongSapTraHomNay() {
+
+        int count = 0;
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM DonDatPhong
+            WHERE CAST(ngayTra AS DATE) = CAST(GETDATE() AS DATE)
+            AND tinhTrang = N'Đã nhận'
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+    
+    public int demDonDatHomNay() {
+
+        int count = 0;
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM DonDatPhong
+            WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+    
+    public int demKhachHomNay() {
+
+        int count = 0;
+
+        String sql = """
+            SELECT COUNT(DISTINCT maKH)
+            FROM DonDatPhong
+            WHERE CAST(ngayNhan AS DATE) = CAST(GETDATE() AS DATE)
+        """;
+
+        try (
+            Connection con = ConnectDB.getConnection();
+            PreparedStatement stmt = con.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
     }
 }
