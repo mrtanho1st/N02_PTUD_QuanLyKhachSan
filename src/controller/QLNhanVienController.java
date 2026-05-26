@@ -21,6 +21,16 @@ public class QLNhanVienController {
         this.view = view;
         this.nhanVienDao = new NhanVien_Dao();
 
+        // Quyền truy cập: chặn Lễ tân
+        if (!GiaoDienChinhController.coQuyen("", "Nhân viên")) {
+            JOptionPane.showMessageDialog(view, "Bạn không có quyền sử dụng chức năng này!");
+            view.getBtnThem().setEnabled(false);
+            view.getBtnCapNhat().setEnabled(false);
+            view.getBtnXoa().setEnabled(false);
+            loadDataToTable();
+            return;
+        }
+
         initController();
         loadDataToTable();
     }
@@ -76,24 +86,25 @@ public class QLNhanVienController {
 
         for (NhanVien nv : dsNhanVien) {
             model.addRow(new Object[] {
-                nv.getMaNV(),
-                nv.getHoTen(),
-                nv.getNgaySinh(),
-                nv.getSdt(),
-                nv.getEmail(),
-                nv.getGioiTinh(),
-                nv.getNgayBatDauVaoLam(),
-                nv.getTrangThaiLamViec(),
-                nv.getDiaChi(),
-                nv.getCaLamViec(),
-                nv.getViTriCongViec()
+                    nv.getMaNV(),
+                    nv.getHoTen(),
+                    nv.getNgaySinh(),
+                    nv.getSdt(),
+                    nv.getEmail(),
+                    nv.getGioiTinh(),
+                    nv.getNgayBatDauVaoLam(),
+                    nv.getTrangThaiLamViec(),
+                    nv.getDiaChi(),
+                    nv.getCaLamViec(),
+                    nv.getViTriCongViec()
             });
         }
     }
 
     private void hienThiThongTinLenForm() {
         int row = view.getTblNhanVien().getSelectedRow();
-        if (row == -1) return;
+        if (row == -1)
+            return;
 
         view.getTxtMaNV().setText(view.getTblNhanVien().getValueAt(row, 0).toString());
         view.getTxtHoTen().setText(view.getTblNhanVien().getValueAt(row, 1).toString());
@@ -138,9 +149,8 @@ public class QLNhanVienController {
             }
 
             NhanVien nv = new NhanVien(
-                maNV, hoTen, ngaySinh, sdt, email, gioiTinh,
-                ngayBatDau, trangThai, diaChi, caLam, viTri
-            );
+                    maNV, hoTen, ngaySinh, sdt, email, gioiTinh,
+                    ngayBatDau, trangThai, diaChi, caLam, viTri);
 
             if (nhanVienDao.insert(nv)) {
                 JOptionPane.showMessageDialog(view, "Thêm thành công");
@@ -187,9 +197,8 @@ public class QLNhanVienController {
             Date ngayBatDau = Date.valueOf(ngayBatDauText);
 
             NhanVien nv = new NhanVien(
-                maNV, hoTen, ngaySinh, sdt, email, gioiTinh,
-                ngayBatDau, trangThai, diaChi, caLam, viTri
-            );
+                    maNV, hoTen, ngaySinh, sdt, email, gioiTinh,
+                    ngayBatDau, trangThai, diaChi, caLam, viTri);
 
             if (nhanVienDao.update(nv)) {
                 JOptionPane.showMessageDialog(view, "Cập nhật thành công");

@@ -20,9 +20,11 @@ public class GiaoDienChinhController {
         registerEvents();
         phanQuyenTheoNhanVien();
     }
+
     private void phanQuyenTheoNhanVien() {
-    	TaiKhoan tk = PhienDangNhap.getTaiKhoanDangNhap();
-        if (tk == null) return;
+        TaiKhoan tk = PhienDangNhap.getTaiKhoanDangNhap();
+        if (tk == null)
+            return;
 
         String vaiTro = tk.getVaiTro();
 
@@ -38,28 +40,39 @@ public class GiaoDienChinhController {
             view.getBtnHeThong().setToolTipText("Không có quyền");
             view.getBtnBaoBieu().setToolTipText("Không có quyền");
             view.getBtnThongKe().setToolTipText("Không có quyền");
+
+            // Gợi ý: Lễ tân không có quyền truy cập một số mục quản lý
+            view.getBtnDanhMuc().setToolTipText("Không có quyền truy cập: Nhân viên");
+            view.getBtnCapNhat().setToolTipText("Không có quyền truy cập: Nhân viên/Thuế/Khuyến mãi");
         }
 
     }
-    
+
     public static boolean coQuyen(String mainMenu, String subMenu) {
         TaiKhoan tk = PhienDangNhap.getTaiKhoanDangNhap();
-        if (tk == null) return false;
+        if (tk == null)
+            return false;
 
         String vaiTro = tk.getVaiTro();
 
         if (vaiTro.equalsIgnoreCase("LeTan")) {
-            if (mainMenu.equals("Hệ thống")) return false;
-            if (mainMenu.equals("Báo biểu")) return false;
-            if (mainMenu.equals("Thống kê")) return false;
+            // Không cho Lễ tân truy cập các menu quản trị tổng quát
+            if ("Hệ thống".equalsIgnoreCase(mainMenu))
+                return false;
+            if ("Báo biểu".equalsIgnoreCase(mainMenu))
+                return false;
+            if ("Thống kê".equalsIgnoreCase(mainMenu))
+                return false;
 
-            if(mainMenu.equals("Cập nhật")) {
-            	if (subMenu.equals("Nhân viên")) return false;
-                if (subMenu.equals("Khuyến mãi")) return false;
-                if (subMenu.equals("Thuế")) return false;
+            // Chặn mọi truy cập tới các chức năng nhạy cảm dù ở menu nào
+            if (subMenu != null) {
+                if ("Nhân viên".equalsIgnoreCase(subMenu))
+                    return false;
+                if ("Khuyến mãi".equalsIgnoreCase(subMenu))
+                    return false;
+                if ("Thuế".equalsIgnoreCase(subMenu))
+                    return false;
             }
-            
-            
         }
 
         return true;
@@ -79,7 +92,8 @@ public class GiaoDienChinhController {
             dialog.setVisible(true);
         });
 
-        view.getBtnTroGiup().addActionListener(e -> view.showInfoMessage("Mọi thắc mắc vui lòng liên hệ quản trị viên để được hỗ trợ.\nEmail: tan2005tg@gmail.com\nSdt: 0349099412"));
+        view.getBtnTroGiup().addActionListener(e -> view.showInfoMessage(
+                "Mọi thắc mắc vui lòng liên hệ quản trị viên để được hỗ trợ.\nEmail: tan2005tg@gmail.com\nSdt: 0349099412"));
 
         view.getBtnDangXuat().addActionListener(e -> {
             if (view.confirmLogout()) {
@@ -87,8 +101,6 @@ public class GiaoDienChinhController {
             }
         });
     }
-    
-    
 
     private void moGiaoDienThongTin() {
         JFrame frame = new JFrame("Thông tin & Thông báo");

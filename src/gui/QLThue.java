@@ -72,17 +72,30 @@ public class QLThue extends JPanel {
     private String selectedMaThue;
 
     public QLThue(boolean cheDoTimKiem) {
-    	this.cheDoTimKiem = cheDoTimKiem;
+        this.cheDoTimKiem = cheDoTimKiem;
         initUI();
         loadData();
         addEvents();
-        
+
         phanQuyenGiaoDien();
+
+        // Nếu là Lễ tân thì vô hiệu hoá các nút CRUD liên quan đến thuế
+        try {
+            if (!controller.GiaoDienChinhController.coQuyen("", "Thuế")) {
+                btnThem.setEnabled(false);
+                btnCapNhat.setEnabled(false);
+                btnXoa.setEnabled(false);
+                btnLamMoiForm.setEnabled(false);
+            }
+        } catch (Exception e) {
+            // ignore if permission helper not available at UI init
+        }
     }
 
     public static JPanel createPanel(boolean cheDoTimKiem) {
         return new QLThue(cheDoTimKiem);
     }
+
     private void phanQuyenGiaoDien() {
 
         if (cheDoTimKiem) {

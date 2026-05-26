@@ -22,6 +22,16 @@ public class QLKhuyenMaiController {
         this.view = view;
         this.khuyenMaiDao = new KhuyenMai_Dao();
 
+        // Quyền truy cập: chặn Lễ tân
+        if (!GiaoDienChinhController.coQuyen("", "Khuyến mãi")) {
+            JOptionPane.showMessageDialog(view, "Bạn không có quyền sử dụng chức năng này!");
+            view.getBtnThem().setEnabled(false);
+            view.getBtnCapNhat().setEnabled(false);
+            view.getBtnXoa().setEnabled(false);
+            loadKhuyenMai();
+            return;
+        }
+
         init();
     }
 
@@ -64,7 +74,7 @@ public class QLKhuyenMaiController {
         view.getTxtTimMaKM().getDocument().addDocumentListener(searchListener);
         view.getTxtTimTenKhuyenMai().getDocument().addDocumentListener(searchListener);
         view.getTxtTimGiaTri().getDocument().addDocumentListener(searchListener);
-        
+
         view.getCboLocTrangThai().addActionListener(e -> timKiemTuDong());
     }
 
@@ -101,8 +111,7 @@ public class QLKhuyenMaiController {
                 maKM,
                 tenKM,
                 giaTri,
-                trangThai
-        );
+                trangThai);
 
         fillTableKhuyenMai(list);
     }
@@ -122,7 +131,7 @@ public class QLKhuyenMaiController {
             });
         }
     }
-    
+
     private String tinhTrangThai(KhuyenMai km) {
         if (km.getNgayKetThuc() == null) {
             return "";
@@ -134,6 +143,7 @@ public class QLKhuyenMaiController {
 
         return "Còn sử dụng";
     }
+
     private void fillFormFromSelectedRow() {
         int row = view.getTblKhuyenMai().getSelectedRow();
 
@@ -211,8 +221,7 @@ public class QLKhuyenMaiController {
                 view,
                 "Bạn có chắc muốn xóa khuyến mãi " + maKM + " không?",
                 "Xác nhận xóa",
-                JOptionPane.YES_NO_OPTION
-        );
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) {
             return;
@@ -274,7 +283,7 @@ public class QLKhuyenMaiController {
     }
 
     private void lamMoiTimKiem() {
-    	view.clearSearchForm();
+        view.clearSearchForm();
         loadKhuyenMai();
     }
 
