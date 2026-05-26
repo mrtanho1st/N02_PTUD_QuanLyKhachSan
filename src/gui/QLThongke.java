@@ -507,7 +507,14 @@ public class QLThongke extends JPanel {
             });
 
             setComboBoxData(cboLoc2, new String[] {
-                    "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình", "Phòng Thượng hạng"
+                    "Tất cả",
+                    "Deluxe",
+                    "Premium Deluxe",
+                    "Grand Triple",
+                    "Victorian Suite",
+                    "Phòng hội nghị",
+                    "Phòng họp",
+                    "Sảnh tiệc cưới"
             });
 
             showDateFilters(true);

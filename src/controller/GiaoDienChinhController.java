@@ -53,7 +53,13 @@ public class GiaoDienChinhController {
             if (mainMenu.equals("Báo biểu")) return false;
             if (mainMenu.equals("Thống kê")) return false;
 
-            if (subMenu.equals("Nhân viên")) return false;
+            if(mainMenu.equals("Cập nhật")) {
+            	if (subMenu.equals("Nhân viên")) return false;
+                if (subMenu.equals("Khuyến mãi")) return false;
+                if (subMenu.equals("Thuế")) return false;
+            }
+            
+            
         }
 
         return true;

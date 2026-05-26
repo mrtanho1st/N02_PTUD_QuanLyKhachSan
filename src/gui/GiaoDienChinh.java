@@ -618,11 +618,11 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Nhân viên")) {
                 panel = QLNhanVien.createPanel();
             } else if (subMenu.equals("Khuyến mãi")) {
-                panel = QLKhuyenMai.createPanel();
+                panel = QLKhuyenMai.createPanel(true);
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
             } else if (subMenu.equals("Thuế")) {
-                panel = QLThue.createPanel();
+                panel = QLThue.createPanel(true);
             }
 
         } else if (mainMenu.equals("Cập nhật")) {
@@ -633,13 +633,13 @@ public class GiaoDienChinh extends JFrame {
             } else if (subMenu.equals("Nhân viên")) {
                 panel = QLNhanVien.createPanel();
             } else if (subMenu.equals("Khuyến mãi")) {
-                panel = QLKhuyenMai.createPanel();
+                panel = QLKhuyenMai.createPanel(false);
             } else if (subMenu.equals("Dịch vụ")) {
                 panel = QLDichVu.createPanel();
             } else if (subMenu.equals("Đơn đặt phòng")) {
                 panel = QLDonDatPhong.createPanel();
             } else if (subMenu.equals("Thuế")) {
-                panel = QLThue.createPanel();
+                panel = QLThue.createPanel(false);
             }
 
         } else if (mainMenu.equals("Thống kê")) {

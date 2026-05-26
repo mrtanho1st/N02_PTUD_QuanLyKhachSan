@@ -65,9 +65,28 @@ public class QLKhuyenMai extends JPanel {
     private JButton btnCapNhat;
     private JButton btnXoa;
     private JButton btnLamMoiForm;
+    
+    private boolean cheDoTimKiem;
 
-    public QLKhuyenMai() {
+    public QLKhuyenMai(boolean cheDoTimKiem) {
+    	this.cheDoTimKiem = cheDoTimKiem;
         initUI();
+        
+        phanQuyenGiaoDien();
+    }
+    
+    private void phanQuyenGiaoDien() {
+
+        if (cheDoTimKiem) {
+
+            btnThem.setEnabled(false);
+
+            btnCapNhat.setEnabled(false);
+
+            btnXoa.setEnabled(false);
+
+            btnLamMoiForm.setEnabled(false);
+        }
     }
 
     private void initUI() {
@@ -599,8 +618,8 @@ public class QLKhuyenMai extends JPanel {
         return btnLamMoiForm;
     }
 
-    public static JPanel createPanel() {
-        QLKhuyenMai panel = new QLKhuyenMai();
+    public static JPanel createPanel(boolean cheDoTimKiem) {
+        QLKhuyenMai panel = new QLKhuyenMai(cheDoTimKiem);
         new QLKhuyenMaiController(panel);
         return panel;
     }

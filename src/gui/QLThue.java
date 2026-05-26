@@ -67,17 +67,34 @@ public class QLThue extends JPanel {
     private JButton btnCapNhat;
     private JButton btnXoa;
     private JButton btnLamMoiForm;
+    private boolean cheDoTimKiem;
 
     private String selectedMaThue;
 
-    public QLThue() {
+    public QLThue(boolean cheDoTimKiem) {
+    	this.cheDoTimKiem = cheDoTimKiem;
         initUI();
         loadData();
         addEvents();
+        
+        phanQuyenGiaoDien();
     }
 
-    public static JPanel createPanel() {
-        return new QLThue();
+    public static JPanel createPanel(boolean cheDoTimKiem) {
+        return new QLThue(cheDoTimKiem);
+    }
+    private void phanQuyenGiaoDien() {
+
+        if (cheDoTimKiem) {
+
+            btnThem.setEnabled(false);
+
+            btnCapNhat.setEnabled(false);
+
+            btnXoa.setEnabled(false);
+
+            btnLamMoiForm.setEnabled(false);
+        }
     }
 
     private void initUI() {

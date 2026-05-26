@@ -419,9 +419,16 @@ public class BaoBieu extends JPanel {
                 setFilterLabels("", "", "Tìm kiếm:", "Loại phòng:", "Trạng thái:", "");
 
                 setComboBoxData(cboLoc1, new String[] {
-                        "Tất cả", "Phòng Tiêu chuẩn", "Phòng Cao cấp", "Phòng Sang trọng", "Phòng Gia đình",
-                        "Phòng Thượng hạng"
+                        "Tất cả",
+                        "Deluxe",
+                        "Premium Deluxe",
+                        "Grand Triple",
+                        "Victorian Suite",
+                        "Phòng hội nghị",
+                        "Phòng họp",
+                        "Sảnh tiệc cưới"
                 });
+
                 setComboBoxData(cboLoc2, new String[] {
                         "Tất cả", "Trống", "Đang sử dụng", "Bảo trì"
                 });
