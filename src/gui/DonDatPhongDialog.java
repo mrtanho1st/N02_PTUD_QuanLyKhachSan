@@ -510,7 +510,7 @@ public class DonDatPhongDialog extends JDialog {
 
         if (isNgayNhanTrongQuaKhu(ngayNhan)) {
             JOptionPane.showMessageDialog(this,
-                    "Thời gian check-in không được trước quá 30 phút so với thời gian hiện tại.");
+                    "Thời gian check-in không được nhỏ hơn thời gian hiện tại.");
             return;
         }
 
@@ -649,9 +649,9 @@ public class DonDatPhongDialog extends JDialog {
             return true;
         }
 
-        long diffMinutes = (ngayNhan.getTime() - System.currentTimeMillis()) / 60000L;
-        // Nếu thời gian nhận phòng trước hiện tại quá 30 phút => không hợp lệ
-        return diffMinutes < -30;
+        long phutNgayNhan = ngayNhan.getTime() / 60000L;
+        long phutHienTai = System.currentTimeMillis() / 60000L;
+        return phutNgayNhan < phutHienTai;
     }
 
     public boolean isSucceeded() {

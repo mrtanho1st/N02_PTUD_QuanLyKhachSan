@@ -553,6 +553,7 @@ public class ThanhToanController {
     private void tinhTienTheoMaGiamGiaVaThue() {
         giamGia = 0;
         tienThue = 0;
+        tongTien = tienPhong + tienDichVu + tienPhat;
 
         Object selectedKM = null;
 

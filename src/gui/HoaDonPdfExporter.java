@@ -151,6 +151,17 @@ public class HoaDonPdfExporter {
         } catch (Exception ex) {
             // ignore
         }
+
+        tongTruocGiam = tongTienPhong + tongTienDV + tienPhat;
+        giamGia = tongTruocGiam * tyLeGiamGia / 100.0;
+        tienSauGiam = tongTruocGiam - giamGia;
+
+        if (tienSauGiam < 0) {
+            tienSauGiam = 0;
+        }
+
+        thue = tienSauGiam * tyLeThue / 100.0;
+        tongTien = tongTruocGiam;
         // ===== HEADER =====
         Paragraph hotel = new Paragraph("KHÁCH SẠN IMPERIAL", titleFont);
         hotel.setAlignment(Element.ALIGN_CENTER);

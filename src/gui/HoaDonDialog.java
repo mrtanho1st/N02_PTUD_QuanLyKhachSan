@@ -1,11 +1,11 @@
 package gui;
 
+import controller.HoaDonController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -16,8 +16,6 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-
-import controller.HoaDonController;
 
 public class HoaDonDialog extends JDialog {
 
@@ -191,7 +189,7 @@ public class HoaDonDialog extends JDialog {
 
     private JScrollPane createPhongTablePanel() {
         modelPhong = new DefaultTableModel(
-                new String[] { "STT", "Tên phòng", "Thời gian lưu trú", "Đơn giá", "Thành tiền" },
+                new String[]{"STT", "Tên phòng", "Thời gian lưu trú", "Đơn giá", "Thành tiền"},
                 0) {
             private static final long serialVersionUID = 1L;
 
@@ -213,7 +211,7 @@ public class HoaDonDialog extends JDialog {
 
     private JScrollPane createDichVuTablePanel() {
         modelDichVu = new DefaultTableModel(
-                new String[] { "STT", "Tên dịch vụ", "Số lượng", "Đơn giá", "Thành tiền" },
+                new String[]{"STT", "Tên dịch vụ", "Số lượng", "Đơn giá", "Thành tiền"},
                 0) {
             private static final long serialVersionUID = 1L;
 
@@ -247,9 +245,9 @@ public class HoaDonDialog extends JDialog {
 
         JTextArea note = new JTextArea(
                 "Ghi chú:\n"
-                        + "- Hóa đơn được lập sau khi khách hoàn tất thanh toán.\n"
-                        + "- Vui lòng kiểm tra thông tin trước khi rời quầy.\n"
-                        + "- Cảm ơn quý khách đã sử dụng dịch vụ của Khách sạn Imperial.");
+                + "- Hóa đơn được lập sau khi khách hoàn tất thanh toán.\n"
+                + "- Vui lòng kiểm tra thông tin trước khi rời quầy.\n"
+                + "- Cảm ơn quý khách đã sử dụng dịch vụ của Khách sạn Imperial.");
         note.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         note.setEditable(false);
         note.setOpaque(false);
@@ -274,7 +272,7 @@ public class HoaDonDialog extends JDialog {
         totalPanel.add(createLine("Giảm giá:", lblGiamGia));
         totalPanel.add(createLine("Thuế:", lblThue));
         totalPanel.add(createLine("Tổng tiền:", lblTongTien));
-        totalPanel.add(createLine("Tiền thừa:", lblTienPhaiTra));
+        totalPanel.add(createLine("Khách trả thêm:", lblTienPhaiTra));
 
         panel.add(note, BorderLayout.CENTER);
         panel.add(totalPanel, BorderLayout.EAST);

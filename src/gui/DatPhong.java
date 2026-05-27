@@ -621,9 +621,13 @@ public class DatPhong extends JPanel {
         return dateDenNgay;
     }
 
-    public static JPanel createPanel() {
+    public static JPanel createPanel(GiaoDienChinh giaoDienChinh) {
         DatPhong panel = new DatPhong();
-        new DonDatPhongController(panel);
+        new DonDatPhongController(panel, giaoDienChinh);
         return panel;
+    }
+
+    public static JPanel createPanel() {
+        return createPanel(null);
     }
 }

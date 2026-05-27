@@ -602,7 +602,7 @@ public class GiaoDienChinh extends JFrame {
 
         } else if (mainMenu.equals("Xử lí")) {
             if (subMenu.equals("Đặt phòng")) {
-                panel = DatPhong.createPanel();
+                panel = DatPhong.createPanel(this);
             } else if (subMenu.equals("Check-in/Check-out")) {
                 panel = CheckInCheckOut.createPanel();
             } else if (subMenu.equals("Thanh toán")) {

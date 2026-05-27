@@ -1,5 +1,8 @@
 package controller;
 
+import dao.HoaDon_Dao;
+import gui.HoaDonDialog;
+import gui.HoaDonPdfExporter;
 import java.awt.Desktop;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -7,13 +10,8 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-
-import dao.HoaDon_Dao;
-import gui.HoaDonDialog;
-import gui.HoaDonPdfExporter;
 
 public class HoaDonController {
 
@@ -149,12 +147,12 @@ public class HoaDonController {
 
             tienPhong += thanhTien;
 
-            model.addRow(new Object[] {
-                    i + 1,
-                    maPhong + " - " + loaiPhong,
-                    thoiGianLuuTru,
-                    formatMoney(donGia) + " VNĐ",
-                    formatMoney(thanhTien) + " VNĐ"
+            model.addRow(new Object[]{
+                i + 1,
+                maPhong + " - " + loaiPhong,
+                thoiGianLuuTru,
+                formatMoney(donGia) + " VNĐ",
+                formatMoney(thanhTien) + " VNĐ"
             });
         }
     }
@@ -179,12 +177,12 @@ public class HoaDonController {
 
             tienDichVu += thanhTien;
 
-            model.addRow(new Object[] {
-                    i + 1,
-                    tenDV,
-                    soLuong,
-                    formatMoney(donGia) + " VNĐ",
-                    formatMoney(thanhTien) + " VNĐ"
+            model.addRow(new Object[]{
+                i + 1,
+                tenDV,
+                soLuong,
+                formatMoney(donGia) + " VNĐ",
+                formatMoney(thanhTien) + " VNĐ"
             });
         }
     }
@@ -204,7 +202,7 @@ public class HoaDonController {
             tyLeThue = toDouble(thongTinHD[15]);
         }
 
-        double tongTruocGiam = tienPhong + tienDichVu;
+        double tongTruocGiam = tienPhong + tienDichVu + tienPhat;
 
         giamGia = tongTruocGiam * tyLeGiamGia / 100.0;
 
@@ -248,6 +246,17 @@ public class HoaDonController {
                 tienPhat += phiPhat;
             }
         }
+
+        tongTruocGiam = tienPhong + tienDichVu + tienPhat;
+        giamGia = tongTruocGiam * tyLeGiamGia / 100.0;
+        tienSauGiam = tongTruocGiam - giamGia;
+
+        if (tienSauGiam < 0) {
+            tienSauGiam = 0;
+        }
+
+        thue = tienSauGiam * tyLeThue / 100.0;
+        tongTien = tongTruocGiam;
         view.getLblTienPhong().setText(formatMoney(tienPhong) + " VNĐ");
         view.getLblTienDichVu().setText(formatMoney(tienDichVu) + " VNĐ");
         view.getLblPhiPhat().setText(formatMoney(tienPhat) + " VNĐ");
@@ -267,7 +276,7 @@ public class HoaDonController {
 
         view.getLblTongTien().setText(formatMoney(tongTien) + " VNĐ");
 
-        tienPhaiTra = tongTien - tienCoc;
+        tienPhaiTra = tongTien - tienCoc - giamGia + thue;
 
         if (tienPhaiTra < 0) {
             tienPhaiTra = 0;
@@ -341,7 +350,7 @@ public class HoaDonController {
 
             JOptionPane.showMessageDialog(
                     view,
-                    "Xuất hóa đơn PDF thành công.\nFile được lưu tại: " + file.getAbsolutePath());
+                    "Xuất hóa đơn PDF thành công. File được lưu tại: " + file.getAbsolutePath());
 
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().open(file);
@@ -349,7 +358,7 @@ public class HoaDonController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(view, "Xuất hóa đơn PDF thất bại.");
+            JOptionPane.showMessageDialog(view, "Xuất hóa đơn thất bại.");
         }
     }
 

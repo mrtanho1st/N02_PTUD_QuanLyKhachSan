@@ -6,8 +6,9 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -381,7 +382,7 @@ public class HoaDon_Dao {
                 ps.setString(5, maThue);
             }
 
-            ps.setDate(6, Date.valueOf(LocalDate.now()));
+            ps.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
             ps.setDouble(7, tongTien);
 
             ps.executeUpdate();
@@ -753,7 +754,7 @@ public class HoaDon_Dao {
                 if (rs.next()) {
                     return new Object[] {
                             rs.getString("maHD"), // 0
-                            rs.getDate("ngayLapHD"), // 1
+                            rs.getTimestamp("ngayLapHD"), // 1
                             rs.getString("tenKH"), // 2
                             rs.getString("cccd"), // 3
                             rs.getString("sdt"), // 4

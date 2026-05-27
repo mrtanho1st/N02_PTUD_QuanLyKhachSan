@@ -20,6 +20,7 @@ import entity.PhienDangNhap;
 import entity.Phong;
 import gui.DatPhong;
 import gui.DonDatPhongDialog;
+import gui.GiaoDienChinh;
 import gui.ThongTinDatPhongDialog;
 
 public class DonDatPhongController {
@@ -28,16 +29,22 @@ public class DonDatPhongController {
     private DonDatPhong_Dao datPhongDao;
     private static final Phong_Dao phongDao = new Phong_Dao();
     private DichVu_Dao dichVuDao;
+    private GiaoDienChinh giaoDienChinh;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    public DonDatPhongController(DatPhong view) {
+    public DonDatPhongController(DatPhong view, GiaoDienChinh giaoDienChinh) {
         this.view = view;
+        this.giaoDienChinh = giaoDienChinh;
         this.datPhongDao = new DonDatPhong_Dao();
         this.dichVuDao = new DichVu_Dao();
 
         initController();
         loadDanhSachPhong();
+    }
+
+    public DonDatPhongController(DatPhong view) {
+        this(view, null);
     }
 
     private void initController() {
@@ -47,7 +54,21 @@ public class DonDatPhongController {
 
         view.getBtnTaoDonDatPhong().addActionListener(e -> moDialogTaoDonDatPhong());
 
-        view.setOccupiedRoomClickListener(phong -> moDialogThongTinPhongDangCoDon(phong));
+        view.setOccupiedRoomClickListener(phong -> {
+            if ("Quá hạn".equalsIgnoreCase(phong.getTrangThai())) {
+                DonDatPhong don = datPhongDao.findRoomDetailByMaPhong(phong.getMaPhong());
+
+                if (don != null && giaoDienChinh != null) {
+                    giaoDienChinh.moCheckInCheckOutTheoDon(don.getMaDDP());
+                } else {
+                    JOptionPane.showMessageDialog(view, "Không tìm thấy đơn đặt phòng quá hạn.");
+                }
+
+                return;
+            }
+
+            moDialogThongTinPhongDangCoDon(phong);
+        });
 
         List<String> dsLoai = phongDao.getAllLoaiPhongFromPhong();
         view.getCboLoaiPhong().addItem("Tất cả");
