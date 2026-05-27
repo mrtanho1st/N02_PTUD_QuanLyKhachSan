@@ -22,6 +22,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+import javax.swing.SwingUtilities;
+
 import controller.CheckInCheckOutController;
 
 public class CheckInCheckOut extends JPanel {
@@ -34,7 +36,6 @@ public class CheckInCheckOut extends JPanel {
     private static final Color BUTTON_BG = new Color(233, 239, 248);
     private static final Color BUTTON_DANGER = new Color(252, 230, 230);
 
-
     private JTextField txtMaDDP;
     private JTextField txtCccdSdt;
     private JComboBox<String> cboTrangThai;
@@ -43,7 +44,6 @@ public class CheckInCheckOut extends JPanel {
     private JTable tblDanhSach;
     private DefaultTableModel modelDanhSach;
 
-    
     private JLabel lblTenKH;
     private JLabel lblCCCD;
     private JLabel lblSDT;
@@ -64,7 +64,7 @@ public class CheckInCheckOut extends JPanel {
     private JButton btnCapNhatThoiGian;
     private JButton btnCheckOut;
     private JButton btnLamMoi;
-    
+
     private JTable tblPhongChiTiet;
     private DefaultTableModel modelPhongChiTiet;
 
@@ -97,7 +97,6 @@ public class CheckInCheckOut extends JPanel {
         JLabel lblCccdSdt = createLabel("CCCD / SĐT:");
         JLabel lblTrangThai = createLabel("Trạng thái:");
 
-
         txtMaDDP = new JTextField();
         txtCccdSdt = new JTextField();
 
@@ -110,8 +109,6 @@ public class CheckInCheckOut extends JPanel {
         styleComboBox(cboTrangThai);
 
         btnTaiLai = createButton("Làm mới");
-
-
 
         gbc.gridx = 2;
         gbc.weightx = 0;
@@ -136,7 +133,6 @@ public class CheckInCheckOut extends JPanel {
         gbc.gridx = 7;
         gbc.weightx = 0.8;
         panel.add(cboTrangThai, gbc);
-
 
         gbc.gridx = 8;
         gbc.weightx = 0;
@@ -175,7 +171,7 @@ public class CheckInCheckOut extends JPanel {
         panel.add(lblTitle, BorderLayout.NORTH);
 
         String[] columns = {
-                "Mã ĐĐP", "Khách hàng", "Trạng thái","CCCD", "SĐT",  "Ngày nhận", "Ngày trả"
+                "Mã ĐĐP", "Khách hàng", "Trạng thái", "CCCD", "SĐT", "Ngày nhận", "Ngày trả"
         };
 
         modelDanhSach = new DefaultTableModel(columns, 0) {
@@ -223,8 +219,6 @@ public class CheckInCheckOut extends JPanel {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.WEST;
-
-
 
         lblTenKH = createValueLabel();
         lblCCCD = createValueLabel();
@@ -365,6 +359,7 @@ public class CheckInCheckOut extends JPanel {
 
         return wrapper;
     }
+
     private JPanel createFieldPair(String labelText, JComponent valueComp) {
         JPanel panel = new JPanel(new BorderLayout(8, 0));
         panel.setOpaque(false);
@@ -379,6 +374,7 @@ public class CheckInCheckOut extends JPanel {
 
         return panel;
     }
+
     private void addRowPair(JPanel parent, GridBagConstraints gbc, int row,
             String label1, JComponent value1,
             String label2, JComponent value2) {
@@ -399,7 +395,6 @@ public class CheckInCheckOut extends JPanel {
 
         gbc.gridwidth = 1;
     }
-    
 
     private JPanel createActionPanel() {
         JPanel panel = new JPanel(new GridLayout(2, 2, 12, 12));
@@ -418,9 +413,6 @@ public class CheckInCheckOut extends JPanel {
 
         return panel;
     }
-
-
-
 
     private void styleTextField(JTextField textField) {
         textField.setPreferredSize(new Dimension(150, 32));
@@ -478,8 +470,6 @@ public class CheckInCheckOut extends JPanel {
         return button;
     }
 
-
-
     public JTextField getTxtMaDDP() {
         return txtMaDDP;
     }
@@ -491,8 +481,6 @@ public class CheckInCheckOut extends JPanel {
     public JComboBox<String> getCboTrangThai() {
         return cboTrangThai;
     }
-
-
 
     public JButton getBtnTaiLai() {
         return btnTaiLai;
@@ -513,8 +501,6 @@ public class CheckInCheckOut extends JPanel {
     public DefaultTableModel getModelDichVu() {
         return modelDichVu;
     }
-
-
 
     public JLabel getLblTenKH() {
         return lblTenKH;
@@ -540,8 +526,6 @@ public class CheckInCheckOut extends JPanel {
         return lblCheckOutDuKien;
     }
 
-
-
     public JLabel getLblTienPhong() {
         return lblTienPhong;
     }
@@ -562,8 +546,6 @@ public class CheckInCheckOut extends JPanel {
         return btnCheckIn;
     }
 
-
-
     public JButton getBtnCapNhatThoiGian() {
         return btnCapNhatThoiGian;
     }
@@ -575,6 +557,7 @@ public class CheckInCheckOut extends JPanel {
     public JButton getBtnLamMoi() {
         return btnLamMoi;
     }
+
     public JTable getTblPhongChiTiet() {
         return tblPhongChiTiet;
     }
@@ -587,5 +570,21 @@ public class CheckInCheckOut extends JPanel {
         CheckInCheckOut panel = new CheckInCheckOut();
         new CheckInCheckOutController(panel);
         return panel;
+    }
+
+    public void chonDonTheoMaDDP(String maDDP) {
+        if (maDDP == null || maDDP.isBlank()) {
+            return;
+        }
+
+        txtMaDDP.setText(maDDP.trim());
+        txtCccdSdt.setText("");
+        cboTrangThai.setSelectedItem("Tất cả");
+
+        SwingUtilities.invokeLater(() -> {
+            if (tblDanhSach.getRowCount() > 0) {
+                tblDanhSach.setRowSelectionInterval(0, 0);
+            }
+        });
     }
 }

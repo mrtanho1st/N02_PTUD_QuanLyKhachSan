@@ -316,6 +316,17 @@ public class CheckInCheckOutController {
             return;
         }
 
+        // Kiểm tra thời gian: hiện tại phải >= thời gian nhận phòng
+        String ngayNhanText = view.getLblCheckInDuKien().getText().trim();
+        LocalDateTime ngayNhanParsed = parseNgayGio(ngayNhanText);
+        if (ngayNhanParsed != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (now.isBefore(ngayNhanParsed)) {
+                JOptionPane.showMessageDialog(view, "Chưa đến thời gian nhận phòng");
+                return;
+            }
+        }
+
         int confirm = JOptionPane.showConfirmDialog(
                 view,
                 "Xác nhận check-in cho đơn " + maDDP + "?",

@@ -39,8 +39,8 @@ public class DonDatPhong_Dao {
         sql.append("    ddp.maDDP, ddp.tinhTrang, ");
         sql.append("    kh.maKH, kh.hoTen AS tenKH, ");
         sql.append("    nv.maNV, nv.hoTen AS tenNV, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
+        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 120) AS ngayNhan, ");
+        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 120) AS ngayTra, ");
         sql.append("    ddp.tienCoc ");
         sql.append("FROM DonDatPhong ddp ");
         sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
@@ -152,8 +152,8 @@ public class DonDatPhong_Dao {
         sql.append("    kh.maKH, kh.hoTen AS tenKH, ");
         // sql.append(" kh.soDienThoai, kh.cccd, ");
         sql.append("    nv.maNV, nv.hoTen AS tenNV, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
+        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 120) AS ngayNhan, ");
+        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 120) AS ngayTra, ");
         sql.append("    ddp.tienCoc ");
         sql.append("FROM DonDatPhong ddp ");
         sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");
@@ -192,8 +192,8 @@ public class DonDatPhong_Dao {
         sql.append("    ddp.maDDP, ddp.tinhTrang, ");
         sql.append("    kh.maKH, kh.hoTen AS tenKH, ");
         sql.append("    nv.maNV, nv.hoTen AS tenNV, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 23) AS ngayNhan, ");
-        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 23) AS ngayTra, ");
+        sql.append("    CONVERT(VARCHAR, ddp.ngayNhan, 120) AS ngayNhan, ");
+        sql.append("    CONVERT(VARCHAR, ddp.ngayTra, 120) AS ngayTra, ");
         sql.append("    ddp.tienCoc ");
         sql.append("FROM DonDatPhong ddp ");
         sql.append("LEFT JOIN KhachHang kh ON ddp.maKH = kh.maKH ");

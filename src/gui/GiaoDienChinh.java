@@ -272,10 +272,14 @@ public class GiaoDienChinh extends JFrame {
         JPanel statCards = new JPanel(new GridLayout(1, 4, 16, 16));
         statCards.setOpaque(false);
 
-//        statCards.add(createStatCard("Phòng đang thuê", "24", new Color(227, 242, 253)));
-//        statCards.add(createStatCard("Khách hôm nay", "58", new Color(232, 245, 233)));
-//        statCards.add(createStatCard("Hóa đơn chờ xử lý", "12", new Color(255, 243, 224)));
-//        statCards.add(createStatCard("Doanh thu hôm nay", "18.5 triệu", new Color(252, 228, 236)));
+        // statCards.add(createStatCard("Phòng đang thuê", "24", new Color(227, 242,
+        // 253)));
+        // statCards.add(createStatCard("Khách hôm nay", "58", new Color(232, 245,
+        // 233)));
+        // statCards.add(createStatCard("Hóa đơn chờ xử lý", "12", new Color(255, 243,
+        // 224)));
+        // statCards.add(createStatCard("Doanh thu hôm nay", "18.5 triệu", new
+        // Color(252, 228, 236)));
         Phong_Dao phongDao = new Phong_Dao();
 
         DonDatPhong_Dao donDatPhongDao = new DonDatPhong_Dao();
@@ -312,18 +316,18 @@ public class GiaoDienChinh extends JFrame {
 
         JPanel center = new JPanel(new GridLayout(1, 2, 16, 16));
         center.setOpaque(false);
-//        center.add(createFeaturePanel("Truy cập nhanh", new String[] {
-//                "Đặt phòng mới",
-//                "Lập hóa đơn",
-//                "Tra cứu khách hàng",
-//                "Kiểm tra tình trạng phòng"
-//        }));
-//        center.add(createFeaturePanel("Thông báo hệ thống", new String[] {
-//                "3 phòng sắp trả trong hôm nay",
-//                "2 hóa đơn chưa thanh toán",
-//                "1 tài khoản nhân viên cần cấp quyền",
-//                "Có 5 yêu cầu cập nhật thông tin khách hàng"
-//        }));
+        // center.add(createFeaturePanel("Truy cập nhanh", new String[] {
+        // "Đặt phòng mới",
+        // "Lập hóa đơn",
+        // "Tra cứu khách hàng",
+        // "Kiểm tra tình trạng phòng"
+        // }));
+        // center.add(createFeaturePanel("Thông báo hệ thống", new String[] {
+        // "3 phòng sắp trả trong hôm nay",
+        // "2 hóa đơn chưa thanh toán",
+        // "1 tài khoản nhân viên cần cấp quyền",
+        // "Có 5 yêu cầu cập nhật thông tin khách hàng"
+        // }));
         DonDatPhong_Dao dao = new DonDatPhong_Dao();
 
         int soPhongSapTra = dao.demPhongSapTraHomNay();
@@ -332,8 +336,7 @@ public class GiaoDienChinh extends JFrame {
 
         center.add(createFeaturePanel(
                 "Thông báo hệ thống",
-                thongBao
-        ));
+                thongBao));
 
         JPanel bottom = createWelcomePanel();
 
@@ -372,8 +375,6 @@ public class GiaoDienChinh extends JFrame {
                 ds.add(phongSapTra + " phòng sắp trả hôm nay");
             }
 
-            
-
             if (phongBaoTri > 0) {
                 ds.add(phongBaoTri + " phòng đang bảo trì");
             }
@@ -392,7 +393,7 @@ public class GiaoDienChinh extends JFrame {
         return ds;
     }
 
-	private JPanel createWelcomePanel() {
+    private JPanel createWelcomePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -800,6 +801,27 @@ public class GiaoDienChinh extends JFrame {
         if (panel instanceof ThanhToan) {
             ThanhToan thanhToanPanel = (ThanhToan) panel;
             thanhToanPanel.loadDonThanhToan(maDDP);
+        }
+    }
+
+    public void moCheckInCheckOutTheoDon(String maDDP) {
+        String panelKey = "Xử lí/Check-in/Check-out";
+
+        JPanel panel = loadedPanels.get(panelKey);
+
+        if (panel == null) {
+            panel = CheckInCheckOut.createPanel();
+            panel.setBorder(BorderFactory.createEmptyBorder());
+            contentPanel.add(panel, panelKey);
+            loadedPanels.put(panelKey, panel);
+        }
+
+        cardLayout.show(contentPanel, panelKey);
+        updateAppTitle("Quản lý Check-in/Check-out");
+
+        if (panel instanceof CheckInCheckOut) {
+            CheckInCheckOut checkInCheckOutPanel = (CheckInCheckOut) panel;
+            checkInCheckOutPanel.chonDonTheoMaDDP(maDDP);
         }
     }
 }

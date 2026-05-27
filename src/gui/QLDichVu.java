@@ -35,7 +35,7 @@ public class QLDichVu extends JPanel {
     private static final Color BUTTON_DANGER = new Color(252, 230, 230);
 
     // Bộ lọc
- // Bộ lọc
+    // Bộ lọc
     private JTextField txtTimMaDV;
     private JTextField txtTimTenDV;
     private JTextField txtTimGia;
@@ -89,11 +89,9 @@ public class QLDichVu extends JPanel {
         txtTimTenDV = new JTextField();
         txtTimGia = new JTextField();
 
-
         styleTextField(txtTimMaDV);
         styleTextField(txtTimTenDV);
         styleTextField(txtTimGia);
-
 
         btnLamMoiTim = createButton("Làm mới");
 
@@ -122,9 +120,6 @@ public class QLDichVu extends JPanel {
         gbc.gridx = 5;
         gbc.weightx = 0.8;
         panel.add(txtTimGia, gbc);
-
-        
-
 
         gbc.gridx = 6;
         gbc.weightx = 0;
@@ -334,11 +329,12 @@ public class QLDichVu extends JPanel {
         txtGia.setText("");
         tblDichVu.clearSelection();
     }
+
     public void clearSearchForm() {
         txtTimMaDV.setText("");
         txtTimTenDV.setText("");
         txtTimGia.setText("");
-       
+
     }
 
     public JTextField getTxtTimMaDV() {
@@ -388,11 +384,10 @@ public class QLDichVu extends JPanel {
     public JButton getBtnLamMoiForm() {
         return btnLamMoiForm;
     }
+
     public JTextField getTxtTimGia() {
         return txtTimGia;
     }
-
-
 
     public static JPanel createPanel() {
         QLDichVu panel = new QLDichVu();

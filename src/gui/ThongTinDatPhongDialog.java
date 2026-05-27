@@ -4,9 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -20,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import gui.GiaoDienChinh;
 import entity.DonDatPhong;
 
 public class ThongTinDatPhongDialog extends JDialog {
@@ -66,10 +70,10 @@ public class ThongTinDatPhongDialog extends JDialog {
 
         center.add(createThongTinPhongPanel());
         center.add(Box.createVerticalStrut(12));
-        
+
         center.add(createThongTinKhachHangPanel());
         center.add(Box.createVerticalStrut(12));
-        
+
         center.add(createThongTinDatPhongPanel());
 
         JScrollPane scrollPane = new JScrollPane(center);
@@ -86,12 +90,10 @@ public class ThongTinDatPhongDialog extends JDialog {
         addRow(panel, 0, "Mã KH:", createValueLabel(nullToEmpty(room.getMaKH())),
                 "Tên KH:", createValueLabel(nullToEmpty(room.getTenKH())));
 
-      
-
         return panel;
     }
 
-	private JPanel createThongTinPhongPanel() {
+    private JPanel createThongTinPhongPanel() {
         JPanel panel = createSectionPanel("Chi tiết phòng");
 
         addRow(panel, 0, "Mã phòng:", createValueLabel(nullToEmpty(room.getMaPhong())),
@@ -99,12 +101,11 @@ public class ThongTinDatPhongDialog extends JDialog {
 
         addRow(panel, 1, "Giá phòng:", createValueLabel(String.valueOf(room.getGiaPhong())),
                 "Số người tối đa:", createValueLabel(String.valueOf(room.getSoNguoiToiDa())));
-        
 
         return panel;
     }
-    
-	private JPanel createThongTinDatPhongPanel() {
+
+    private JPanel createThongTinDatPhongPanel() {
         JPanel panel = createSectionPanel("Chi tiết đơn đặt phòng");
 
         txtNgayNhan = createTextField(nullToEmpty(room.getNgayNhan()));
@@ -123,16 +124,20 @@ public class ThongTinDatPhongDialog extends JDialog {
         return panel;
     }
 
-
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
 
-        
+        if (isQuaHan()) {
+            JButton btnTraPhong = createButton("Trả phòng", PRIMARY, Color.BLACK);
+            btnTraPhong.setForeground(Color.BLACK);
+            btnTraPhong.addActionListener(e -> xuLyTraPhong());
+            panel.add(btnTraPhong);
+        }
+
         JButton btnDong = createButton("Đóng", new Color(235, 238, 243), Color.BLACK);
 
         btnDong.addActionListener(e -> dispose());
-
 
         panel.add(btnDong);
 
@@ -144,8 +149,7 @@ public class ThongTinDatPhongDialog extends JDialog {
         panel.setBackground(PANEL_BG);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER),
-                new EmptyBorder(14, 14, 14, 14)
-        ));
+                new EmptyBorder(14, 14, 14, 14)));
 
         JLabel lblTitle = new JLabel(title);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 17));
@@ -207,8 +211,7 @@ public class ThongTinDatPhongDialog extends JDialog {
         lbl.setBackground(new Color(248, 250, 253));
         lbl.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER),
-                new EmptyBorder(8, 10, 8, 10)
-        ));
+                new EmptyBorder(8, 10, 8, 10)));
         lbl.setPreferredSize(new Dimension(180, 34));
         return lbl;
     }
@@ -219,8 +222,7 @@ public class ThongTinDatPhongDialog extends JDialog {
         txt.setPreferredSize(new Dimension(180, 34));
         txt.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(BORDER),
-                new EmptyBorder(6, 10, 6, 10)
-        ));
+                new EmptyBorder(6, 10, 6, 10)));
         return txt;
     }
 
@@ -246,6 +248,44 @@ public class ThongTinDatPhongDialog extends JDialog {
     private void xuLyThemDichVu() {
         themDichVu = true;
         dispose();
+    }
+
+    private void xuLyTraPhong() {
+        GiaoDienChinh main = findMainFrame();
+
+        if (main != null) {
+            main.moCheckInCheckOutTheoDon(room.getMaDDP());
+            dispose();
+            return;
+        }
+
+        JOptionPane.showMessageDialog(this, "Không tìm thấy giao diện chính để mở màn hình trả phòng.");
+    }
+
+    private GiaoDienChinh findMainFrame() {
+        for (Frame frame : Frame.getFrames()) {
+            if (frame instanceof GiaoDienChinh && frame.isDisplayable()) {
+                return (GiaoDienChinh) frame;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isQuaHan() {
+        String ngayTra = nullToEmpty(room.getNgayTra()).trim();
+
+        if (ngayTra.isEmpty()) {
+            return false;
+        }
+
+        try {
+            LocalDateTime ngayTraParsed = LocalDateTime.parse(ngayTra,
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            return LocalDateTime.now().isAfter(ngayTraParsed);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isUpdated() {
