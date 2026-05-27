@@ -511,6 +511,18 @@ public class ThanhToanDialog extends JDialog {
         modelDichVu.setRowCount(0);
     }
 
+    public void hienThiTienThuaTheoTienCoc(double tienThua) {
+        if (tienThua > 0) {
+            lblTienThua.setText("Thừa " + formatMoney(tienThua) + " VNĐ");
+        } else {
+            lblTienThua.setText("");
+        }
+    }
+
+    private String formatMoney(double amount) {
+        return String.format("%,.0f", amount).replace(',', '.');
+    }
+
     public JLabel getLblMaDDP() {
         return lblMaDDP;
     }

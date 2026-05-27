@@ -649,9 +649,8 @@ public class DonDatPhongDialog extends JDialog {
             return true;
         }
 
-        long phutNgayNhan = ngayNhan.getTime() / 60000L;
-        long phutHienTai = System.currentTimeMillis() / 60000L;
-        return phutNgayNhan < phutHienTai;
+        long nowMinus30Minutes = System.currentTimeMillis() - 30L * 60L * 1000L;
+        return ngayNhan.getTime() < nowMinus30Minutes;
     }
 
     public boolean isSucceeded() {

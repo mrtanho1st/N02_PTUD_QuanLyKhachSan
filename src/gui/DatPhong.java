@@ -125,7 +125,6 @@ public class DatPhong extends JPanel {
         styleTextField(txtTimMaPhong);
 
         cboLoaiPhong = new JComboBox<>();
-        
 
         cboTrangThai = new JComboBox<>(new String[] {
                 "Tất cả", "Trống", "Đã đặt", "Đang sử dụng", "Quá hạn", "Bảo trì"

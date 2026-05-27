@@ -217,9 +217,14 @@ public class HoaDonController {
         tienPhat = 0;
         Date ngayLapHD = toDate(thongTinHD[1]);
         Date ngayTra = toDate(thongTinHD[10]);
+        Date thoiDiemTinhPhat = ngayLapHD;
 
-        if (ngayTra != null && ngayLapHD != null && ngayLapHD.after(ngayTra) && dsPhong != null) {
-            long minutesOver = (ngayLapHD.getTime() - ngayTra.getTime()) / 60000L;
+        if (ngayLapHD != null && ngayTra != null && isCungNgay(ngayLapHD, ngayTra)) {
+            thoiDiemTinhPhat = new Date();
+        }
+
+        if (ngayTra != null && thoiDiemTinhPhat != null && thoiDiemTinhPhat.after(ngayTra) && dsPhong != null) {
+            long minutesOver = (thoiDiemTinhPhat.getTime() - ngayTra.getTime()) / 60000L;
 
             if (minutesOver < 0) {
                 minutesOver = 0;
@@ -283,6 +288,15 @@ public class HoaDonController {
         }
         view.getLblTienPhaiTra().setText(formatMoney(tienPhaiTra) + " VNĐ");
 
+    }
+
+    private boolean isCungNgay(Date ngay1, Date ngay2) {
+        if (ngay1 == null || ngay2 == null) {
+            return false;
+        }
+
+        SimpleDateFormat sameDayFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return sameDayFormat.format(ngay1).equals(sameDayFormat.format(ngay2));
     }
 
     private double tinhTienPhongTheoThoiGian(Date ngayNhan, Date ngayTra, double giaPhong) {

@@ -52,6 +52,7 @@ public class ThanhToanController {
     private double tienPhat = 0;
     private double tongTien = 0;
     private double canThanhToan = 0;
+    private double tienThuaTienCoc = 0;
 
     private ThanhToanDialog dialog;
 
@@ -589,7 +590,9 @@ public class ThanhToanController {
             }
         }
 
-        canThanhToan = tongTien - tienCoc - giamGia + tienThue;
+        double tongTienSauTienCoc = tongTien - giamGia + tienThue;
+        tienThuaTienCoc = Math.max(0, tienCoc - tongTienSauTienCoc);
+        canThanhToan = tongTienSauTienCoc - tienCoc;
 
         if (canThanhToan < 0) {
             canThanhToan = 0;
@@ -609,6 +612,7 @@ public class ThanhToanController {
         dialog.getLblGiamGia().setText(formatMoney(giamGia) + " VNĐ");
         dialog.getLblTienThue().setText(formatMoney(tienThue) + " VNĐ");
         dialog.getLblCanThanhToan().setText(formatMoney(canThanhToan) + " VNĐ");
+        dialog.hienThiTienThuaTheoTienCoc(tienThuaTienCoc);
     }
 
     private void capNhatGiaoDienPhuongThuc() {
@@ -620,7 +624,7 @@ public class ThanhToanController {
 
         if ("Tiền mặt".equalsIgnoreCase(phuongThuc)) {
             dialog.hienThiTienMat();
-            dialog.getLblTienThua().setText("");
+            dialog.hienThiTienThuaTheoTienCoc(tienThuaTienCoc);
         } else {
             dialog.hienThiChuyenKhoan();
 
@@ -645,25 +649,25 @@ public class ThanhToanController {
         String phuongThuc = dialog.getPhuongThucThanhToan();
 
         if (!"Tiền mặt".equalsIgnoreCase(phuongThuc)) {
-            dialog.getLblTienThua().setText("0 VNĐ");
+            dialog.hienThiTienThuaTheoTienCoc(tienThuaTienCoc);
             return;
         }
 
         String khachDuaText = dialog.getTxtKhachDua().getText().trim();
 
         if (khachDuaText.isEmpty()) {
-            dialog.getLblTienThua().setText("");
+            dialog.hienThiTienThuaTheoTienCoc(tienThuaTienCoc);
             return;
         }
 
         try {
             double khachDua = Double.parseDouble(khachDuaText);
-            double tienThua = khachDua - canThanhToan;
+            double tienThua = tienThuaTienCoc + (khachDua - canThanhToan);
 
             if (tienThua < 0) {
                 dialog.getLblTienThua().setText("Thiếu " + formatMoney(Math.abs(tienThua)) + " VNĐ");
             } else {
-                dialog.getLblTienThua().setText(formatMoney(tienThua) + " VNĐ");
+                dialog.getLblTienThua().setText("Thừa " + formatMoney(tienThua) + " VNĐ");
             }
 
         } catch (NumberFormatException e) {

@@ -1,6 +1,7 @@
 package gui;
 
 import java.io.FileOutputStream;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -26,6 +27,12 @@ import com.itextpdf.text.Image;
 public class HoaDonPdfExporter {
 
     private static final NumberFormat moneyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+
+    static {
+        moneyFormat.setMaximumFractionDigits(0);
+        moneyFormat.setMinimumFractionDigits(0);
+        moneyFormat.setRoundingMode(RoundingMode.HALF_UP);
+    }
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
@@ -119,9 +126,14 @@ public class HoaDonPdfExporter {
         double tienPhat = 0;
         try {
             Date ngayLapDate = (Date) thongTinHD[1];
+            Date thoiDiemTinhPhat = ngayLapDate;
 
-            if (ngayTraDate != null && ngayLapDate != null && ngayLapDate.after(ngayTraDate)) {
-                long minutesOver = (ngayLapDate.getTime() - ngayTraDate.getTime()) / 60000L;
+            if (ngayLapDate != null && ngayTraDate != null && isCungNgay(ngayLapDate, ngayTraDate)) {
+                thoiDiemTinhPhat = new Date();
+            }
+
+            if (ngayTraDate != null && thoiDiemTinhPhat != null && thoiDiemTinhPhat.after(ngayTraDate)) {
+                long minutesOver = (thoiDiemTinhPhat.getTime() - ngayTraDate.getTime()) / 60000L;
 
                 if (minutesOver < 0) {
                     minutesOver = 0;
@@ -431,7 +443,11 @@ public class HoaDonPdfExporter {
     }
 
     private static String formatMoney(double amount) {
-        return moneyFormat.format(amount);
+        return moneyFormat.format(roundMoney(amount));
+    }
+
+    private static long roundMoney(double amount) {
+        return Math.round(amount);
     }
 
     private static Date toDate(Object value) {
@@ -502,7 +518,7 @@ public class HoaDonPdfExporter {
     }
 
     private static String taoLinkVietQR(double soTien, String noiDung) {
-        String amount = String.valueOf((long) soTien);
+        String amount = String.valueOf(roundMoney(soTien));
 
         String cleanNoiDung = noiDung
                 .replaceAll("[^a-zA-Z0-9 ]", "")
@@ -519,5 +535,14 @@ public class HoaDonPdfExporter {
                 + "?amount=" + amount
                 + "&addInfo=" + cleanNoiDung.replace(" ", "%20")
                 + "&accountName=" + ACCOUNT_NAME.replace(" ", "%20");
+    }
+
+    private static boolean isCungNgay(Date ngay1, Date ngay2) {
+        if (ngay1 == null || ngay2 == null) {
+            return false;
+        }
+
+        SimpleDateFormat sameDayFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return sameDayFormat.format(ngay1).equals(sameDayFormat.format(ngay2));
     }
 }

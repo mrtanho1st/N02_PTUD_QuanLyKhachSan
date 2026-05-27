@@ -685,10 +685,11 @@ public class DonDatPhong_Dao {
 
         LocalDateTime thoiGianNhan = ngayNhan.toLocalDateTime()
                 .truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
-        LocalDateTime hienTai = LocalDateTime.now()
+        LocalDateTime gioiHanChoPhep = LocalDateTime.now()
+                .minusMinutes(30)
                 .truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
 
-        return thoiGianNhan.isBefore(hienTai);
+        return thoiGianNhan.isBefore(gioiHanChoPhep);
     }
 
     private boolean isKhoangThoiGianHopLe(String ngayNhan, String ngayTra) {
