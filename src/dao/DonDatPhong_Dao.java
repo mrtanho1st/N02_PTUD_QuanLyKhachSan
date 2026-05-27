@@ -298,6 +298,10 @@ public class DonDatPhong_Dao {
                 return false;
             }
 
+            if (isNgayNhanTrongQuaKhu(ngayNhan)) {
+                return false;
+            }
+
             if (!isKhoangThoiGianHopLe(ngayNhan, ngayTra)) {
                 return false;
             }
@@ -672,6 +676,19 @@ public class DonDatPhong_Dao {
         }
 
         return Duration.between(ngayNhan.toLocalDateTime(), ngayTra.toLocalDateTime()).toMinutes() >= 60;
+    }
+
+    private boolean isNgayNhanTrongQuaKhu(java.sql.Timestamp ngayNhan) {
+        if (ngayNhan == null) {
+            return true;
+        }
+
+        LocalDateTime thoiGianNhan = ngayNhan.toLocalDateTime()
+                .truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
+        LocalDateTime hienTai = LocalDateTime.now()
+                .truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
+
+        return thoiGianNhan.isBefore(hienTai);
     }
 
     private boolean isKhoangThoiGianHopLe(String ngayNhan, String ngayTra) {

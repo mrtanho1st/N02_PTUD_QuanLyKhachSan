@@ -316,15 +316,23 @@ public class CheckInCheckOutController {
             return;
         }
 
-        // Kiểm tra thời gian: hiện tại phải >= thời gian nhận phòng
+        // Kiểm tra thời gian: chỉ cho phép check-in khi hiện tại trong khoảng ±30 phút
+        // so với thời gian nhận phòng
         String ngayNhanText = view.getLblCheckInDuKien().getText().trim();
         LocalDateTime ngayNhanParsed = parseNgayGio(ngayNhanText);
         if (ngayNhanParsed != null) {
             LocalDateTime now = LocalDateTime.now();
-            if (now.isBefore(ngayNhanParsed)) {
-                JOptionPane.showMessageDialog(view, "Chưa đến thời gian nhận phòng");
+            long minutesDiff = Duration.between(ngayNhanParsed, now).toMinutes(); // now - ngayNhan
+            // minutesDiff < 0 => hiện tại trước thời gian nhận phòng (sớm)
+            // cho phép sớm tối đa 30 phút (nghĩa là nếu now trước hơn scheduled >30 phút
+            // thì chặn)
+            if (minutesDiff < -30) {
+                JOptionPane.showMessageDialog(view,
+                        "Chưa đến thời gian nhận phòng (chỉ cho phép đến sớm tối đa 30 phút).");
                 return;
             }
+            // nếu minutesDiff >= -30 (bao gồm trễ nhiều phút) thì cho phép (không giới hạn
+            // trễ)
         }
 
         int confirm = JOptionPane.showConfirmDialog(

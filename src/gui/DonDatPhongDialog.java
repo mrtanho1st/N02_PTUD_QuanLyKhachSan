@@ -1,5 +1,10 @@
 package gui;
 
+import dao.KhachHang_Dao;
+import entity.DichVu;
+import entity.KhachHang;
+import entity.NhanVien;
+import entity.Phong;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -14,11 +19,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -34,19 +37,12 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-
-import entity.DichVu;
-import entity.NhanVien;
-import entity.Phong;
-
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import dao.KhachHang_Dao;
-import entity.KhachHang;
+import javax.swing.table.DefaultTableModel;
 
 public class DonDatPhongDialog extends JDialog {
+
     private static final long serialVersionUID = 1L;
 
     private static final Color APP_BG = new Color(242, 246, 252);
@@ -294,7 +290,6 @@ public class DonDatPhongDialog extends JDialog {
         // ngày nhận/ngày trả.");
         // note.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         // note.setForeground(new Color(160, 80, 40));
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -313,10 +308,12 @@ public class DonDatPhongDialog extends JDialog {
         modelDichVu = new DefaultTableModel(cols, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 0)
+                if (columnIndex == 0) {
                     return Boolean.class;
-                if (columnIndex == 4)
+                }
+                if (columnIndex == 4) {
                     return Integer.class;
+                }
                 return String.class;
             }
 
@@ -511,6 +508,12 @@ public class DonDatPhongDialog extends JDialog {
         Date ngayNhan = getNgayNhan();
         Date ngayTra = getNgayTra();
 
+        if (isNgayNhanTrongQuaKhu(ngayNhan)) {
+            JOptionPane.showMessageDialog(this,
+                    "Thời gian check-in không được trước quá 30 phút so với thời gian hiện tại.");
+            return;
+        }
+
         if (!ngayTra.after(ngayNhan)) {
             JOptionPane.showMessageDialog(this, "Thời gian check-out phải sau check-in.");
             return;
@@ -641,6 +644,16 @@ public class DonDatPhongDialog extends JDialog {
         }
     }
 
+    private boolean isNgayNhanTrongQuaKhu(Date ngayNhan) {
+        if (ngayNhan == null) {
+            return true;
+        }
+
+        long diffMinutes = (ngayNhan.getTime() - System.currentTimeMillis()) / 60000L;
+        // Nếu thời gian nhận phòng trước hiện tại quá 30 phút => không hợp lệ
+        return diffMinutes < -30;
+    }
+
     public boolean isSucceeded() {
         return succeeded;
     }
@@ -692,6 +705,7 @@ public class DonDatPhongDialog extends JDialog {
     }
 
     public static class DichVuDatTruoc {
+
         private final String maDV;
         private final String tenDV;
         private final int soLuong;
