@@ -16,6 +16,7 @@ public class Phong_Dao {
         List<Phong> list = new ArrayList<>();
         String sql = "SELECT p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, "
                 + "CASE "
+                + "    WHEN p.trangThaiPhong = N'Bảo trì' THEN N'Bảo trì' "
                 + "    WHEN EXISTS ( "
                 + "        SELECT 1 "
                 + "        FROM CTDonDatPhong ct "
@@ -59,6 +60,7 @@ public class Phong_Dao {
     public Phong findById(String maPhong) {
         String sql = "SELECT p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, "
                 + "CASE "
+                + "    WHEN p.trangThaiPhong = N'Bảo trì' THEN N'Bảo trì' "
                 + "    WHEN EXISTS ( "
                 + "        SELECT 1 "
                 + "        FROM CTDonDatPhong ct "
@@ -260,6 +262,7 @@ public class Phong_Dao {
                         p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong,
 
                         CASE
+                            WHEN p.trangThaiPhong = N'Bảo trì' THEN N'Bảo trì'
                             WHEN EXISTS (
                                 SELECT 1
                                 FROM CTDonDatPhong ct
@@ -400,6 +403,7 @@ public class Phong_Dao {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT p.maPhong, p.loaiPhong, p.soNguoiToiDa, p.giaPhong, ");
         sql.append("CASE ");
+        sql.append("    WHEN p.trangThaiPhong = N'Bảo trì' THEN N'Bảo trì' ");
         sql.append("    WHEN EXISTS ( ");
         sql.append("        SELECT 1 ");
         sql.append("        FROM CTDonDatPhong ct ");
@@ -492,22 +496,22 @@ public class Phong_Dao {
                 rs.getDouble("giaPhong"),
                 rs.getString("trangThaiPhong"));
     }
-    //dùng cho trang chủ
+
+    // dùng cho trang chủ
     public int demPhongDangSuDung() {
 
         int count = 0;
 
         String sql = """
-            SELECT COUNT(*)
-            FROM Phong
-            WHERE trangThaiPhong = N'Đang sử dụng'
-        """;
+                    SELECT COUNT(*)
+                    FROM Phong
+                    WHERE trangThaiPhong = N'Đang sử dụng'
+                """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement stmt = con.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 count = rs.getInt(1);
@@ -519,22 +523,21 @@ public class Phong_Dao {
 
         return count;
     }
-    
+
     public int demPhongBaoTri() {
 
         int count = 0;
 
         String sql = """
-            SELECT COUNT(*)
-            FROM Phong
-            WHERE trangThaiPhong = N'Bảo trì'
-        """;
+                    SELECT COUNT(*)
+                    FROM Phong
+                    WHERE trangThaiPhong = N'Bảo trì'
+                """;
 
         try (
-            Connection con = ConnectDB.getConnection();
-            PreparedStatement stmt = con.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
+                Connection con = ConnectDB.getConnection();
+                PreparedStatement stmt = con.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
 
             if (rs.next()) {
                 count = rs.getInt(1);
